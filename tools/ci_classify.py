@@ -1,0 +1,109 @@
+"""tools.ci_classify — MEASURE which tests need the desk's data, instead of listing them by hand.
+
+WHY THIS EXISTS. The first two GitHub Actions runs showed that much of tools/tests was written against
+the desk's live data -- the real journal, the real submit ledger, the real platform catalogue -- and
+cannot run on a clean runner. A test that fails on a clean runner is either DATA-BOUND or GENUINELY
+RED, and the two must never be confused: deselecting a red test as "data-bound" is how a gate learns to
+lie. So the classification is an experiment with two arms, run on the same code:
+
+    arm DATA   this working tree, with state/ and fetched/ present
+    arm CLEAN  a clone of the pipeline repository, with neither
+
+    data-bound  = fails in CLEAN, passes in DATA        -> hosted CI skips it, NAMED, with the reason
+    red         = fails in DATA                         -> never skipped; it blocks everywhere
+    hermetic    = passes in CLEAN                       -> hosted CI runs it
+
+The result is written to tools/ci_data_bound.json with the method and the timestamp, and
+tools/ci_gate.py reads it. Re-run this whenever tests change; the gate compares a CONTENT hash of the
+test files with the one recorded here and warns when they differ (mtimes mean nothing on a fresh clone).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import pathlib
+import re
+import subprocess
+import sys
+import time
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+OUT = ROOT / "tools/ci_data_bound.json"
+SUITES = ["forge/tests", "tools/tests"]
+# never collected by either arm: they need 150 MB of data at import and are listed in ci_gate.DATA_BOUND
+ALWAYS_IGNORED = ["forge/tests/test_llm_author.py", "forge/tests/test_llm_formula.py"]
+
+_LINE = re.compile(r"^(FAILED|ERROR) (\S+)")
+
+
+def run_arm(cwd: pathlib.Path, python: str) -> dict:
+    """{'failed': set(nodeids), 'collect_errors': set(files), 'summary': str} for one arm."""
+    argv = [python, "-m", "pytest", *SUITES, "-q", "--no-header", "-rfE", "-p", "no:cacheprovider",
+            "--continue-on-collection-errors"]
+    for f in ALWAYS_IGNORED:
+        argv += ["--ignore", f]
+    r = subprocess.run(argv, cwd=str(cwd), capture_output=True, text=True, timeout=3600)
+    failed, collect = set(), set()
+    for line in (r.stdout or "").splitlines():
+        m = _LINE.match(line)
+        if not m:
+            continue
+        node = m.group(2)
+        if "::" in node:
+            failed.add(node)
+        else:
+            collect.add(node)            # a whole file failed to import
+    tail = [l for l in (r.stdout or "").splitlines() if re.search(r"\d+ (passed|failed)", l)]
+    return {"failed": failed, "collect_errors": collect, "summary": tail[-1] if tail else ""}
+
+
+def classify(data: dict, clean: dict) -> dict:
+    red = sorted(data["failed"] | data["collect_errors"])
+    data_bound_nodes = sorted(clean["failed"] - data["failed"])
+    data_bound_files = sorted(clean["collect_errors"] - data["collect_errors"])
+    return {"red": red, "deselect": data_bound_nodes, "ignore_files": data_bound_files}
+
+
+def tests_hash(root=ROOT) -> str:
+    """Content hash of every test file the classification covers -- mtimes are useless on a fresh checkout."""
+    import hashlib
+    h = hashlib.sha256()
+    for d in SUITES:
+        for p in sorted((root / d).rglob("test_*.py")):
+            h.update(str(p.relative_to(root)).encode())
+            h.update(p.read_bytes())
+    return h.hexdigest()[:16]
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--clean", required=True, help="path to a clean clone of the pipeline repository")
+    ap.add_argument("--clean-python", required=True, help="the clean clone's interpreter (a bare venv)")
+    a = ap.parse_args(argv)
+    t0 = time.time()
+    data = run_arm(ROOT, sys.executable)
+    clean = run_arm(pathlib.Path(a.clean), a.clean_python)
+    c = classify(data, clean)
+    record = {
+        "measured_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "seconds": round(time.time() - t0),
+        "method": "two-arm run of the same code: DATA (working tree with state/ and fetched/) vs CLEAN "
+                  "(fresh clone, bare venv with pytest+pyyaml+requests). data-bound = fails CLEAN and "
+                  "passes DATA; red = fails DATA.",
+        "tests_hash": tests_hash(),
+        "arm_data": data["summary"], "arm_clean": clean["summary"],
+        **c,
+    }
+    OUT.write_text(json.dumps(record, indent=1) + "\n")
+    print("DATA : %s" % data["summary"])
+    print("CLEAN: %s" % clean["summary"])
+    print("red (blocks everywhere): %d" % len(c["red"]))
+    for n in c["red"]:
+        print("   ", n)
+    print("data-bound tests: %d | data-bound files (fail at import): %d" % (len(c["deselect"]), len(c["ignore_files"])))
+    print("written:", OUT)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

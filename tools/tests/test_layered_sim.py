@@ -68,6 +68,20 @@ class FakeResp:
         return self._body
 
 
+class ProcessDied(BaseException):
+    """A process death, not a network error. It must derive from BaseException.
+
+    MEASURED 2026-09-23: this fake used to raise RuntimeError, and on 2026-09-08 18:35 the dispatcher
+    gained `_post_patient`, which retries a POST that raises any Exception (an SSL error had killed a
+    300-simulation round). From then on the fake's "crash" was just a transient error: the retry
+    absorbed it, the run carried on through 6 POSTs, and this test sat red for two weeks asserting a
+    raise that could no longer happen -- while the property it guards (every row flushed before the
+    next POST) was intact the whole time, re-measured by running the test body without the raise.
+    A real death (SIGKILL, os._exit, a reboot) is not retried by anything; BaseException passes through
+    `except Exception` exactly as that does.
+    """
+
+
 class FakePlatform:
     """A WorldQuant that never touches a socket. It records the SHAPE of what the client asked for.
 
@@ -95,7 +109,7 @@ class FakePlatform:
         self.posts.append(json)
         i = len(self.posts)
         if self.crash_at_post == i:
-            raise RuntimeError("the process died mid-batch")
+            raise ProcessDied("the process died mid-batch")
         if self.daily_after == i:
             self.n_429 += 1
             return FakeResp(429, text="SIMULATION_LIMIT_EXCEEDED: DAILY limit reached")
@@ -382,7 +396,7 @@ def test_a_crash_mid_batch_loses_no_journalled_row(monkeypatch, tmp_path):
         return real_post(url, json=json, timeout=timeout)
     monkeypatch.setattr(fake, "post", post)
 
-    with pytest.raises(RuntimeError, match="died mid-batch"):
+    with pytest.raises(ProcessDied, match="died mid-batch"):
         LS.run(50, seed=1, out_path=out_path, live=True, concurrency=1, children=10,
                out=lambda *a: None)
 

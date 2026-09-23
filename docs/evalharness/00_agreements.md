@@ -159,3 +159,25 @@ minter calls, placed BEFORE the hourly gate so a quiet-hours refusal never burns
 minter. `--force` (the operator asking) is untouched. A test fails if the two copies of the window ever
 disagree. First night it can be observed: 2026-09-23 01:00–06:00; the check is the mint budget, which
 should not move inside that window unless Khoa forces a link.
+
+## D23 (Khoa, 2026-09-23 ~10:00): the unit-model test stays red and CI keeps blocking
+
+`tools/tests/test_layered.py::test_the_model_names_the_operator_the_platform_named` fails on 20 forge rows
+(12 formulas, hypothesis `bold_x_ivspread`, simulated 2026-09-10) where the platform reported
+`Incompatible unit for input of "subtract" ... expected "Unit[CSShare:1]", found "Unit[]"`. The live
+pre-sim type gate (`forge.typed.judge`, structural) PASSED all 12: the label file calls both
+`count_positive_bold_estimates_quarterly_eps_long_2` and `count_negative_bold_estimates_quarterly_eps_long`
+`unit=count`, while the platform gives one a unit and the other none. Why: UNKNOWN. Measured impact is low
+(UNITS is a non-blocking WARNING; the rows failed LOW_SHARPE/LOW_FITNESS anyway). Offered: monitor-only,
+correct the label file (a live-gate change under RULE 2), a 14-day quarantine, or leave it red. Khoa chose
+**leave it red, CI keeps blocking.**
+
+Because that test fails only with the desk's data, a hosted runner cannot see it; `tools/ci_gate.py`
+`check_known_red` therefore blocks the hermetic tier on the classification's record of it, so GitHub
+never shows green while a measured-red test exists.
+
+The OTHER red test was not a decision: `test_a_crash_mid_batch_loses_no_journalled_row` had gone stale when
+`_post_patient` (2026-09-08 18:35) began retrying any Exception from a POST, turning the fake's "crash"
+into a transient error. The property it guards was re-measured intact (the test body run without the
+raise: 20 rows on disk mid-run, all whole). The fake now raises a BaseException subclass, which models a
+process death rather than a network error, and a mutation that removes the per-row flush turns it red.
