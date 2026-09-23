@@ -93,7 +93,10 @@ def sync(out=print):
         dst = CI / p
         dst.parent.mkdir(parents=True, exist_ok=True)
         if src.is_dir():
-            sh(["rsync", "-rc", *ex, str(src) + "/", str(dst) + "/"])
+            # --delete: a file removed from the dev tree must leave the CI repository too. The first
+            # publish left tools/ci_baseline.json behind (552 files on CI, 551 here). Excluded names
+            # (caches) are protected from deletion; the venv sits outside every synced directory.
+            sh(["rsync", "-rc", "--delete", *ex, str(src) + "/", str(dst) + "/"])
         else:
             sh(["cp", str(src), str(dst)])
 

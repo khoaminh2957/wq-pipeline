@@ -80,7 +80,10 @@ def code_version(root=ROOT) -> str:
     that made a hermetic test data-bound (or red) left the classification looking current."""
     sys.path.insert(0, str(root / "tools"))
     import deploy as D
-    return D.version_id(D.content_hashes(D.file_map(root)))
+    # the classification's own output is not code under test: hashing it made every classification
+    # stale the moment it was written (the first publish run showed exactly that warning on CI)
+    fmap = {k: v for k, v in D.file_map(root).items() if k != "tools/ci_data_bound.json"}
+    return D.version_id(D.content_hashes(fmap))
 
 
 def main(argv=None) -> int:
