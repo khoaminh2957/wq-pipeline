@@ -275,6 +275,15 @@ def _give_hour_back(force):
         pass
 
 
+#: Quiet hours, local time, half-open [start, end). vps/auth_daemon.py carries the same two numbers
+#: for its own timer; tools/tests/test_auth_quiet_hours.py fails if the two ever disagree.
+QUIET_START_H, QUIET_END_H = 1, 6
+
+
+def in_quiet_hours(now=None) -> bool:
+    return QUIET_START_H <= time.localtime(now if now is not None else time.time()).tm_hour < QUIET_END_H
+
+
 def mint(force=False, quiet=False):
     # DO NOT MINT INTO A LIVE SESSION.
     #
@@ -299,6 +308,18 @@ def mint(force=False, quiet=False):
         # refusal after taking it burned the hour for every other minter (measured 2026-09-04).
         if not quiet:
             print("phien con song; khong mint (top-up la viec cua daemon)")
+        return 0
+
+    if not force and in_quiet_hours():
+        # QUIET HOURS, Khoa 2026-09-22: "cac khoang tu 1-6h se ko tu spam link va so link do de danh
+        # vao nhung truong hop can thiet". The first implementation lived only in auth_daemon's
+        # mint_gap() -- and this function is ALSO called by the wq-mint.timer every minute and by
+        # forge_loop.sh every round, neither of which passes through the daemon. MEASURED 2026-09-23:
+        # 8 routine mints between 23:25 and 09:00 against at most 4 the rule allows. Here is the one
+        # place every routine minter passes through. Refused BEFORE OB_GATE, so a quiet-hours refusal
+        # never burns the hour for anyone. --force (the operator asking) is untouched, by design.
+        if not quiet:
+            print("gio yen %02d:00-%02d:00; khong tu mint (--force van mint duoc)" % (QUIET_START_H, QUIET_END_H))
         return 0
 
     if not force and not OB_GATE():

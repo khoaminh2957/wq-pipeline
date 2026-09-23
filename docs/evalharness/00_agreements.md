@@ -111,15 +111,23 @@ is caught; an IV-spread against a profitability ratio scores 0.200 and is not.
 
 ## Open items found while building, not yet decided
 
-**A test has been red for two weeks and nothing reported it.** `tools/tests/test_layered_sim.py::
+**Two tests have been red for weeks and nothing reported it.** `tools/tests/test_layered_sim.py::
 test_a_crash_mid_batch_loses_no_journalled_row` fails: it asserts the dispatcher raises RuntimeError
 mid-batch and it does not raise. Both `tools/layered_sim.py` and its test were last modified
 2026-09-08 18:39, so the failure long predates this session — MEASURED by mtime and by the fact that
 nothing in this session touched either file. The full suite is 1,024 tests, of which 1,023 pass; the
 215-test `forge/tests` subset that everyone runs by hand is entirely green, which is why nobody saw it.
 
+The CI gate's FIRST run (2026-09-23) found a second one:
+`tools/tests/test_layered.py::test_the_model_names_the_operator_the_platform_named` asserts the
+operator model would have prevented every journalled warning and finds 20 it would not. That file was
+last modified 2026-08-13 -- SIX WEEKS red. Its traceback still names `/Users/kanenguyen/wq_pipeline/`,
+the path this repository moved away from, so it may be reading a stale tree as well.
+
 This is the argument for the CI the goal asks for, stated as a measurement rather than a principle:
-the desk's manual habit cannot see a red test outside the subset it habitually runs.
+the desk's manual habit cannot see a red test outside the subset it habitually runs, and the very
+first automated run found two that had been invisible for two and six weeks. The gate blocked the
+commit of the person who wrote it, which is the only way to know a gate works.
 
 It also constrains the CI design. A gate on the FULL suite would be red on the first commit, so one
 of three things must be true before CI can enforce green: the dispatcher test is fixed, or it is
@@ -128,3 +136,26 @@ starts on `forge/tests` and widens. Khoa decides; nothing here picks one.
 
 The failing test guards a real property — that a crash mid-batch loses no journalled row — on the one
 file that spends quota. Fixing it is not cosmetic, and it is not in this session's scope.
+
+## Correction (2026-09-23 09:05): the quiet-hours rule was only one-third implemented
+
+Khoa, 2026-09-22 23:4x: "các khoảng từ 1-6h sẽ ko tự spam link và số link đó để dành vào những trường
+hợp cần thiết". I implemented it in `vps/auth_daemon.py:mint_gap()` and reported it as done. It was not.
+There are THREE routine minters, and only one passes through that function:
+
+| minter | passes through the daemon's mint_gap? |
+|---|---|
+| `auth_daemon.py` | yes |
+| `wq-mint.timer` → `tools/mint_link.py --quiet`, every **minute** | no |
+| `forge_loop.sh:47` → `tools/mint_link.py --quiet`, every round while auth is dead | no |
+
+MEASURED: the mint budget went from 14 (after the operator's forced mint at 23:25) to 22 by 09:00 — 8
+routine mints, against at most 4 the rule allows (the session was alive until ~03:28, then quiet until
+06:00, leaving only the 06/07/08/09 hours). The sentence "daemon không còn tự mint trong khung đó" was true
+of the daemon and false of what Khoa asked for; it is withdrawn.
+
+Fix, shipped 09:05: the rule now also lives in `tools/mint_link.mint()`, the one function every routine
+minter calls, placed BEFORE the hourly gate so a quiet-hours refusal never burns the hour for another
+minter. `--force` (the operator asking) is untouched. A test fails if the two copies of the window ever
+disagree. First night it can be observed: 2026-09-23 01:00–06:00; the check is the mint budget, which
+should not move inside that window unless Khoa forces a link.

@@ -46,8 +46,13 @@ def check_tests(hermetic_only=True) -> dict:
         for f in DATA_BOUND:
             argv += ["--ignore", f]
     r = _run(argv)
-    tail = (r.stdout or "").strip().splitlines()[-1:] or [""]
-    return {"name": "tests", "ok": r.returncode == 0, "summary": tail[0],
+    lines = (r.stdout or "").strip().splitlines()
+    tail = lines[-1:] or [""]
+    # the first Actions run printed only "5 errors in 2.21s"; the cause had to be reproduced by hand.
+    # A gate's log must say WHY it blocked.
+    why = [l for l in lines if l.startswith(("FAILED ", "ERROR ")) or "ModuleNotFoundError" in l
+           or "ImportError" in l][:12]
+    return {"name": "tests", "ok": r.returncode == 0, "summary": tail[0], "details": why,
             "not_run": dict(DATA_BOUND) if hermetic_only else {},
             "covered_instead_by": "the VPS deploy smoke (tools/deploy.py SMOKE), which has the data",
             "blocking": True}
@@ -120,6 +125,21 @@ def check_fitness(root=ROOT) -> dict:
             "blocking": True}
 
 
+def check_branch_drill(root=ROOT) -> dict:
+    """Grow one real branch on a copy of the library; the real planner must carry it with no code
+    edited (forge/offline/branch_drill.py). This is what turns "can the pipeline be extended?" from an
+    opinion into a build result, on every commit."""
+    code = ("import sys, json; sys.path.insert(0, %r);"
+            "from forge.offline import branch_drill as BD;"
+            "r = BD.drill();"
+            "print('%%s: %%d construction(s), code unchanged=%%s -- %%s' %% (r['status'], r.get('constructions', 0), r.get('code_unchanged'), r['note']));"
+            "sys.exit(0 if r['ok'] else 1)" % str(root))
+    r = _run([sys.executable, "-c", code])
+    return {"name": "branch-drill", "ok": r.returncode == 0,
+            "summary": (r.stdout or r.stderr or "").strip().splitlines()[-1:][0] if (r.stdout or r.stderr) else "",
+            "blocking": True}
+
+
 def check_regression(root=ROOT, baseline_path=None) -> dict:
     """D9: block when the composite score falls below the version that is live.
 
@@ -154,7 +174,7 @@ def check_regression(root=ROOT, baseline_path=None) -> dict:
             "blocking": True}
 
 
-CHECKS = (check_no_live, check_schema, check_version, check_fitness, check_tests, check_regression)
+CHECKS = (check_no_live, check_schema, check_version, check_fitness, check_branch_drill, check_tests, check_regression)
 
 
 def gate(checks=CHECKS, out=print) -> int:
@@ -162,6 +182,8 @@ def gate(checks=CHECKS, out=print) -> int:
     out("CI GATE")
     for r in results:
         out("  [%s] %-11s %s" % ("PASS" if r["ok"] else "FAIL", r["name"], r["summary"]))
+        for line in (r.get("details") or []) if not r["ok"] else []:
+            out("        %s" % line[:180])
         for f, why in (r.get("not_run") or {}).items():
             out("        not run here: %s -- %s" % (f, why))
         if r.get("not_run"):

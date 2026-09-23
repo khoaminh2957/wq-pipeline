@@ -59,3 +59,53 @@ def test_the_gap_never_returns_a_value_that_would_busy_loop(authd):
 def test_seconds_to_quiet_end_counts_down_within_the_window(authd):
     assert authd.seconds_to_quiet_end(_local(1)) > authd.seconds_to_quiet_end(_local(4))
     assert authd.seconds_to_quiet_end(_local(5, 30)) == pytest.approx(1800, abs=1)
+
+
+# ---------------------------------------------------------------- the rule must hold on EVERY path
+# MEASURED 2026-09-23: the first version lived only in the daemon's mint_gap(), while the wq-mint.timer
+# (every minute) and forge_loop.sh (every round) both mint through tools/mint_link.py. 8 routine mints
+# happened overnight against at most 4 the rule allows.
+
+@pytest.fixture(scope="module")
+def ml():
+    import sys
+    sys.path.insert(0, str(ROOT / "tools"))
+    import mint_link
+    return mint_link
+
+
+def test_the_two_copies_of_the_quiet_window_can_never_drift_apart(authd, ml):
+    assert (ml.QUIET_START_H, ml.QUIET_END_H) == (authd.QUIET_START_H, authd.QUIET_END_H)
+    for h in range(24):
+        assert ml.in_quiet_hours(_local(h)) == authd.in_quiet_hours(_local(h))
+
+
+def test_a_routine_mint_inside_quiet_hours_is_refused_before_the_hourly_gate(ml, monkeypatch):
+    """Refused BEFORE OB_GATE: a refusal after taking the gate burns the hour for every other minter."""
+    gate_taken = []
+    monkeypatch.setattr(ml, "session_live", lambda: False)          # session dead: the urgent case
+    monkeypatch.setattr(ml, "live_link", lambda: None)
+    monkeypatch.setattr(ml, "in_quiet_hours", lambda now=None: True)
+    monkeypatch.setattr(ml, "OB_GATE", lambda: gate_taken.append(1) or True)
+    assert ml.mint(force=False, quiet=True) == 0
+    assert gate_taken == []
+
+
+class _StopHere(Exception):
+    """Raised at the first step AFTER the quiet-hours check, so the test proves the force path got past
+    it and then goes no further. The first draft let the flow continue: it reached the code that reads
+    /root/.wqbrain_creds -- absent on the MacBook, PRESENT on the VPS, where the same test would have
+    gone on to a real authentication POST."""
+
+
+def test_the_operator_force_path_ignores_quiet_hours(ml, monkeypatch):
+    """Khoa's whole point: the saved links are FOR the 3 a.m. case when he asks for one."""
+    def stop(*a, **k):
+        raise _StopHere
+    monkeypatch.setattr(ml, "session_live", lambda: False)
+    monkeypatch.setattr(ml, "live_link", lambda: None)
+    monkeypatch.setattr(ml, "in_quiet_hours", lambda now=None: True)
+    monkeypatch.setattr(ml, "OB_GATE", lambda: True)
+    monkeypatch.setattr(ml, "budget_left", stop)        # the step right after the quiet-hours check
+    with pytest.raises(_StopHere):
+        ml.mint(force=True, quiet=True)

@@ -148,3 +148,59 @@ def test_the_scorecard_names_its_own_gaps():
     card = B.build(since="2026-09-22")
     assert card["gaps"] and any("pipeline_version" in g for g in card["gaps"])
     assert "weak" in card["version_attribution"]
+
+
+# ----------------------------------------------------------------------------- the branch drill
+def test_the_branch_drill_grows_a_real_branch_without_touching_code():
+    """D8: the fitness functions say a branch COULD be grown; the drill grows one on a copy of the
+    library and requires the real planner to carry it with no forge/*.py changed."""
+    from forge.offline import branch_drill as BD
+    r = BD.drill()
+    assert r["ok"] is True and r["status"] == "carried"
+    assert r["constructions"] > 0 and r["other_constructions"] == 0
+    assert r["code_unchanged"] is True
+
+
+def test_the_branch_drill_never_deletes_a_plan_it_did_not_write(tmp_path):
+    """MEASURED 2026-09-23: unlinking plans/<seed>.json blindly deleted a pre-existing plan when the
+    seed collided (157 -> 156). An explicit seed that already has a plan is refused outright."""
+    from forge.offline import branch_drill as BD
+    from forge import runner as R
+    existing = sorted(R.PLANS.glob("*.json"))[0]
+    seed = int(existing.stem) if existing.stem.isdigit() else None
+    if seed is None:
+        pytest.skip("no numeric plan file to collide with")
+    before = existing.read_bytes()
+    with pytest.raises(ValueError, match="already exists"):
+        BD.drill(seed=seed)
+    assert existing.read_bytes() == before
+
+
+def test_axis3_counts_the_drill_as_a_fitness_function():
+    a = B.axis3_gearing(drill={"ok": False, "status": "not-carried", "note": "x"})
+    names = [f["name"] for f in a["fitness_functions"]]
+    assert "a real branch goes through the planner" in names
+    assert a["held"] < a["of"]
+
+
+# -------------------------------------------------------------------------------------- DORA
+def test_dora_refuses_to_compute_from_one_point():
+    assert B.dora([])["status"] == "insufficient"
+    assert B.dora([{"outcome": "deployed", "started_at": 1, "finished_at": 2}])["status"] == "insufficient"
+
+
+def test_dora_computes_the_four_keys_on_a_known_ledger():
+    H = 3600.0
+    rows = [
+        {"outcome": "deployed", "started_at": 0, "finished_at": 1 * H, "commit_time": 0, "git_dirty": False},
+        {"outcome": "rolled_back", "started_at": 10 * H, "finished_at": 11 * H, "commit_time": 9 * H, "git_dirty": False},
+        {"outcome": "deployed", "started_at": 13 * H, "finished_at": 14 * H, "commit_time": 12 * H, "git_dirty": False},
+        {"outcome": "deployed", "started_at": 20 * H, "finished_at": 21 * H, "commit_time": 20 * H, "git_dirty": True},
+    ]
+    d = B.dora(rows, now=21 * H, window_days=28)
+    assert d["status"] == "measured" and d["deploys"] == 4
+    assert d["change_failure_rate"] == pytest.approx(0.25)
+    assert d["time_to_restore_hours_median"] == pytest.approx(3.0)       # 11h fail -> 14h clean
+    # lead time uses clean deploys only: 1h and 2h -> median 1.5h; the dirty one has no honest commit
+    assert d["lead_time_hours_median"] == pytest.approx(1.5)
+    assert d["deploys_per_week"] == pytest.approx(1.0)

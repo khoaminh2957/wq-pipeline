@@ -275,10 +275,11 @@ def fitness_functions(root=ROOT) -> list:
     out.append(("mechanisms are data", bool(comps and legs),
                 "%d composites + %d legs are YAML the loader globs" % (len(comps), len(legs))))
 
-    # 2. a staged area exists, so a new mechanism can be written without the live loop seeing it
-    staged = (root / "forge/composites/staged").exists() or (root / "forge/hypotheses/staged").exists()
-    out.append(("new work can be staged invisibly", staged,
-                "forge/*/staged/ is outside the loader's non-recursive glob"))
+    # 2. new work can be staged where the live loop cannot see it. Tested as the LOADER'S BEHAVIOUR:
+    # the first version checked that forge/*/staged/ existed, which is a property of one machine --
+    # git does not track an empty directory, so the first GitHub Actions run failed it on a clean
+    # clone of an unchanged architecture. What matters is that the loader ignores subdirectories.
+    out.append(("new work can be staged invisibly", *_loader_ignores_subdirectories(root)))
 
     # 3. an A/B arm exists, so a change can be measured against the thing it replaces
     runner = (root / "forge/runner.py").read_text()
@@ -303,6 +304,27 @@ def fitness_functions(root=ROOT) -> list:
                 "%d of %d modules have a test file (%.0f %%)" % (len(tests & mods), len(mods), covered * 100)))
 
     return out
+
+
+def _loader_ignores_subdirectories(root=ROOT):
+    """(ok, evidence): drop a deliberately INVALID leg into a staged/ subdirectory of a copy of the
+    library; the real loader must load the copy exactly as it loads the original."""
+    import shutil
+    import tempfile
+    from forge import hypotheses as H
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="wq-staged-"))
+    try:
+        lib = tmp / "hypotheses"
+        shutil.copytree(root / "forge/hypotheses", lib, ignore=shutil.ignore_patterns("staged"))
+        (lib / "staged").mkdir()
+        (lib / "staged" / "broken.yaml").write_text("id: broken\nthis is not a valid leg: [\n")
+        try:
+            n = len(H.load_library(lib))
+        except Exception as exc:  # noqa: BLE001
+            return False, "the loader read staged/ and failed on it: %s" % type(exc).__name__
+        return True, "a broken leg in staged/ was ignored; %d legs loaded" % n
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def import_cycles(pkg: pathlib.Path) -> dict:
@@ -348,17 +370,67 @@ def import_cycles(pkg: pathlib.Path) -> dict:
             "deferred": [" -> ".join(c) for c in cycles_in(deep) if c not in at_module]}
 
 
-def axis3_gearing(dora=None, drill=None, root=ROOT) -> dict:
-    """DORA + architecture fitness + the branch drill (D8)."""
+def _dora_from_ledger(root=ROOT) -> dict:
+    p = root / "state/deploys.jsonl"
+    rows = list(HV.read_jsonl(p)) if p.exists() else []
+    return dora(rows)
+
+
+def dora(rows, now=None, window_days=28) -> dict:
+    """The four DORA keys from the deploy ledger (tools/deploy.py DEPLOY_LOG).
+
+    Definitions follow Forsgren, Humble & Kim (Accelerate, 2018), restricted to what this desk can
+    measure: a 'deploy' is an attempt that reached the code swap; a 'failure' is one that was rolled
+    back, failed to roll back, or went live unrecorded; 'restore' is the time from a failed attempt to
+    the next attempt that went live clean. With fewer than two deploys every key is reported as
+    insufficient rather than computed from one point.
+    """
+    now = now if now is not None else __import__("time").time()
+    rows = sorted((r for r in rows if r.get("outcome")), key=lambda r: r.get("started_at") or 0)
+    if len(rows) < 2:
+        return {"status": "insufficient", "deploys": len(rows),
+                "note": "DORA needs at least two recorded deploys; the ledger holds %d" % len(rows)}
+    recent = [r for r in rows if (r.get("started_at") or 0) >= now - window_days * 86400]
+    failed = {"rolled_back", "rollback_failed", "unrecorded"}
+    fails = [r for r in rows if r["outcome"] in failed]
+    leads = [r["finished_at"] - r["commit_time"] for r in rows
+             if r["outcome"] == "deployed" and r.get("commit_time") is not None and not r.get("git_dirty")]
+    restores = []
+    for i, r in enumerate(rows):
+        if r["outcome"] in failed:
+            nxt = next((x for x in rows[i + 1:] if x["outcome"] == "deployed"), None)
+            if nxt:
+                restores.append(nxt["finished_at"] - r["finished_at"])
+    return {"status": "measured", "deploys": len(rows),
+            "deploys_per_week": round(len(recent) / (window_days / 7.0), 2),
+            "lead_time_hours_median": round(statistics.median(leads) / 3600, 2) if leads else None,
+            "lead_time_note": None if leads else "no clean (non-dirty) deploy carries a commit time",
+            "change_failure_rate": round(len(fails) / len(rows), 3),
+            "time_to_restore_hours_median": round(statistics.median(restores) / 3600, 2) if restores else None}
+
+
+def axis3_gearing(dora=None, drill=None, root=ROOT, run_drill=True) -> dict:
+    """DORA + architecture fitness + the branch drill (D8).
+
+    The drill counts as one more fitness function, and the one that matters most: the other six say
+    a branch COULD be grown, the drill grows one on a copy of the library and watches the real
+    planner carry it (forge/offline/branch_drill.py).
+    """
     ffs = fitness_functions(root)
+    if drill is None and run_drill:
+        from forge.offline import branch_drill as BD
+        try:
+            drill = BD.drill(root)
+        except Exception as exc:  # noqa: BLE001 -- a drill that crashes is a FAILED drill, reported as such
+            drill = {"status": "crashed", "ok": False, "note": "%s: %s" % (type(exc).__name__, exc)}
+    if drill is not None:
+        ffs = ffs + [("a real branch goes through the planner", bool(drill.get("ok")),
+                      "%s: %s" % (drill.get("status"), drill.get("note")))]
     held = sum(1 for _, ok, _ in ffs if ok)
     value = held / len(ffs) if ffs else 0.0
     return {"fitness_functions": [{"name": n, "ok": ok, "evidence": e} for n, ok, e in ffs],
             "held": held, "of": len(ffs),
-            "dora": dora or {"status": "no deploy history yet",
-                             "note": "lead time, deploy frequency, change-fail rate and MTTR need "
-                                     "at least two recorded deploys; DEPLOYED.json does not exist on "
-                                     "the target (measured 2026-09-23)"},
+            "dora": dora if dora is not None else _dora_from_ledger(root),
             "branch_drill": drill or {"status": "not run",
                                       "note": "a throwaway component plugged in and carried by CI"},
             "value": round(value, 3), "floor": FLOOR["axis3_gearing"],
@@ -463,7 +535,6 @@ def build(journal=None, since=None, until=None, version=None, curves_dir=None) -
         "forge/runner.py (stamp the deploy manifest's version into every construction's meta) "
         "converts this from weak to strong.",
         "DORA has no deploy history: DEPLOYED.json does not exist on the target.",
-        "The branch drill (D8) is not implemented; axis 3 scores the fitness functions only.",
         "Regime stability reads local PnL curves; an alpha without a cached curve scores "
         "'insufficient' rather than being judged.",
     ]

@@ -100,14 +100,75 @@ def test_the_real_repo_plan_resolves_and_ships_no_state(tree):
 
 
 # ------------------------------------------------------- the shipping decisions, with no network
-# Every test below pins a defect the 2026-09-23 audit found, which is why the names read as failures
-# prevented rather than as functions exercised.
+# Each test pins a defect one of the two audits found (docs/evalharness/audits/deploy.md).
 
 
+# ----- the pure judgements: these decide everything, so they are tested without any ssh at all
+def test_the_existence_probe_must_account_for_every_path_it_was_sent():
+    """AUDIT 2: a `while read` loop never tested the last path (no trailing newline) and exited with
+    the status of its last test. The count trailer is the defence that does not trust the loop."""
+    asked = ["a.py", "b.py", "z_last.py"]
+    assert deploy._existing_from("a.py\nz_last.py\nCHECKED 3\n", asked) == {"a.py", "z_last.py"}
+    with pytest.raises(RuntimeError, match="checked 2 of 3"):
+        deploy._existing_from("a.py\nCHECKED 2\n", asked)          # the silently-skipped last path
+    with pytest.raises(RuntimeError, match="no CHECKED"):
+        deploy._existing_from("a.py\nb.py\n", asked)                 # a truncated listing
+    with pytest.raises(RuntimeError, match="not asked about"):
+        deploy._existing_from("state/journal.jsonl\nCHECKED 3\n", asked)
+
+
+def test_the_planner_exit_2_is_healthy_only_with_its_own_message():
+    """AUDIT 2: argparse also exits 2. Accepting every 2 passes a smoke that never planned."""
+    assert deploy._smoke_ok("planner", 0, "")
+    assert deploy._smoke_ok("planner", 2, "nothing to simulate: the library is exhausted for every reachable cell")
+    assert not deploy._smoke_ok("planner", 2, "usage: runner.py [-h] ...\nerror: unrecognized arguments")
+    assert not deploy._smoke_ok("tests", 2, "library is exhausted")         # only the planner has the exception
+
+
+def test_inactive_is_not_active():
+    """AUDIT 2: `'active' in 'inactive'` is True, so the restart check passed a dead unit."""
+    assert deploy._is_active("active\n")
+    assert not deploy._is_active("inactive\n")
+    assert not deploy._is_active("failed\n") and not deploy._is_active("")
+
+
+def test_every_push_gets_its_own_snapshot():
+    """AUDIT 2 CATASTROPHIC: with no manifest on the target every push wrote pre-unversioned.tgz over
+    the last one -- the only copy of the tree it existed to restore."""
+    a = deploy.snapshot_tag(None, now=1_790_000_000)
+    b = deploy.snapshot_tag(None, now=1_790_000_001)
+    assert a != b and a.startswith("pre-unversioned-")
+
+
+def test_the_smoke_never_spends_quota_and_leaves_no_plan_behind():
+    for name, cmd in deploy.SMOKE:
+        assert "--live" not in cmd, name
+    planner = dict(deploy.SMOKE)["planner"]
+    # the plan it removes is one it just created: the seed is walked to a FREE file first
+    assert "while [ -e state/forge/plans/$s.json ]" in planner
+    assert "rm -f state/forge/plans/$s.json" in planner and "exit $rc" in planner
+
+
+def test_staging_happens_outside_the_repository_and_keeps_the_executable_bit(tmp_path):
+    """AUDIT 2: the stage lived in the repo root (5 MB left behind by the tests) and write_bytes
+    stripped the executable bit that forge_loop.sh carries."""
+    src = tmp_path / "loop.sh"
+    src.write_text("#!/bin/bash\n")
+    src.chmod(0o755)
+    staged = deploy._stage({"forge_loop.sh": src})
+    try:
+        assert not str(staged).startswith(str(deploy.ROOT))
+        assert (staged / "forge_loop.sh").stat().st_mode & 0o111
+    finally:
+        import shutil
+        shutil.rmtree(staged)
+
+
+# ----- push(): the decisions, with every remote pipe replaced
 class _Calls:
     def __init__(self):
-        self.snapshotted = self.rolled_back = self.rsynced = False
-        self.manifest_written = self.restarted = False
+        self.snapshotted = self.rolled_back = self.rsynced = self.manifest_written = False
+        self.restart = None
         self.rollback_args = None
         self.lines = []
 
@@ -119,108 +180,162 @@ class _Calls:
 
 
 @pytest.fixture
-def nonet(monkeypatch):
+def nonet(monkeypatch, tmp_path):
     c = _Calls()
+    monkeypatch.setattr(deploy, "DEPLOY_LOG", tmp_path / "deploys.jsonl")   # never the real ledger
     monkeypatch.setattr(deploy, "round_in_flight", lambda: False)
     monkeypatch.setattr(deploy, "remote_manifest", lambda: ({"version": "old", "hashes": {}}, True))
-    monkeypatch.setattr(deploy, "remote_existing", lambda paths: set(paths))      # target has everything
-    monkeypatch.setattr(deploy, "snapshot", lambda paths, tag, out=print: (setattr(c, "snapshotted", True), ("tar", 500))[1])
+    monkeypatch.setattr(deploy, "remote_existing", lambda paths: set(paths))
+    monkeypatch.setattr(deploy, "snapshot", lambda paths, tag, out=print: (setattr(c, "snapshotted", True), ("tar", len(paths)))[1])
 
     def fake_rollback(tar, to_delete, out=print):
         c.rolled_back, c.rollback_args = True, (tar, list(to_delete))
         return True
     monkeypatch.setattr(deploy, "rollback", fake_rollback)
     monkeypatch.setattr(deploy, "write_manifest", lambda local, out=print: (setattr(c, "manifest_written", True), True)[1])
-    monkeypatch.setattr(deploy, "restart_loop", lambda out=print: (setattr(c, "restarted", True), True)[1])
-    monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [(n, True, []) for n, _, _ in deploy.SMOKE])
 
-    real_run = deploy.subprocess.run
+    def fake_restart(out=print):
+        c.restart = "restarted"
+        return "restarted"
+    monkeypatch.setattr(deploy, "restart_loop", fake_restart)
+    monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [(n, True, []) for n, _ in deploy.SMOKE])
 
     def fake_run(argv, **kw):
         import types
         if argv and argv[0] == "rsync":
             c.rsynced = True
-            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
-        if argv and argv[0] == "rm":
-            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
-        if argv and argv[0] == "ssh":
-            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
-        return real_run(argv, **kw)
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
     monkeypatch.setattr(deploy.subprocess, "run", fake_run)
     return c
 
 
-def test_push_refuses_while_a_round_is_dispatching(monkeypatch, nonet):
+def test_push_refuses_while_a_forge_child_runs(monkeypatch, nonet):
     monkeypatch.setattr(deploy, "round_in_flight", lambda: True)
-    assert deploy.push(out=nonet.out) == 2
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"]
     assert not nonet.snapshotted and not nonet.rsynced
 
 
 def test_push_refuses_when_the_target_manifest_cannot_be_read(monkeypatch, nonet):
-    """AUDIT A3: conflating 'could not read' with 'never deployed' armed the virgin branch -- which
-    removes every plan path on rollback -- on an established target, after a network blip."""
+    """AUDIT 1 A3: 'could not read' treated as 'never deployed' armed the virgin branch."""
     monkeypatch.setattr(deploy, "remote_manifest", lambda: (None, False))
-    assert deploy.push(out=nonet.out) == 2
-    assert nonet.said("refusing rather than guess") and not nonet.rsynced
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"] and not nonet.rsynced
 
 
 def test_push_refuses_without_a_verified_snapshot(monkeypatch, nonet):
-    """AUDIT BLOCKER: snapshot() ended in '; echo done' and reported success whatever happened, so
-    push shipped believing it had a rollback it did not have."""
+    """AUDIT 1: snapshot() printed success whatever happened and push shipped on that word."""
     monkeypatch.setattr(deploy, "snapshot", lambda paths, tag, out=print: None)
-    assert deploy.push(out=nonet.out) == 2
-    assert nonet.said("a deploy without a rollback is a one-way door") and not nonet.rsynced
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"]
+    assert nonet.said("one-way door") and not nonet.rsynced
+
+
+def test_push_refuses_when_the_existence_probe_is_incomplete(monkeypatch, nonet):
+    def bad(paths):
+        raise RuntimeError("existence probe checked 536 of 537 paths")
+    monkeypatch.setattr(deploy, "remote_existing", bad)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"] and not nonet.rsynced
+
+
+def test_a_virgin_target_can_be_deployed_to(monkeypatch, nonet):
+    """AUDIT 2: with nothing on the target the snapshot was 'empty', read as failure, and the first
+    deploy could never happen. Nothing to archive is a valid snapshot."""
+    monkeypatch.setattr(deploy, "remote_manifest", lambda: (None, True))
+    monkeypatch.setattr(deploy, "remote_existing", lambda paths: set())
+    monkeypatch.setattr(deploy, "snapshot", lambda paths, tag, out=print: ("", 0))
+    assert deploy.push(out=nonet.out) == deploy.EXIT["deployed"]
 
 
 def test_only_genuinely_new_paths_may_be_deleted_on_rollback(monkeypatch, nonet):
-    """AUDIT A1: 499 of 537 plan paths already existed on the target, so they are OVERWRITES. A
-    rollback that deletes them drives production through a state where they do not exist."""
+    """AUDIT 1 A1: 499 of 537 plan paths already existed; deleting them on rollback drives production
+    through a state where they do not exist."""
     all_paths = set(deploy.manifest()["hashes"])
-    already = set(list(all_paths)[:-2])                       # two paths are genuinely new
+    already = set(sorted(all_paths)[:-2])
     monkeypatch.setattr(deploy, "remote_existing", lambda paths: already)
     monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("import", False, ["boom"])])
-    assert deploy.push(out=nonet.out) == 1
-    tar, to_delete = nonet.rollback_args
+    assert deploy.push(out=nonet.out) == deploy.EXIT["rolled_back"]
+    _, to_delete = nonet.rollback_args
     assert set(to_delete) == all_paths - already and len(to_delete) == 2
 
 
-def test_an_exception_after_the_swap_still_reaches_the_rollback(monkeypatch, nonet):
-    def boom(out=print):
-        raise RuntimeError("ssh died mid-smoke")
-    monkeypatch.setattr(deploy, "run_smoke", boom)
-    assert deploy.push(out=nonet.out) == 1
-    assert nonet.rolled_back and nonet.said("deploy raised")
+def test_a_failed_rollback_is_its_own_loud_exit_code(monkeypatch, nonet):
+    """AUDIT 2: rollback() returned False and push() discarded it, returning the same 1 either way."""
+    monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("tests", False, ["1 failed"])])
+    monkeypatch.setattr(deploy, "rollback", lambda tar, to_delete, out=print: False)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["rollback_failed"]
+
+
+def test_an_interrupt_after_the_swap_still_rolls_back_and_re_raises(monkeypatch, nonet):
+    """AUDIT 2 CATASTROPHIC: `except Exception` does not catch KeyboardInterrupt."""
+    def ctrl_c(out=print):
+        raise KeyboardInterrupt
+    monkeypatch.setattr(deploy, "run_smoke", ctrl_c)
+    with pytest.raises(KeyboardInterrupt):
+        deploy.push(out=nonet.out)
+    assert nonet.rolled_back
 
 
 def test_the_manifest_is_written_only_after_a_green_smoke(monkeypatch, nonet):
     monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("tests", False, ["1 failed"])])
-    assert deploy.push(out=nonet.out) == 1
-    assert nonet.rolled_back and not nonet.manifest_written and not nonet.restarted
+    deploy.push(out=nonet.out)
+    assert nonet.rolled_back and not nonet.manifest_written and nonet.restart is None
+
+
+def test_a_deploy_whose_record_failed_says_so(monkeypatch, nonet):
+    """AUDIT 2: push printed 'DEPLOYED -- smoke green' and returned 0 when the manifest was not written."""
+    monkeypatch.setattr(deploy, "write_manifest", lambda local, out=print: False)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["unrecorded"]
+    assert nonet.said("the record of it is not")
 
 
 def test_a_green_deploy_records_the_version_and_restarts_the_loop(nonet):
-    """AUDIT A2: without a restart the target runs new Python under the old loop driver while the
-    manifest asserts a single version."""
-    assert deploy.push(out=nonet.out) == 0
-    assert nonet.snapshotted and not nonet.rolled_back
-    assert nonet.manifest_written and nonet.restarted and nonet.said("smoke green")
+    assert deploy.push(out=nonet.out) == deploy.EXIT["deployed"]
+    assert nonet.snapshotted and not nonet.rolled_back and nonet.manifest_written and nonet.restart == "restarted"
 
 
 def test_push_is_a_no_op_when_the_target_already_runs_this_content(monkeypatch, nonet):
     m = deploy.manifest()
     monkeypatch.setattr(deploy, "remote_manifest", lambda: (m, True))
-    assert deploy.push(out=nonet.out) == 0
-    assert nonet.said("nothing to do") and not nonet.snapshotted
+    assert deploy.push(out=nonet.out) == deploy.EXIT["deployed"] and not nonet.snapshotted
 
 
-def test_the_planner_smoke_accepts_the_library_exhausted_exit_code():
-    """AUDIT: forge/runner.py returns 2 for 'library exhausted for every reachable cell' and
-    vps/forge_loop.sh treats that as a normal round. Accepting only 0 made a healthy pipeline
-    trigger a rollback -- the most likely ignition, needing no failure of any kind."""
-    codes = {n: c for n, _, c in deploy.SMOKE}
-    assert codes["planner"] == (0, 2) and codes["tests"] == (0,) and codes["import"] == (0,)
+def test_every_attempt_past_the_guards_is_recorded_and_refusals_are_not(monkeypatch, nonet):
+    """DORA's raw material. A refusal swapped nothing, so it is not a deploy and must not dilute the
+    change-failure rate."""
+    assert deploy.push(out=nonet.out) == deploy.EXIT["deployed"]
+    monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("tests", False, ["x"])])
+    assert deploy.push(out=nonet.out) == deploy.EXIT["rolled_back"]
+    monkeypatch.setattr(deploy, "round_in_flight", lambda: True)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"]
+    rows = [json.loads(l) for l in deploy.DEPLOY_LOG.read_text().splitlines()]
+    assert [r["outcome"] for r in rows] == ["deployed", "rolled_back"]
+    assert all(r["finished_at"] >= r["started_at"] and r["version"] for r in rows)
 
 
-def test_the_smoke_suite_never_spends_quota():
-    for name, argv, _ in deploy.SMOKE:
-        assert "--live" not in argv, name
+def test_the_plan_covers_every_file_the_live_loop_actually_imports():
+    """MEASURED 2026-09-23: the dispatcher imported harness13/ at module level and the plan did not ship
+    it. The closure is MEASURED here, not listed: every loop entry point (and every module those entry
+    points import lazily inside functions) is imported, and every file loaded from the repository must
+    be in the plan."""
+    import importlib, subprocess, textwrap
+    root = deploy.ROOT
+    probe = textwrap.dedent("""
+        import sys, pathlib, importlib, json
+        ROOT = pathlib.Path(%r)
+        sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+        for m in ["forge.runner", "forge.harvest", "forge.submit", "forge.probe", "forge.novelty",
+                  "forge.allocate", "forge.score", "forge.digest", "forge.offline.rung_report",
+                  "layered_sim", "climb_submit", "submit_budget", "msgcat", "mint_link",
+                  "fingerprint", "operators", "auto_submit", "submit_plan"]:
+            importlib.import_module(m)
+        files = set()
+        for mod in list(sys.modules.values()):
+            f = getattr(mod, "__file__", None)
+            if f and str(pathlib.Path(f).resolve()).startswith(str(ROOT)):
+                files.add(str(pathlib.Path(f).resolve().relative_to(ROOT)))
+        print(json.dumps(sorted(files)))
+    """) % str(root)
+    # a fresh interpreter, so modules this test process already imported cannot hide a gap
+    r = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, cwd=str(root), timeout=120)
+    assert r.returncode == 0, r.stderr[-800:]
+    loaded = set(json.loads(r.stdout.strip().splitlines()[-1]))
+    missing = sorted(loaded - set(deploy.file_map()))
+    assert not missing, "the live loop imports files the deploy plan does not ship: %s" % missing

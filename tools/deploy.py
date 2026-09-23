@@ -24,8 +24,10 @@ import hashlib
 import json
 import pathlib
 import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -38,6 +40,18 @@ PLAN = {
     "operators.py": "operators.py",
     "vps/auth_daemon.py": "auth_daemon.py",
     "vps/forge_loop.sh": "forge_loop.sh",
+    # MEASURED 2026-09-23 by importing every live-loop entry point and listing what was loaded: the
+    # dispatcher tools/layered_sim.py imports harness13.massgen.mg.simulate at MODULE level, so the
+    # whole loop depends on these three files; tools/auto_submit.py and tools/submit_plan.py import
+    # harness/guards.py. None was in the plan -- /opt/wq ran only because the files happened to be
+    # there -- so a fresh host could not import the dispatcher, and a change to simulate.py altered
+    # dispatch without changing the version id. The first GitHub Actions run found it (5 collection
+    # errors, ModuleNotFoundError). tools/tests/test_deploy.py now fails if the plan and the measured
+    # closure ever diverge again.
+    "harness13/__init__.py": "harness13/__init__.py",
+    "harness13/crawl_fields.py": "harness13/crawl_fields.py",
+    "harness13/massgen/mg/simulate.py": "harness13/massgen/mg/simulate.py",
+    "harness/guards.py": "harness/guards.py",
 }
 #: Never shipped, never hashed: build artefacts and caches differ per machine and per Python build.
 SKIP_PARTS = ("__pycache__", ".pytest_cache", ".DS_Store")
@@ -123,267 +137,358 @@ def drift(local: dict, deployed: dict) -> dict:
 
 
 # --------------------------------------------------------------------------------- shipping it
-#: The deploy target. RULE 1: this module ships code TO the VPS and runs read-only checks there;
-#: it never simulates and never passes --live.
+# Third version. The first failed its audit with a rollback that deleted 537 files and restored none;
+# the second failed with a shell loop that never tested the last path, a snapshot name that the next
+# push overwrote, and three return values nobody read. What changed in kind, not just in detail:
+#   * every JUDGEMENT is a pure function with its own test (_existing_from, _smoke_ok, _is_active,
+#     snapshot_tag); ssh is only a pipe, so a shell quirk can no longer decide anything;
+#   * path lists travel NUL-separated, so no newline, space or quote in a path can reach a shell;
+#   * every return value is read, and push() has one exit code per outcome (see EXIT below).
+# RULE 1 is not weakened: nothing here simulates and nothing passes --live.
+
 HOST = "root@160.25.88.163"
 REMOTE = "/opt/wq"
 SNAPSHOT_DIR = ".deploy"
-
-#: The smoke suite, run ON the target AFTER the files land and BEFORE the deploy is called good.
-#: Each entry is (name, argv). A non-zero exit from any of them rolls the deploy back.
-#: What each one buys, measured rather than assumed:
-#:   import   -- the 2026-09-22 audit found forge/novelty.py importing two repo-root modules absent
-#:               from /opt/wq, which killed every submit invocation while forge_loop.sh swallowed the
-#:               traceback into an unchecked shell variable. An import check is the cheapest guard
-#:               against exactly that class, and it is the one that would have caught it.
-#:   tests    -- the suite the desk already maintains, run against the DEPLOYED bytes, not the local ones.
-#:   planner  -- a real round plan with no --live: it exercises the library, the allocator, the type
-#:               gate and the A/B split, and spends no quota.
-#: (name, argv, exit codes that count as healthy). The third field exists because `forge/runner.py`
-#: returns 2 for "the library is exhausted for every reachable cell" and `vps/forge_loop.sh:63`
-#: treats that as an ordinary round outcome. Accepting only 0 would have made a perfectly healthy
-#: pipeline trigger a rollback -- the audit named it the most likely ignition, needing no failure.
-SMOKE = (
-    ("import", ["venv/bin/python", "-c",
-                "import sys; sys.path[:0]=['.','tools']; "
-                "import fingerprint, operators; "
-                "from forge import submit, runner, harvest, novelty, allocate, score; "
-                "print('imports ok')"], (0,)),
-    ("tests", ["venv/bin/python", "-m", "pytest", "forge/tests", "-q", "--no-header", "-x"], (0,)),
-    ("planner", ["venv/bin/python", "forge/runner.py", "--mode", "composites", "--order", "USA/d1,d1",
-                 "--no-split", "--delays", "1", "--ab", "new", "-n", "20", "--seed", "999"], (0, 2)),
-)
+SSH = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST]
+#: The processes that must not be running when code is swapped or the unit restarted. forge_loop.sh
+#: holds /var/lock/wq_forge.lock for its whole life (`exec 9>`), so that lock cannot be borrowed;
+#: these are the children that import code mid-run (submit.py and harvest.py import lazily) or that
+#: a restart would SIGTERM mid-POST.
+BUSY = r"forge/(runner|submit|harvest|probe)\.py"
+PLANNER_SEED = 900_000_000     # far above hand-picked seeds; the smoke still walks to a free one
+EXIT = {"deployed": 0, "rolled_back": 1, "refused": 2, "rollback_failed": 3, "unrecorded": 4}
 
 
-def _ssh(args, timeout=900, raw=None):
-    """Run argv (or a raw command) on the target. BatchMode refuses any interactive prompt, so a key
-    problem fails fast instead of hanging a deploy at a password prompt."""
-    cmd = raw if raw is not None else "cd %s && %s" % (shlex.quote(REMOTE), " ".join(shlex.quote(a) for a in args))
-    return subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST, cmd],
-                          capture_output=True, text=True, timeout=timeout)
+def _remote(cmd: str, stdin=None, timeout=900):
+    return subprocess.run(SSH + [cmd], input=stdin, capture_output=True, text=True, timeout=timeout)
 
 
-def round_in_flight():
-    """True when a round is dispatching, and True when we CANNOT TELL.
+# ------------------------------------------------------------------------------ pure judgements
+def _existing_from(stdout: str, asked) -> set:
+    """Parse the existence probe. Refuse a listing that did not check every path it was sent.
 
-    Fails closed on purpose: the audit demonstrated the first version returning False -- "go ahead" --
-    when ssh was refused, when auth failed and when pgrep was absent. A guard that answers "safe"
-    because it could not look is not a guard.
+    The probe prints each existing path, then `CHECKED <n>`. The second audit showed a shell loop
+    that silently skipped the last path; a count that must equal what was asked is the only
+    defence that does not depend on trusting the loop.
     """
-    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=20", HOST,
-                        "pgrep -fc '[r]unner.py'"], capture_output=True, text=True, timeout=60)
-    # pgrep exits 1 with "0" when nothing matches; any other non-zero is our own failure to look
-    out = (r.stdout or "").strip()
-    if r.returncode not in (0, 1) or not out.isdigit():
+    lines = [l for l in (stdout or "").splitlines() if l.strip()]
+    if not lines or not lines[-1].startswith("CHECKED "):
+        raise RuntimeError("existence probe returned no CHECKED trailer")
+    n = int(lines[-1].split()[1])
+    if n != len(asked):
+        raise RuntimeError("existence probe checked %d of %d paths" % (n, len(asked)))
+    found = set(lines[:-1])
+    stray = found - set(asked)
+    if stray:
+        raise RuntimeError("existence probe reported paths it was not asked about: %s" % sorted(stray)[:3])
+    return found
+
+
+def _smoke_ok(name: str, rc: int, out: str) -> bool:
+    """A smoke check's verdict. The planner's exit 2 is healthy ONLY with its own message:
+    runner.py returns 2 for 'the library is exhausted', and argparse ALSO exits 2 on a bad argument
+    -- accepting every 2 would pass a smoke that never planned anything (audit, second pass)."""
+    if name == "planner":
+        return rc == 0 or (rc == 2 and "library is exhausted" in (out or ""))
+    return rc == 0
+
+
+def _is_active(stdout: str) -> bool:
+    """`systemctl is-active` prints 'inactive' for a dead unit; 'active' is a substring of it."""
+    return (stdout or "").strip().splitlines()[-1:] == ["active"]
+
+
+def snapshot_tag(remote_version, now=None) -> str:
+    """Unique per push. The second version derived it from the target's manifest alone, so on a
+    target with no manifest every push wrote `pre-unversioned.tgz` over the previous one -- the only
+    copy of the tree it was meant to restore."""
+    stamp = time.strftime("%Y%m%dT%H%M%S", time.gmtime(now if now is not None else time.time()))
+    return "pre-%s-%s" % (remote_version or "unversioned", stamp)
+
+
+# ----------------------------------------------------------------------------- the remote pipes
+def round_in_flight() -> bool:
+    """True when a forge child is running -- and True when we cannot tell. A guard that answers
+    'safe' because ssh failed is not a guard (first audit: it did exactly that)."""
+    try:
+        r = _remote("pgrep -fc %s; true" % shlex.quote(BUSY), timeout=60)
+    except (OSError, subprocess.SubprocessError):
         return True
-    return int(out) > 0
+    out = (r.stdout or "").strip().splitlines()[-1:] or [""]
+    if r.returncode != 0 or not out[0].isdigit():
+        return True
+    return int(out[0]) > 0
 
 
 def remote_manifest():
-    """(manifest_or_None, readable). `readable` is False when we could not ask the target at all.
-
-    The distinction is the whole point: the audit showed that treating "could not read" as "never
-    deployed" arms the virgin-deploy branch -- which removes every plan path on rollback -- on an
-    established target, after nothing worse than a network blip.
-    """
-    r = _ssh(["cat", MANIFEST_NAME], timeout=60)
+    """(manifest or None, readable). Readable is False whenever we could not ASK; only an explicit
+    'absent' from the target counts as 'never deployed'. Conflating the two armed the virgin branch
+    on an established target after one network blip (first audit, A3)."""
+    cmd = ("cd %s && if [ -e %s ]; then cat %s; else echo __ABSENT__; fi"
+           % (shlex.quote(REMOTE), MANIFEST_NAME, MANIFEST_NAME))
+    try:
+        r = _remote(cmd, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None, False
     if r.returncode != 0:
-        missing = "No such file" in (r.stderr or "")
-        return None, missing            # readable only if the target genuinely has no manifest
-    if not (r.stdout or "").strip():
+        return None, False
+    body = (r.stdout or "").strip()
+    if body == "__ABSENT__":
         return None, True
     try:
-        return json.loads(r.stdout), True
+        return json.loads(body), True
     except ValueError:
         return None, False
 
 
-def remote_existing(paths):
-    """The subset of `paths` that already exists on the target.
-
-    Needed because "added" cannot be derived from the manifest: the audit measured 499 of 537 plan
-    paths already present on a target that carries no manifest at all. Those are OVERWRITES, and a
-    rollback must restore them, never delete them.
-    """
-    listing = "\n".join(sorted(paths))
-    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST,
-                        "cd %s && while IFS= read -r f; do [ -e \"$f\" ] && printf '%%s\\n' \"$f\"; done" % shlex.quote(REMOTE)],
-                       input=listing, capture_output=True, text=True, timeout=300)
+def remote_existing(paths) -> set:
+    """The subset of `paths` present on the target, verified complete (see _existing_from)."""
+    prog = ("import sys,os\n"
+            "ps=[p for p in sys.stdin.buffer.read().decode().split('\\0') if p]\n"
+            "[print(p) for p in ps if os.path.lexists(p)]\n"
+            "print('CHECKED %d'%len(ps))\n")
+    r = _remote("cd %s && venv/bin/python -c %s" % (shlex.quote(REMOTE), shlex.quote(prog)),
+                stdin="\0".join(paths) + "\0", timeout=300)
     if r.returncode != 0:
-        raise RuntimeError("could not list the target: %s" % (r.stderr or "")[:200])
-    return {l for l in (r.stdout or "").splitlines() if l.strip()}
+        raise RuntimeError("existence probe failed (rc %s): %s" % (r.returncode, (r.stderr or "")[:200]))
+    return _existing_from(r.stdout, list(paths))
 
 
 def snapshot(paths, tag, out=print):
-    """Archive the target's CURRENT copies of `paths`, and VERIFY the archive before trusting it.
-
-    Returns (tar_path, member_count), or None when the archive could not be made or is empty. The
-    first version ended its remote command with `; echo done`, so it printed success whatever
-    happened, and push() shipped on the strength of that word. An unverified rollback is not a
-    rollback.
-    """
-    listing = "\n".join(sorted(paths))
+    """(tar path, members) for the target's CURRENT copies of `paths`, verified member-for-member.
+    With nothing to archive -- a genuinely virgin target -- returns ("", 0), which is a valid
+    snapshot: the rollback then only has to remove what the deploy added."""
+    paths = sorted(paths)
+    if not paths:
+        out("  snapshot: target holds none of the plan paths; nothing to archive")
+        return "", 0
     tar = "%s/%s.tgz" % (SNAPSHOT_DIR, tag)
     q = shlex.quote
-    cmd = ("cd %s && mkdir -p %s && cat > %s/%s.files && "
-           "tar -czf %s -T %s/%s.files --ignore-failed-read && "
-           "tar -tzf %s | wc -l"
-           % (q(REMOTE), q(SNAPSHOT_DIR), q(SNAPSHOT_DIR), q(tag),
-              q(tar), q(SNAPSHOT_DIR), q(tag), q(tar)))
-    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST, cmd],
-                       input=listing, capture_output=True, text=True, timeout=600)
-    count = (r.stdout or "").strip().splitlines()[-1:] or ["0"]
-    try:
-        n = int(count[0])
-    except ValueError:
-        n = 0
-    if r.returncode != 0 or n <= 0:
-        out("  snapshot FAILED (rc=%s, %d member(s)): %s" % (r.returncode, n, (r.stderr or "")[:160]))
+    cmd = ("cd %s && mkdir -p %s && tar -czf %s --null -T - && tar -tzf %s | wc -l"
+           % (q(REMOTE), q(SNAPSHOT_DIR), q(tar), q(tar)))
+    r = _remote(cmd, stdin="\0".join(paths) + "\0", timeout=600)
+    tail = (r.stdout or "").strip().splitlines()[-1:] or ["0"]
+    n = int(tail[0]) if tail[0].isdigit() else 0
+    if r.returncode != 0 or n != len(paths):
+        out("  snapshot FAILED: rc %s, %d of %d members  %s" % (r.returncode, n, len(paths), (r.stderr or "")[:160]))
         return None
-    out("  snapshot -> %s (%d member(s) verified)" % (tar, n))
+    out("  snapshot -> %s (%d of %d members verified)" % (tar, n, len(paths)))
     return tar, n
 
 
 def rollback(tar, to_delete, out=print) -> bool:
-    """RESTORE FIRST, then remove only what did not exist before this deploy.
-
-    Order matters and the first version had it backwards: it deleted every path and then extracted,
-    with the extraction guarded by an `&&` that the deletions had already passed. If the archive was
-    missing or empty the tree was simply gone. Here the extraction must succeed before anything is
-    removed, and `to_delete` holds only paths the target did NOT have.
-    """
+    """RESTORE FIRST, then remove only what did not exist before this deploy."""
     q = shlex.quote
-    rm = " && ".join("rm -f %s" % q(p) for p in sorted(to_delete)) if to_delete else "true"
-    cmd = "cd %s && tar -xzf %s && echo EXTRACTED && (%s) && echo REMOVED" % (q(REMOTE), q(tar), rm)
-    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST, cmd],
-                       capture_output=True, text=True, timeout=600)
-    o = r.stdout or ""
-    if "EXTRACTED" not in o:
-        out("  ROLLBACK FAILED TO RESTORE -- the target keeps the new code: %s" % (r.stderr or "")[:200])
+    restore = ("tar -xzf %s" % q(tar)) if tar else "true"
+    cmd = ("cd %s && %s && echo EXTRACTED && xargs -0 -r rm -f -- && echo REMOVED"
+           % (q(REMOTE), restore))
+    try:
+        r = _remote(cmd, stdin="\0".join(sorted(to_delete)) + ("\0" if to_delete else ""), timeout=600)
+    except (OSError, subprocess.SubprocessError) as exc:
+        out("  ROLLBACK COULD NOT RUN: %s" % exc)
         return False
-    out("  ROLLBACK restored the snapshot%s" % ("" if "REMOVED" in o else " (but could not remove the added paths)"))
+    o = r.stdout or ""
+    if "EXTRACTED" not in o or "REMOVED" not in o:
+        out("  ROLLBACK INCOMPLETE (extracted=%s removed=%s): %s"
+            % ("EXTRACTED" in o, "REMOVED" in o, (r.stderr or "")[:200]))
+        return False
+    out("  rollback: snapshot restored, %d added path(s) removed" % len(to_delete))
     return True
 
 
 def write_manifest(local, out=print) -> bool:
-    """Record the version AFTER the smoke is green, as its own step.
-
-    Writing it inside the same rsync as the code meant a rolled-back first deploy left a manifest
-    claiming a version that is not installed -- and the next push then answered "nothing to do"
-    for ever.
-    """
-    r = _ssh(["sh", "-c", "cat > %s" % shlex.quote(MANIFEST_NAME)]) if False else subprocess.run(
-        ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST,
-         "cd %s && cat > %s" % (shlex.quote(REMOTE), shlex.quote(MANIFEST_NAME))],
-        input=json.dumps(local, indent=1), capture_output=True, text=True, timeout=120)
+    """Atomically: a truncate-then-write left invalid JSON on a partial write, which wedged every
+    later push (second audit)."""
+    q = shlex.quote
+    cmd = "cd %s && cat > %s.tmp && mv -f %s.tmp %s" % (q(REMOTE), MANIFEST_NAME, MANIFEST_NAME, MANIFEST_NAME)
+    r = _remote(cmd, stdin=json.dumps(local, indent=1), timeout=120)
     ok = r.returncode == 0
     out("  manifest %s" % ("written" if ok else "FAILED: " + (r.stderr or "")[:160]))
     return ok
 
 
-def restart_loop(out=print) -> bool:
-    """Restart wq-forge so the running driver is the one that was just deployed.
+def restart_loop(out=print) -> str:
+    """'restarted' | 'deferred' | 'failed'. Never while a forge child runs: a restart SIGTERMs the
+    whole unit, and a submit.py killed mid-POST is an outcome nobody can reconstruct."""
+    if round_in_flight():
+        out("  wq-forge restart DEFERRED: a forge child is running; the loop picks up new Python next "
+            "round, but forge_loop.sh itself stays old until a restart")
+        return "deferred"
+    r = _remote("systemctl restart wq-forge && sleep 3 && systemctl is-active wq-forge", timeout=180)
+    ok = r.returncode == 0 and _is_active(r.stdout)
+    out("  wq-forge %s" % ("restarted" if ok else "RESTART FAILED: %r" % (r.stdout or r.stderr or "")[:120]))
+    return "restarted" if ok else "failed"
 
-    A green deploy that leaves the old `forge_loop.sh` running means the target executes new Python
-    under an old driver while the manifest asserts a single version -- which is exactly the drift the
-    version id exists to abolish. EX-ANTE: the loop re-reads its Python each round, so the window is
-    one round; the restart closes it.
-    """
-    r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST,
-                        "systemctl restart wq-forge && sleep 3 && systemctl is-active wq-forge"],
-                       capture_output=True, text=True, timeout=180)
-    ok = "active" in (r.stdout or "")
-    out("  wq-forge %s" % ("restarted" if ok else "RESTART FAILED: " + (r.stderr or "")[:160]))
-    return ok
+
+#: (name, remote shell command). Every command runs from REMOTE. The planner leaves no plan behind:
+#: runner.py writes state/forge/plans/<seed>.json even on a dry run, and digest.py reads the newest
+#: plan by mtime, so a smoke plan left there becomes the day's reported plan.
+SMOKE = (
+    ("import", "venv/bin/python -c %s" % shlex.quote(
+        "import sys; sys.path[:0]=['.','tools']; import fingerprint, operators; "
+        "from forge import submit, runner, harvest, novelty, allocate, score; print('imports ok')")),
+    ("tests", "venv/bin/python -m pytest forge/tests -q --no-header -x"),
+    # the seed is chosen FREE on the target: `rm -f plans/<seed>.json` with a fixed seed deletes a
+    # pre-existing plan whenever the seed collides (measured locally 2026-09-23, 157 -> 156 plans)
+    ("planner", "s=%d; while [ -e state/forge/plans/$s.json ]; do s=$((s+1)); done; "
+                "venv/bin/python forge/runner.py --mode composites --order USA/d1,d1 --no-split "
+                "--delays 1 --ab new -n 20 --seed $s; rc=$?; rm -f state/forge/plans/$s.json; exit $rc"
+                % PLANNER_SEED),
+)
 
 
 def run_smoke(out=print) -> list:
-    """[(name, ok, tail)] for every smoke check, stopping at the first failure."""
     results = []
-    for name, argv, good_codes in SMOKE:
-        r = _ssh(argv)
-        ok = r.returncode in good_codes
-        tail = ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
-        results.append((name, ok, tail[-3:] if tail else []))
+    for name, cmd in SMOKE:
+        r = _remote("cd %s && %s" % (shlex.quote(REMOTE), cmd))
+        text = (r.stdout or "") + (r.stderr or "")
+        ok = _smoke_ok(name, r.returncode, text)
+        tail = text.strip().splitlines()[-3:]
+        results.append((name, ok, tail))
         out("  smoke %-8s %s (exit %s)" % (name, "ok" if ok else "FAILED", r.returncode))
-        for line in results[-1][2]:
+        for line in tail:
             out("      %s" % line[:160])
         if not ok:
             break
     return results
 
 
+def _stage(fmap) -> pathlib.Path:
+    """Build the upload tree OUTSIDE the repository (the second audit found the tests leaving 5 MB of
+    staged files in the repo root) and with copy2, which keeps the executable bit forge_loop.sh needs."""
+    staged = pathlib.Path(tempfile.mkdtemp(prefix="wq-deploy-"))
+    for remote_path, local_path in fmap.items():
+        dest = staged / remote_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(local_path, dest)
+    return staged
+
+
+#: One line per deploy ATTEMPT that got past the guards (refusals are not deploys). This is the raw
+#: material of the four DORA keys, computed in forge/offline/benchmark.py: frequency, lead time
+#: (commit -> live), change-failure rate, and time to restore.
+DEPLOY_LOG = ROOT / "state/deploys.jsonl"
+
+
+def git_commit_time(sha, root=ROOT):
+    if not sha:
+        return None
+    try:
+        r = subprocess.run(["git", "-C", str(root), "show", "-s", "--format=%ct", sha],
+                           capture_output=True, text=True, timeout=15)
+        return float(r.stdout.strip()) if r.returncode == 0 and r.stdout.strip() else None
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+
+
 def push(force=False, out=print) -> int:
-    """Ship the plan, verify it on the target, and undo the swap if verification fails."""
+    """Ship, verify, undo on failure -- and record every attempt that reached the swap."""
+    started = time.time()
+    rc = _push(force=force, out=out)
+    if rc != EXIT["refused"]:
+        outcome = {v: k for k, v in EXIT.items()}.get(rc, "unknown")
+        local = manifest()
+        row = {"started_at": started, "finished_at": time.time(), "outcome": outcome, "exit": rc,
+               "version": local["version"], "git_sha": local["git_sha"], "git_dirty": local["git_dirty"],
+               "commit_time": git_commit_time(local["git_sha"])}
+        try:
+            DEPLOY_LOG.parent.mkdir(parents=True, exist_ok=True)
+            with DEPLOY_LOG.open("a") as fh:
+                fh.write(json.dumps(row) + "\n")
+        except OSError as exc:
+            out("  could not record the deploy in %s: %s" % (DEPLOY_LOG, exc))
+    return rc
+
+
+def _push(force=False, out=print) -> int:
+    """Ship, verify, and undo on failure. Exit codes: see EXIT."""
     if not force and round_in_flight():
-        out("a round is dispatching (or the target could not be asked); refusing to swap code under it")
-        return 2
+        out("a forge child is running (or the target could not be asked); refusing to swap code")
+        return EXIT["refused"]
     local = manifest()
     remote, readable = remote_manifest()
     if not readable:
-        out("could not read %s on the target; refusing rather than guess that it was never deployed" % MANIFEST_NAME)
-        return 2
-    out("local version  %s (%d files, git %s%s)" % (local["version"], local["files"],
-                                                    (local["git_sha"] or "-")[:8], ", DIRTY" if local["git_dirty"] else ""))
-    out("target version %s" % (remote["version"] if remote else "NONE (never deployed by this tool)"))
-    if remote and local["version"] == remote["version"]:
+        out("could not read %s on the target; refusing rather than guess it was never deployed" % MANIFEST_NAME)
+        return EXIT["refused"]
+    out("local  %s (%d files, git %s%s)" % (local["version"], local["files"], (local["git_sha"] or "-")[:8],
+                                          ", DIRTY" if local["git_dirty"] else ""))
+    out("target %s" % (remote["version"] if remote else "never deployed by this tool"))
+    if remote and remote.get("version") == local["version"]:
         out("nothing to do: the target already runs this exact content")
-        return 0
+        return EXIT["deployed"]
 
-    plan_paths = list(local["hashes"])
+    plan_paths = sorted(local["hashes"])
     try:
-        present = remote_existing(plan_paths + [MANIFEST_NAME])
+        present = remote_existing(plan_paths)
     except RuntimeError as exc:
         out("%s -- refusing to deploy blind" % exc)
-        return 2
-    to_delete = sorted(set(plan_paths) - present)          # only genuinely new paths may be removed
-    out("target already has %d of %d plan paths; %d would be new" % (len(present & set(plan_paths)), len(plan_paths), len(to_delete)))
+        return EXIT["refused"]
+    to_delete = sorted(set(plan_paths) - present)
+    out("target has %d of %d plan paths; %d are new" % (len(present), len(plan_paths), len(to_delete)))
 
-    snap = snapshot(sorted(present), "pre-%s" % (remote["version"] if remote else "unversioned"), out=out)
+    snap = snapshot(present, snapshot_tag(remote.get("version") if remote else None), out=out)
     if snap is None:
-        out("no verified snapshot -- refusing to deploy, because a deploy without a rollback is a one-way door")
-        return 2
+        out("no verified snapshot -- refusing: a deploy without a rollback is a one-way door")
+        return EXIT["refused"]
     tar, _ = snap
 
-    staged = ROOT / ".deploy_stage"
+    staged = None
+    swapped = False
     try:
-        fmap = file_map()
-        subprocess.run(["rm", "-rf", str(staged)], check=True)
-        for remote_path, local_path in fmap.items():
-            dest = staged / remote_path
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_bytes(local_path.read_bytes())
-        # NO --delete of any kind: /opt/wq also holds state/ (the only journal), venv/ and fetched/.
-        r = subprocess.run(["rsync", "-a", str(staged) + "/", "%s:%s/" % (HOST, REMOTE)],
+        staged = _stage(file_map())
+        if not force and round_in_flight():           # re-check: the first check is minutes old
+            out("a forge child started while staging; refusing")
+            return EXIT["refused"]
+        swapped = True
+        r = subprocess.run(["rsync", "-a", "--no-owner", "--no-group", str(staged) + "/", "%s:%s/" % (HOST, REMOTE)],
                            capture_output=True, text=True, timeout=900)
         if r.returncode != 0:
             out("rsync FAILED: %s" % (r.stderr or "")[:300])
-            rollback(tar, to_delete, out=out)
-            return 1
-        out("shipped %d file(s)" % len(fmap))
+            return EXIT["rolled_back"] if rollback(tar, to_delete, out=out) else EXIT["rollback_failed"]
+        out("shipped %d file(s)" % len(local["hashes"]))
         results = run_smoke(out=out)
         if not all(ok for _, ok, _ in results):
             failed = next(n for n, ok, _ in results if not ok)
             out("smoke FAILED at '%s' -- rolling back" % failed)
-            rollback(tar, to_delete, out=out)
-            return 1
-    except Exception as exc:  # noqa: BLE001 -- ANY failure after the swap must reach the rollback
-        out("deploy raised (%s: %s) -- rolling back" % (type(exc).__name__, exc))
-        rollback(tar, to_delete, out=out)
-        return 1
+            return EXIT["rolled_back"] if rollback(tar, to_delete, out=out) else EXIT["rollback_failed"]
+    except BaseException as exc:  # noqa: BLE001 -- includes KeyboardInterrupt: a half-swapped tree is never left
+        if swapped:
+            out("deploy interrupted (%s: %s) -- rolling back" % (type(exc).__name__, exc))
+            ok = rollback(tar, to_delete, out=out)
+            if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                raise
+            return EXIT["rolled_back"] if ok else EXIT["rollback_failed"]
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
+        out("deploy failed before anything was swapped (%s: %s)" % (type(exc).__name__, exc))
+        return EXIT["refused"]
     finally:
-        subprocess.run(["rm", "-rf", str(staged)], check=False)
+        if staged is not None:
+            shutil.rmtree(staged, ignore_errors=True)
 
-    write_manifest(local, out=out)
-    restart_loop(out=out)
-    out("DEPLOYED %s -- smoke green (%s)" % (local["version"], ", ".join(n for n, _, _ in results)))
-    return 0
+    recorded = write_manifest(local, out=out)
+    restarted = restart_loop(out=out)
+    if not recorded or restarted == "failed":
+        out("DEPLOYED %s but %s -- the code is live and green, and the record of it is not"
+            % (local["version"], "the manifest was not written" if not recorded else "wq-forge did not come back"))
+        return EXIT["unrecorded"]
+    out("DEPLOYED %s -- smoke green (%s), loop %s" % (local["version"], ", ".join(n for n, _, _ in results), restarted))
+    return EXIT["deployed"]
+
+
+def _print_drift(d, header):
+    n = sum(len(v) for v in d.values())
+    print("%s: %d file(s) differ" % (header, n))
+    for kind, paths in d.items():
+        for p in paths[:20]:
+            print("  %-8s %s" % (kind, p))
+    return 1 if n else 0
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("cmd", choices=("version", "manifest", "drift", "push", "remote"))
-    ap.add_argument("--force", action="store_true", help="deploy even while a round is dispatching")
+    ap.add_argument("--force", action="store_true", help="deploy even while a forge child is running")
     ap.add_argument("--against", default="", help="a DEPLOYED.json to compare with (drift)")
     a = ap.parse_args(argv)
     m = manifest()
@@ -396,30 +501,19 @@ def main(argv=None) -> int:
         return 0
     if a.cmd == "push":
         return push(force=a.force)
+    if a.against:
+        return _print_drift(drift(m, json.loads(pathlib.Path(a.against).read_text())), "drift")
+    rm, readable = remote_manifest()
+    if not readable:
+        print("could not read %s on the target" % MANIFEST_NAME)
+        return 2
     if a.cmd == "remote":
-        rm = remote_manifest()
         print(json.dumps(rm, indent=1) if rm else "the target carries no %s" % MANIFEST_NAME)
         return 0
-    if not a.against:
-        # with no file given, compare against what the target reports
-        rm = remote_manifest()
-        if rm is None:
-            print("the target carries no %s; run `push` first" % MANIFEST_NAME)
-            return 2
-        d = drift(m, rm)
-        n = sum(len(v) for v in d.values())
-        print("drift vs target %s: %d file(s) differ" % (rm["version"], n))
-        for kind, paths in d.items():
-            for p in paths[:20]:
-                print("  %-8s %s" % (kind, p))
-        return 1 if n else 0
-    d = drift(m, json.loads(pathlib.Path(a.against).read_text()))
-    n = sum(len(v) for v in d.values())
-    print("drift: %d file(s) differ" % n)
-    for kind, paths in d.items():
-        for p in paths[:20]:
-            print("  %-8s %s" % (kind, p))
-    return 1 if n else 0
+    if rm is None:
+        print("the target carries no %s; run `push` first" % MANIFEST_NAME)
+        return 2
+    return _print_drift(drift(m, rm), "drift vs target %s" % rm["version"])
 
 
 if __name__ == "__main__":
