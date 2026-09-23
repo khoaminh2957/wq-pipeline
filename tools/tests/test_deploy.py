@@ -190,20 +190,30 @@ def nonet(monkeypatch, tmp_path):
 
     def fake_rollback(tar, to_delete, out=print):
         c.rolled_back, c.rollback_args = True, (tar, list(to_delete))
+        c.events.append("rollback")
         return True
     monkeypatch.setattr(deploy, "rollback", fake_rollback)
     monkeypatch.setattr(deploy, "write_manifest", lambda local, out=print: (setattr(c, "manifest_written", True), True)[1])
 
-    def fake_restart(out=print):
+    c.events = []
+
+    def fake_stop(out=print):
+        c.events.append("stop")
+        return True
+
+    def fake_start(out=print):
+        c.events.append("start")
         c.restart = "restarted"
-        return "restarted"
-    monkeypatch.setattr(deploy, "restart_loop", fake_restart)
+        return True
+    monkeypatch.setattr(deploy, "stop_units", fake_stop)
+    monkeypatch.setattr(deploy, "start_units", fake_start)
     monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [(n, True, []) for n, _ in deploy.SMOKE])
 
     def fake_run(argv, **kw):
         import types
         if argv and argv[0] == "rsync":
             c.rsynced = True
+            c.events.append("rsync")
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
     monkeypatch.setattr(deploy.subprocess, "run", fake_run)
     return c
@@ -276,7 +286,10 @@ def test_an_interrupt_after_the_swap_still_rolls_back_and_re_raises(monkeypatch,
 def test_the_manifest_is_written_only_after_a_green_smoke(monkeypatch, nonet):
     monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("tests", False, ["1 failed"])])
     deploy.push(out=nonet.out)
-    assert nonet.rolled_back and not nonet.manifest_written and nonet.restart is None
+    # a successful rollback puts the tree back in its known state and restarts the units by design;
+    # what must never happen is a manifest recording code that is not installed
+    assert nonet.rolled_back and not nonet.manifest_written
+    assert nonet.events[-2:] == ["rollback", "start"]
 
 
 def test_a_deploy_whose_record_failed_says_so(monkeypatch, nonet):
@@ -339,3 +352,64 @@ def test_the_plan_covers_every_file_the_live_loop_actually_imports():
     loaded = set(json.loads(r.stdout.strip().splitlines()[-1]))
     missing = sorted(loaded - set(deploy.file_map()))
     assert not missing, "the live loop imports files the deploy plan does not ship: %s" % missing
+
+
+# ----- third audit
+def test_a_regular_file_where_a_directory_must_go_is_refused():
+    """rsync replaces it silently (reproduced on rsync 3.4.1), and no snapshot would hold it."""
+    with pytest.raises(RuntimeError, match="parent of a shipped path is a regular file"):
+        deploy._existing_from("forge/a.py\nBADPARENT forge/sub\nCHECKED 2\n", ["forge/a.py", "forge/sub/b.py"])
+
+
+def test_the_units_are_stopped_before_the_swap_and_started_after_a_green_smoke(nonet):
+    """Nothing may run code the smoke has not judged."""
+    assert deploy.push(out=nonet.out) == deploy.EXIT["deployed"]
+    assert nonet.events.index("stop") < nonet.events.index("rsync") < nonet.events.index("start")
+
+
+def test_a_successful_rollback_restarts_the_units(monkeypatch, nonet):
+    monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("tests", False, ["x"])])
+    assert deploy.push(out=nonet.out) == deploy.EXIT["rolled_back"]
+    assert nonet.events[-2:] == ["rollback", "start"]
+
+
+def test_a_failed_rollback_leaves_the_units_stopped(monkeypatch, nonet):
+    """Starting the loop on a half-swapped tree spends real quota on code nobody can name."""
+    monkeypatch.setattr(deploy, "run_smoke", lambda out=print: [("tests", False, ["x"])])
+    monkeypatch.setattr(deploy, "rollback", lambda tar, to_delete, out=print: False)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["rollback_failed"]
+    assert "start" not in nonet.events and nonet.said("LEFT STOPPED")
+
+
+def test_units_that_will_not_stop_mean_no_swap(monkeypatch, nonet):
+    monkeypatch.setattr(deploy, "stop_units", lambda out=print: False)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"] and not nonet.rsynced
+
+
+def test_what_ships_is_exactly_what_was_hashed(monkeypatch, nonet):
+    """The third audit reproduced a second walk of the repository shipping files the first walk
+    never hashed, probed or snapshotted. The staged bytes are now checked against the manifest."""
+    monkeypatch.setattr(deploy, "_staged_matches", lambda staged, hashes: ["forge/changed.py"])
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"]
+    assert not nonet.rsynced and not nonet.snapshotted
+
+
+def test_the_stage_root_is_755_not_mkdtemps_700(tmp_path):
+    """rsync -a carries the root's mode onto the target: /opt/wq became 0700 (reproduced)."""
+    src = tmp_path / "x.py"
+    src.write_text("x")
+    staged = deploy._stage({"x.py": src})
+    try:
+        assert (staged.stat().st_mode & 0o777) == 0o755
+    finally:
+        import shutil
+        shutil.rmtree(staged)
+
+
+def test_the_busy_pattern_sees_every_forge_python_process():
+    import re
+    pat = re.compile(deploy.BUSY)
+    for cmd in ("forge/runner.py -n 300", "forge/offline/recover_orphans.py", "forge/offline/c11_neut.py",
+                "forge/harvest.py", "forge/submit.py --submit"):
+        assert pat.search(cmd), cmd
+    assert not pat.search("pgrep -fc '%s'" % deploy.BUSY)          # never matches its own pattern text

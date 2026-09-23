@@ -121,8 +121,11 @@ def git_dirty(root=ROOT):
         return None
 
 
-def manifest(root=ROOT, plan=None, now=None) -> dict:
-    hashes = content_hashes(file_map(root, plan))
+def manifest(root=ROOT, plan=None, now=None, fmap=None) -> dict:
+    """`fmap` lets a caller hash exactly the file set it will ship: the third audit found push hashing
+    one walk of the repository and shipping a second, so a file that appeared in between shipped with
+    no snapshot and no rollback entry."""
+    hashes = content_hashes(fmap if fmap is not None else file_map(root, plan))
     return {"version": version_id(hashes), "files": len(hashes), "hashes": hashes,
             "git_sha": git_sha(root), "git_dirty": git_dirty(root),
             "built_at": now if now is not None else time.time()}
@@ -154,7 +157,11 @@ SSH = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=30", HOST]
 #: holds /var/lock/wq_forge.lock for its whole life (`exec 9>`), so that lock cannot be borrowed;
 #: these are the children that import code mid-run (submit.py and harvest.py import lazily) or that
 #: a restart would SIGTERM mid-POST.
-BUSY = r"forge/(runner|submit|harvest|probe)\.py"
+BUSY = r"forge/[a-z0-9_/]+\.py"   # third audit: recover_orphans.py and the arm drivers were invisible;
+                                  # digits matter -- forge/offline/c11_neut.py (caught by its own test)
+#: Stopped for the whole swap, so no process can import a half-shipped tree and nothing runs the new
+#: code before the smoke has judged it (third audit). wq-harvest is its own unit and writes the journal.
+UNITS = ("wq-forge", "wq-harvest")
 PLANNER_SEED = 900_000_000     # far above hand-picked seeds; the smoke still walks to a free one
 EXIT = {"deployed": 0, "rolled_back": 1, "refused": 2, "rollback_failed": 3, "unrecorded": 4}
 
@@ -177,7 +184,13 @@ def _existing_from(stdout: str, asked) -> set:
     n = int(lines[-1].split()[1])
     if n != len(asked):
         raise RuntimeError("existence probe checked %d of %d paths" % (n, len(asked)))
-    found = set(lines[:-1])
+    body = lines[:-1]
+    bad = [l[len("BADPARENT "):] for l in body if l.startswith("BADPARENT ")]
+    if bad:
+        # rsync replaces a regular file that sits where a directory must go, silently (third audit,
+        # reproduced on the target's rsync 3.4.1) -- that file would be lost with no snapshot of it
+        raise RuntimeError("a parent of a shipped path is a regular file on the target: %s" % bad[:3])
+    found = set(l for l in body if not l.startswith("BADPARENT "))
     stray = found - set(asked)
     if stray:
         raise RuntimeError("existence probe reported paths it was not asked about: %s" % sorted(stray)[:3])
@@ -246,6 +259,13 @@ def remote_existing(paths) -> set:
     prog = ("import sys,os\n"
             "ps=[p for p in sys.stdin.buffer.read().decode().split('\\0') if p]\n"
             "[print(p) for p in ps if os.path.lexists(p)]\n"
+            "bad=set()\n"
+            "for p in ps:\n"
+            "    d=os.path.dirname(p)\n"
+            "    while d:\n"
+            "        if os.path.lexists(d) and not os.path.isdir(d): bad.add(d)\n"
+            "        d=os.path.dirname(d)\n"
+            "[print('BADPARENT '+b) for b in sorted(bad)]\n"
             "print('CHECKED %d'%len(ps))\n")
     r = _remote("cd %s && venv/bin/python -c %s" % (shlex.quote(REMOTE), shlex.quote(prog)),
                 stdin="\0".join(paths) + "\0", timeout=300)
@@ -307,17 +327,29 @@ def write_manifest(local, out=print) -> bool:
     return ok
 
 
-def restart_loop(out=print) -> str:
-    """'restarted' | 'deferred' | 'failed'. Never while a forge child runs: a restart SIGTERMs the
-    whole unit, and a submit.py killed mid-POST is an outcome nobody can reconstruct."""
-    if round_in_flight():
-        out("  wq-forge restart DEFERRED: a forge child is running; the loop picks up new Python next "
-            "round, but forge_loop.sh itself stays old until a restart")
-        return "deferred"
-    r = _remote("systemctl restart wq-forge && sleep 3 && systemctl is-active wq-forge", timeout=180)
-    ok = r.returncode == 0 and _is_active(r.stdout)
-    out("  wq-forge %s" % ("restarted" if ok else "RESTART FAILED: %r" % (r.stdout or r.stderr or "")[:120]))
-    return "restarted" if ok else "failed"
+def units_state() -> dict:
+    r = _remote("systemctl is-active %s; true" % " ".join(UNITS), timeout=60)
+    states = (r.stdout or "").split()
+    return dict(zip(UNITS, states)) if len(states) == len(UNITS) else {}
+
+
+def stop_units(out=print) -> bool:
+    """Stop the loop and the harvester for the swap. True only if both are verifiably not active."""
+    _remote("systemctl stop %s" % " ".join(UNITS), timeout=180)
+    st = units_state()
+    ok = bool(st) and all(v != "active" for v in st.values())
+    out("  units stopped: %s" % (st if st else "COULD NOT READ"))
+    return ok
+
+
+def start_units(out=print) -> bool:
+    """Start both units and confirm each reads exactly 'active' (not a substring of 'inactive')."""
+    _remote("systemctl start %s" % " ".join(UNITS), timeout=180)
+    time.sleep(3)
+    st = units_state()
+    ok = bool(st) and all(_is_active(v) for v in st.values())
+    out("  units started: %s" % (st if st else "COULD NOT READ"))
+    return ok
 
 
 #: (name, remote shell command). Every command runs from REMOTE. The planner leaves no plan behind:
@@ -357,6 +389,9 @@ def _stage(fmap) -> pathlib.Path:
     """Build the upload tree OUTSIDE the repository (the second audit found the tests leaving 5 MB of
     staged files in the repo root) and with copy2, which keeps the executable bit forge_loop.sh needs."""
     staged = pathlib.Path(tempfile.mkdtemp(prefix="wq-deploy-"))
+    # mkdtemp is 0700 and `rsync -a` carries the root's mode onto the target: /opt/wq became 0700
+    # (third audit, reproduced). The target's own mode is 755.
+    staged.chmod(0o755)
     for remote_path, local_path in fmap.items():
         dest = staged / remote_path
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -400,12 +435,27 @@ def push(force=False, out=print) -> int:
     return rc
 
 
+def _staged_matches(staged: pathlib.Path, hashes: dict) -> list:
+    """Paths whose staged bytes differ from the hash that was checked and snapshotted."""
+    return sorted(k for k, h in hashes.items()
+                  if hashlib.sha256((staged / k).read_bytes()).hexdigest() != h)
+
+
 def _push(force=False, out=print) -> int:
-    """Ship, verify, and undo on failure. Exit codes: see EXIT."""
+    """Ship, verify, and undo on failure. Exit codes: see EXIT.
+
+    Order, and why: ONE file map is hashed, probed, snapshotted, staged and verified, so what ships is
+    exactly what can be rolled back; the loop and the harvester are STOPPED before the swap, so no
+    process runs code the smoke has not judged; they are started again only when the tree is in a
+    known state (green, or restored). A FAILED rollback leaves them stopped on purpose: starting the
+    loop on a half-swapped tree spends real quota on code nobody can name.
+    Run it from a terminal, not inside a tool call with a short timeout: SIGKILL skips every rollback.
+    """
     if not force and round_in_flight():
-        out("a forge child is running (or the target could not be asked); refusing to swap code")
+        out("a forge process is running (or the target could not be asked); refusing to swap code")
         return EXIT["refused"]
-    local = manifest()
+    fmap = file_map()
+    local = manifest(fmap=fmap)
     remote, readable = remote_manifest()
     if not readable:
         out("could not read %s on the target; refusing rather than guess it was never deployed" % MANIFEST_NAME)
@@ -426,54 +476,83 @@ def _push(force=False, out=print) -> int:
     to_delete = sorted(set(plan_paths) - present)
     out("target has %d of %d plan paths; %d are new" % (len(present), len(plan_paths), len(to_delete)))
 
+    staged = None
+    try:
+        staged = _stage(fmap)
+        drifted = _staged_matches(staged, local["hashes"])
+        if drifted:
+            out("the working tree changed while staging (%s); refusing" % drifted[:3])
+            return EXIT["refused"]
+    except BaseException:
+        if staged is not None:
+            shutil.rmtree(staged, ignore_errors=True)
+        raise
+
     snap = snapshot(present, snapshot_tag(remote.get("version") if remote else None), out=out)
     if snap is None:
+        shutil.rmtree(staged, ignore_errors=True)
         out("no verified snapshot -- refusing: a deploy without a rollback is a one-way door")
         return EXIT["refused"]
     tar, _ = snap
 
-    staged = None
-    swapped = False
+    swapped = stopped = False
+    results = []
     try:
-        staged = _stage(file_map())
-        if not force and round_in_flight():           # re-check: the first check is minutes old
-            out("a forge child started while staging; refusing")
+        if not force and round_in_flight():
+            out("a forge process started while preparing; refusing")
+            return EXIT["refused"]
+        stopped = True
+        if not stop_units(out=out):
+            out("could not verify the units stopped; refusing to swap under a live loop")
+            start_units(out=out)
             return EXIT["refused"]
         swapped = True
         r = subprocess.run(["rsync", "-a", "--no-owner", "--no-group", str(staged) + "/", "%s:%s/" % (HOST, REMOTE)],
                            capture_output=True, text=True, timeout=900)
         if r.returncode != 0:
             out("rsync FAILED: %s" % (r.stderr or "")[:300])
-            return EXIT["rolled_back"] if rollback(tar, to_delete, out=out) else EXIT["rollback_failed"]
+            return _undo(tar, to_delete, out)
         out("shipped %d file(s)" % len(local["hashes"]))
         results = run_smoke(out=out)
         if not all(ok for _, ok, _ in results):
             failed = next(n for n, ok, _ in results if not ok)
             out("smoke FAILED at '%s' -- rolling back" % failed)
-            return EXIT["rolled_back"] if rollback(tar, to_delete, out=out) else EXIT["rollback_failed"]
-    except BaseException as exc:  # noqa: BLE001 -- includes KeyboardInterrupt: a half-swapped tree is never left
+            return _undo(tar, to_delete, out)
+    except BaseException as exc:  # noqa: BLE001 -- includes KeyboardInterrupt
         if swapped:
             out("deploy interrupted (%s: %s) -- rolling back" % (type(exc).__name__, exc))
-            ok = rollback(tar, to_delete, out=out)
+            rc = _undo(tar, to_delete, out)
             if isinstance(exc, (KeyboardInterrupt, SystemExit)):
                 raise
-            return EXIT["rolled_back"] if ok else EXIT["rollback_failed"]
+            return rc
+        if stopped:
+            start_units(out=out)
         if isinstance(exc, (KeyboardInterrupt, SystemExit)):
             raise
         out("deploy failed before anything was swapped (%s: %s)" % (type(exc).__name__, exc))
         return EXIT["refused"]
     finally:
-        if staged is not None:
-            shutil.rmtree(staged, ignore_errors=True)
+        shutil.rmtree(staged, ignore_errors=True)
 
     recorded = write_manifest(local, out=out)
-    restarted = restart_loop(out=out)
-    if not recorded or restarted == "failed":
-        out("DEPLOYED %s but %s -- the code is live and green, and the record of it is not"
-            % (local["version"], "the manifest was not written" if not recorded else "wq-forge did not come back"))
+    running = start_units(out=out)
+    if not recorded or not running:
+        out("DEPLOYED %s but %s -- the code is live and green, and %s"
+            % (local["version"], "the manifest was not written" if not recorded else "the units did not come back",
+               "the record of it is not" if not recorded else "NOTHING IS RUNNING"))
         return EXIT["unrecorded"]
-    out("DEPLOYED %s -- smoke green (%s), loop %s" % (local["version"], ", ".join(n for n, _, _ in results), restarted))
+    out("DEPLOYED %s -- smoke green (%s), units running" % (local["version"], ", ".join(n for n, _, _ in results)))
     return EXIT["deployed"]
+
+
+def _undo(tar, to_delete, out) -> int:
+    """Roll back; restart the units only if the tree is back in its known state."""
+    if rollback(tar, to_delete, out=out):
+        start_units(out=out)
+        return EXIT["rolled_back"]
+    out("ROLLBACK FAILED -- wq-forge and wq-harvest are LEFT STOPPED on purpose: the tree is in an "
+        "unknown state and starting the loop would spend real quota on it. Restore from %s by hand." % tar)
+    return EXIT["rollback_failed"]
 
 
 def _print_drift(d, header):

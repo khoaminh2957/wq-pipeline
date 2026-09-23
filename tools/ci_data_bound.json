@@ -1,10 +1,10 @@
 {
- "measured_at": "2026-09-23 10:07:47",
- "seconds": 274,
+ "measured_at": "2026-09-23 10:50:39",
+ "seconds": 276,
  "method": "two-arm run of the same code: DATA (working tree with state/ and fetched/) vs CLEAN (fresh clone, bare venv with pytest+pyyaml+requests). data-bound = fails CLEAN and passes DATA; red = fails DATA.",
- "tests_hash": "a432e2e299bda733",
- "arm_data": "1 failed, 1028 passed in 264.99s (0:04:24)",
- "arm_clean": "57 failed, 806 passed, 13 skipped, 111 errors in 8.62s",
+ "tests_hash": "dc1b192fc198e26a",
+ "arm_data": "1 failed, 1036 passed in 265.36s (0:04:25)",
+ "arm_clean": "57 failed, 814 passed, 13 skipped, 111 errors in 9.88s",
  "red": [
   "tools/tests/test_layered.py::test_the_model_names_the_operator_the_platform_named"
  ],

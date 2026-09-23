@@ -111,6 +111,11 @@ def check_no_live(root=ROOT) -> dict:
 
     Greps for the one flag that turns a dry run into money: `--live`. A test or workflow that carries
     it is a blocker regardless of intent, because CI runs unattended.
+
+    WHAT THIS IS NOT. It is a tripwire against ACCIDENT, not a proof: a string grep is walked around by
+    assembling the flag from parts (this gate's own test does exactly that to avoid tripping it), and it
+    fires on the flag used as test DATA (the third Actions run did). The structural protection of RULE 1
+    on a hosted runner is that it holds no platform credential and so cannot POST at all.
     """
     offenders = []
     for p in list((root / "forge/tests").rglob("*.py")) + list((root / "tools/tests").rglob("*.py")) \

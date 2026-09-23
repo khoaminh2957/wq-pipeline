@@ -77,7 +77,10 @@ def test_no_live_flags_a_quota_spending_line_and_ignores_the_guards_about_it(tmp
     (tmp_path / "tools/tests").mkdir(parents=True)
     (tmp_path / "forge/tests/test_ok.py").write_text('assert "--live" not in argv\n# never pass --live\n')
     assert G.check_no_live(tmp_path)["ok"] is True
-    (tmp_path / "tools/tests/test_bad.py").write_text('run(["runner.py", "--live"])\n')
+    # the flag is assembled so THIS file does not trip the very check it tests -- which it did on the
+    # third Actions run, and which is also the proof that a grep can be walked around (see the gate)
+    flag = "--" + "live"
+    (tmp_path / "tools/tests/test_bad.py").write_text('run(["runner.py", "%s"])\n' % flag)
     r = G.check_no_live(tmp_path)
     assert r["ok"] is False and "test_bad.py:1" in r["summary"]
 

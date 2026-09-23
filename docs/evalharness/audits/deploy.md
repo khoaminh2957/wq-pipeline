@@ -693,3 +693,158 @@ is outside every plan destination, and the real `rm -f` chain contains no `state
 `fetched/` clause. The loss at risk is the **code tree** — 499 existing files under
 `/opt/wq/forge`, `/opt/wq/tools` and four root filenames, on a host that is not a git repository, of
 which 6 differ from local and therefore exist nowhere else on earth.
+
+
+---
+
+# Third pass (2026-09-23)
+
+Adjudicator, third pass. Three auditors reported: **regression**, **destroy** and **assume**. I
+re-verified every defect kept below, using one of four means:
+
+- reading the line in the pinned file;
+- an offline harness that drives the real `deploy.main(["push"])` with every `subprocess.run`
+  replaced (scratchpad `h.py`);
+- a container running **rsync 3.4.1 and GNU tar 1.35**, the target's exact versions, with this Mac's
+  openrsync as the sender and the production argv (scratchpad `rs.py`);
+- read-only `ssh -n -o BatchMode=yes` (`cat`, `ls`, `stat`, `pgrep`, `systemctl is-active`).
+
+Nothing was written on the VPS and nothing was simulated.
+
+**Pinned.** `tools/deploy.py` is sha256 `db14370d…` (520 lines, mtime 09:42:36).
+`tools/tests/test_deploy.py` is `0b2acf1b…`. The file changed under the auditors. *assume* audited
+`ec241e14…` (472 lines). *regression* audited an intermediate version. *destroy* audited `db14370d`.
+Every line number below refers to `db14370d`. If the file changes again, this verdict lapses.
+
+## Contradictions settled
+
+| claim | settled |
+|---|---|
+| The brief says both earlier reports are in this file | **False.** Before this section the file held only the first-pass adjudication (695 lines). A grep for `inactive`, `pre-unversioned`, `while read`, `argparse` and `chown` found nothing in `docs/`. The second pass (46 defects) is not on disk, so only the 10 second-pass items the brief names are graded. |
+| Test count: 26 (brief and *assume*), 27 (*regression*), 28 (*destroy*) | The current file has **28** `def test_`, and `pytest tools/tests/test_deploy.py -q` reports **28 passed**. The other counts belong to earlier versions of the file. |
+| Plan and target counts: 540/499/41 (brief), 546/503/43 (*destroy*) | At 10:01 I measured **547 plan paths: 503 present on the target (493 byte-identical, 10 different) and 44 new.** At 10:05 the plan had **549** paths, because `tools/ci_baseline.json` (created 10:02:35) and `tools/tests/test_ci_gate.py` had been added. The counts move with local edits. The four harness files added to PLAN at 09:42 are all present on the target. |
+| Files that differ: 6 (first pass), 9 (*destroy*) | **10.** `forge/{probe,runner,submit}.py` and their three tests, `tools/{auth_link,auth_only,measure_backlog}.py`, and `tools/tests/test_layered_sim.py`, which was edited locally at 09:54. Every one differs in size, so rsync's quick check skips none of them today. |
+| *destroy*: file-to-directory loss "not tested on rsync 3.4.1" | **Now tested on 3.4.1**, and it reproduces (see Survives, D1). |
+| *assume*: the rsync quick-check skip is SUSPECTED | **Demonstrated on 3.4.1** (see Introduced, I2). It does not fire for today's diff. |
+
+## Earlier findings: what genuinely landed
+
+**First pass.**
+- **C1 landed.** The snapshot checks rc and requires member count = `len(paths)` (`:267-274`). `push` refuses when there is no snapshot (`:430-432`). The rollback extracts before it removes (`:282-284`). An empty present-set is handled (`:262-264`). The residual is new and listed as I4.
+- **A1 landed.** `to_delete` = plan paths minus the remote existence probe (`:426`).
+- **C2 landed.** The manifest is written only after the `try` (`:469`), atomically via tmp then `mv` (`:303`), and is never staged. A rolled-back first deploy leaves no `DEPLOYED.json` (harness case `smoke_red`: no manifest call).
+- **B3 landed** (`_smoke_ok`, `:187-193`).
+- **B4 landed** (`:223-241`). The residue is minor: non-dict JSON crashes at `:415` with exit 1 before any swap (harness cases `listjson` → TypeError, `nover` → KeyError).
+- **S7 landed.** Paths travel NUL-separated on stdin, and every interpolation is `shlex`-quoted.
+- **M5 landed** (`copy2`).
+- **Partial:** B1, B2, M1, M7, M8, S5, S8 and A2. The detail is under Survives.
+- **Not landed:** B5, B6, S1, S2, S3, S4, S6, M2, M3, M4 and M6.
+
+**Second pass (only the 10 named items).**
+- **Landed:** the `while read` last-path skip (Python probe plus `CHECKED n`); the constant snapshot name (a UTC stamp at 1-second resolution); `'active' in 'inactive'` (`_is_active`); argparse exit 2 (`_smoke_ok`); the left-over `plans/999.json` (seed walk, and the smoke removes only its own plan); the stripped exec bit; the rsync chown (`--no-owner --no-group`); and staging in the repo root (`mkdtemp`).
+- **Partial:** "`except Exception` misses KeyboardInterrupt" and "return values discarded". The detail is in S-a below.
+
+## What survives (re-verified)
+
+**D1 — rsync silently deletes a target FILE where the plan now has a DIRECTORY. CATASTROPHIC mechanism, not armed today.**
+- *Mechanism.* The probe (`:244-254`) and the snapshot test only leaf paths, so the displaced file is never archived.
+- *Reproduced with rsync 3.4.1.* `/opt/wq/tools/fixtures` held `TARGET-ONLY DATA`. I shipped `tools/fixtures/x.json` through `_stage` and the production argv. rsync returned rc 0, `fixtures` became a directory, and the data was gone.
+- *Target today (read-only `stat`).* All 20 existing ancestor directories of the 547 plan paths are directories. The 21st, `tools/tests/fixtures`, is absent. So no instance exists today, but every push that introduces a new directory reopens the case.
+- *Fix.* The probe reports any ancestor that exists as a non-directory, and push refuses.
+
+**D2 (was M4) — the bytes hashed, probed and snapshotted come from one walk (`:408`); the bytes shipped come from a second walk (`:438`). DEMONSTRATED.**
+- *Harness.* A path that appears between the two walks is staged and rsynced. It is absent from the probe stdin, the snapshot stdin, the manifest written to the target and the rollback's `to_delete`. The run exited 0, and exited 1 with a red smoke.
+- *Irrecoverable case.* If the late path already exists on the target as a target-only file, its bytes are overwritten and no copy exists anywhere. `tools/recover_harvest.py` is such a file: it runs under `wq-harvest` (pid 3235634) and does not exist locally.
+- *Measured edit rate.* 9 shipped files were edited in the last 60 minutes, and the ship set grew by 2 during this adjudication. On this desk the window is live, not hypothetical.
+- *Fix.* Stage once from the fmap that was hashed, and refuse if any staged sha256 differs from `local["hashes"]`.
+
+**D3 — the smoke runs after the swap, and nothing holds the loop off. BLOCKER** (all three auditors; B2 and A2 were only partly addressed).
+- *Code order.* `swapped = True`, then rsync (`:442-443`), then the smoke (`:449`). The rollback (`:279-296`) has no busy check at all.
+- *What BUSY matches (tested).* It matches `runner`, `submit`, `harvest` and `probe`. It does **not** match `forge/offline/recover_orphans.py`, which appends to `state/layered/runs/forge.jsonl` (`recover_orphans.py:26,200,205`). It does not match `refresh_cells.py`, `record_adjudication.py`, `/opt/wq/tools/recover_harvest.py` (which imports `layered_sim` and appends `recovered.jsonl`, as read on the target) or `sleep 300/3600`.
+- *Live at 10:01.* `forge/runner.py --live` (pid 3235675, seed = 09:40:08) and `wq-forge`, `wq-harvest`, `wq-auth` and `wq-outbox` were all `active`.
+- *Why it matters today.* The first push ships a new `forge/runner.py`, which dispatches live sims, and a new `forge/submit.py`, which makes real POSTs (`forge_loop.sh:88`, `--submit --cap 4`). These are the modules the smoke exists to vet, and a round that starts in the window runs them unvetted.
+- *Fix (for this push).* Quiesce the writers for the duration.
+
+**D4 — a restart SIGTERMs the whole unit, and the guard misses journal writers. SERIOUS.**
+- The unit file has no `KillMode` line (so the default, control-group, applies) and sets `Restart=always` (read on the target). `restart_loop` (`:313`) guards only with BUSY, so `recover_orphans.py` (up to 900 s per round) is killable.
+- A torn or lost journal row is **SUSPECTED, not demonstrated.** To settle it, SIGTERM a writer during a multi-chunk flush in a scratch harness.
+- `systemctl restart` also starts a unit that was deliberately stopped. This is EX-ANTE, from systemd's documented behaviour. The arm drivers do exactly that stop (`c11_run.sh:46`, `pow_run.sh:85`, `systemctl stop wq-forge`). No arm driver was running at 10:01.
+
+**D5 — SIGTERM, SIGHUP and SIGKILL skip the rollback. SERIOUS.**
+- `deploy.py` has no `signal` handling (grep). Python's default SIGTERM action terminates without running `except` or `finally` (EX-ANTE, from the language documentation).
+- An agent's Bash call has a 120 s default timeout, and the target's own forge suite takes about 61 s (`tests_last.json`). So a push run under that default can be killed mid-smoke. The result would be new code live, unsmoked, with no manifest and no rollback.
+
+**S-a — exit codes are not "one per outcome", and the ledger misrecords. SERIOUS for anyone reading the result.** Measured with the harness driving `main(["push"])`:
+- A timeout in `write_manifest` after a green smoke exits **1** (= `rolled_back`). The new code is live, and no ledger row is written.
+- `CHECKED x` from the probe produces a ValueError and exit **1** (`:177`, not caught at `:423`).
+- Ctrl-C mid-smoke exits **130** whether the rollback succeeded or failed (`ctrlc_smoke` vs `ctrlc_rbfail`). No ledger row is written.
+- A deferred restart exits **0** and logs `deployed`.
+- A no-op push logs `deployed`.
+- A failed restart exits 4 and prints "the record of it is not", although the manifest was written (`:471-473`).
+- argparse errors exit 2 (= `refused`).
+- No automated caller exists (`.github/workflows/ci.yml:13` says deployment is not wired), so these codes mislead a human, not a pipeline.
+
+**Other survivors, each re-verified.**
+- **B5 not landed.** No trigger after the deploy. After a green push there is also no recorded undo: `to_delete` is persisted nowhere, and `main()` has no `rollback` command. The undo can be reconstructed by hand (DEPLOYED.json keys minus the `.tgz` members), so this is not a loss.
+- **B6 not landed** (ci.yml:13).
+- **S1 not landed.** No remote re-hash.
+- **S2 not landed.** `wq-harvest` runs `harvest_loop.sh` and `tools/recover_harvest.py`, neither of which is in PLAN.
+- **S3 not landed.** `knowledge.json` and `knowledge.lock` are shipped (today byte-identical), and now `tools/ci_baseline.json` too.
+- **S6 not landed.** The smoke runs `forge/tests` only.
+- **S8 partial.** There is no lock and no pruning.
+- **M1 partial.** `library_count` is still written (`runner.py:460`), and pytest still lacks `-p no:cacheprovider`.
+- **M2 and M3 not landed** (`:117`, `:413-414`).
+- **M6 not landed.** There is no dry run.
+- **M7 partial.** There is still a string oracle and no smoke after a rollback.
+- **M8 partial.** The `nonet` fixture (`:182-209`) replaces `snapshot`, `rollback`, the probe and `restart_loop`, so no test executes a destructive shell string. The "virgin target" test fakes a probe result that the real probe cannot return on a host without `venv/`.
+- **Minor.**
+  - `_remote` has no `-n` (`:152,163`).
+  - rsync has no `-e 'ssh -o BatchMode=yes'` (`:443`).
+  - The planner smoke's `cd /opt/wq &&` binds only to `s=…` (`:333`, `:343`). This is harmless today.
+  - `_stage` leaks its tempdir if `copy2` raises (`:359-364`).
+  - `.deploy/` grows without bound. A snapshot is also written for attempts that the re-check at `:439` then refuses.
+
+## What this rewrite introduced
+
+- **I1 — `/opt/wq` becomes mode 0700.** `mkdtemp` makes the stage root 0700, and `rsync -a stage/` copies that mode to the destination root. The rollback does not restore it. Reproduced with rsync 3.4.1: 755 before, 700 after. The target is 755 today. There is no functional effect today, because every wq process runs as root.
+- **I2 — `copy2` preserves local mtimes, so rsync's size+mtime quick check can now skip a changed file.** Reproduced: the target kept `print('OLD')` while the manifest would name `NEW`. The earlier `write_bytes` re-sent every file. Today's 10 differing files all differ in size, so nothing is skipped this time.
+- **I3 — the rollback removes plan paths that were absent at probe time, using a list computed minutes earlier.** A target-side file created at such a path in the meantime would be deleted. **SUSPECTED.** No target writer to a plan path has been identified.
+- **I4 — the snapshot's `tar -tzf … | wc -l` takes `wc`'s exit status.** Reproduced with GNU tar 1.35: an archive truncated by 8 bytes listed 2 members with pipeline rc 0, which `snapshot()` accepts, while `tar -xzf` on it returned rc 2.
+- **I5 — the restart path added `systemctl restart`,** with its control-group kill and its start-when-stopped behaviour (D4). The "deferred" branch is final and reports success.
+- **I6 — the DORA ledger** (`:384-400`) is written on the MacBook. It re-hashes the tree after the push (`:390`), a third read, logs a no-op as a deploy, and loses every attempt that ended in an exception or a signal.
+- **I7 — the EXIT map** collides with Python's own exit 1 for uncaught exceptions and argparse's 2 (S-a).
+
+Carried over from earlier versions, not introduced, and demonstrated now: the rollback's `tar -xzf` unlinks and recreates each file (the inode changed, 20 → 21). Under ENOSPC it leaves a live module truncated, belonging to neither version. The container run gave "Wrote only 2560 of 10240 bytes", rc 2, and a size of 12,288 against 202,632. The bytes survive in the `.tgz`. The target has about 80 GB free.
+
+## Missed by all three auditors
+
+- **N1 — for today's push, several SERIOUS findings are inert, and D3 is sharper.** Byte comparison on the target shows `forge_loop.sh`, `auth_daemon.py`, `tools/sender.py` and `tools/layered_sim.py` are **identical**. A2's point that never-restarted units keep old code, and the deferred-restart staleness, therefore change nothing on this particular push. Conversely, the forge files that do change are exactly the live-path modules (`runner.py`, `submit.py`, `probe.py`). The tools files that change are `auth_link.py`, `auth_only.py` and `measure_backlog.py`. No timer's `ExecStart` runs one of them directly: the timers run `mint_link.py`, `watchdog.py`, `auto_cycle.py`, `health_report.py` and `deadman.py`, as read on the target. Whether one of those imports a changed file was not checked.
+- **N2 — `wq-forge-tests.timer` runs the same `forge/tests` in the same `/opt/wq` daily at 10:30** (`OnCalendar=*-*-* 10:30:00`) and writes `state/forge/tests_last.json`, which the digest reads. A push overlapping that run lets `tests_last.json` record the verdict on code that is then rolled back. Both runs' `BD.drill()` walk seeds from 900000000 (check, then write), so they can pick the same throwaway seed. Minor. The only files involved are throwaway plans.
+- **N3 — a killed local ssh does not stop the remote command. SUSPECTED, EX-ANTE from OpenSSH semantics without `-t`.** This applies to a smoke step as much as to rsync. After Ctrl-C or a `TimeoutExpired` during the smoke, the remote pytest or planner keeps running while `rollback()` extracts under it. *regression*'s rsync-receiver race is one instance of this. To settle it, on a scratch sshd, kill the client during a long remote `sleep` and check `pgrep` on the server.
+- **N4 — `--force` skips both busy checks (`:405`, `:439`),** and the ledger row does not record that it was used. Minor.
+
+## Dropped or reduced
+
+- *regression*'s "the brief's premise is wrong": **kept.** The second pass is not on disk (see Contradictions settled).
+- *destroy* ranked D2 CATASTROPHIC: **kept as a demonstrated mechanism.** The irrecoverable case needs a local file to appear at a target-only path during the window. Its other cases (a file shipped outside the manifest and outside the rollback) are the likely ones.
+- The *assume* claims that `promote_staged` could overwrite shipped files, and that 68 files are target-only: **not re-measured by me.** They stay attributed and SUSPECTED.
+- The inode-swap break of `knowledge.lock` stays **MECHANISM: UNKNOWN on this target**, as in the first pass. `knowledge.py` does use `fcntl.flock` (`:52-60`). No `alpha_loop` process was running at 10:01. The file is byte-identical on both sides.
+
+## VERDICT (third pass)
+
+**NO. `python3 tools/deploy.py push` must not run against the live `/opt/wq` as it stands.** It would
+refuse right now anyway, because a `--live` runner is in flight. The first idle gap, however, lets it
+swap code that has not passed the smoke under a live loop, and a `wq-harvest` process that no guard
+sees is running the whole time.
+
+**Shortest ordered list to YES** (for `db14370d` plus these changes, and only for them):
+1. **Code:** stage once from the fmap that `manifest()` hashed. Refuse if any staged sha256 differs from `local["hashes"]` (D2).
+2. **Code:** make the existence probe report any ancestor of a plan path that is a non-directory, and refuse (D1). The condition was satisfied at 10:01 but is not guaranteed at push time.
+3. **Run condition:** stop `wq-forge` and `wq-harvest` at an idle point: no BUSY child, no `recover_orphans.py`, no arm driver. Push while they are stopped. On green, `restart_loop` starts `wq-forge` and `wq-harvest` is started by hand. On a rollback, start both by hand (D3, D4).
+4. **Run condition:** run from a real terminal, or a detached process with its log kept, never inside a tool call with a timeout under about 20 minutes (D5). After any Ctrl-C, trust the printed `rollback:` or `ROLLBACK INCOMPLETE` line, not the exit code (S-a).
+5. *(Optional, one line)* `os.chmod(staged, 0o755)` before the rsync (I1).
+
+**Data-loss risk, stated plainly.**
+- **The journal** (`state/layered/runs/forge.jsonl`): push, snapshot and rollback have no byte path to it. There is no `--delete`, no plan destination lies under `state/`, and the rm list is a subset of the plan paths. The residual risk is indirect: rows appended by unsmoked code during the window are not undone, and a restart can SIGTERM `recover_orphans.py` mid-append (a torn or lost row is SUSPECTED). Step 3 removes both.
+- **The code tree:** 10 target files differ from local and exist only there. The snapshot preserves them, so the `.tgz` in `.deploy/` becomes their only copy and must not be pruned. Two demonstrated mechanisms can destroy target bytes with no copy (D1 and D2). Neither was armed at 10:01, and steps 1 and 2 close both.
+- **A rollback under a full disk** truncates live modules. The bytes survive in the `.tgz`, and the risk is negligible with about 80 GB free.

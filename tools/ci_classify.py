@@ -81,8 +81,17 @@ def main(argv=None) -> int:
     ap.add_argument("--clean-python", required=True, help="the clean clone's interpreter (a bare venv)")
     a = ap.parse_args(argv)
     t0 = time.time()
+    # The hash is taken BEFORE the arms run and again AFTER. MEASURED 2026-09-23: the fourth run
+    # started at 10:09, test_deploy.py was edited at ~10:30 while it ran, and the hash -- then taken
+    # only at the end -- certified test files neither arm had executed. A classification whose inputs
+    # moved under it is not a measurement; nothing is written.
+    before = tests_hash()
     data = run_arm(ROOT, sys.executable)
     clean = run_arm(pathlib.Path(a.clean), a.clean_python)
+    after = tests_hash()
+    if before != after:
+        print("INVALID: test files changed while the arms ran (%s -> %s); nothing written" % (before, after))
+        return 1
     c = classify(data, clean)
     record = {
         "measured_at": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -90,7 +99,7 @@ def main(argv=None) -> int:
         "method": "two-arm run of the same code: DATA (working tree with state/ and fetched/) vs CLEAN "
                   "(fresh clone, bare venv with pytest+pyyaml+requests). data-bound = fails CLEAN and "
                   "passes DATA; red = fails DATA.",
-        "tests_hash": tests_hash(),
+        "tests_hash": before,
         "arm_data": data["summary"], "arm_clean": clean["summary"],
         **c,
     }
