@@ -75,6 +75,14 @@ def tests_hash(root=ROOT) -> str:
     return h.hexdigest()[:16]
 
 
+def code_version(root=ROOT) -> str:
+    """Hash of every shipped file. Round 1: the staleness hash covered the tests only, so a code change
+    that made a hermetic test data-bound (or red) left the classification looking current."""
+    sys.path.insert(0, str(root / "tools"))
+    import deploy as D
+    return D.version_id(D.content_hashes(D.file_map(root)))
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--clean", required=True, help="path to a clean clone of the pipeline repository")
@@ -85,11 +93,11 @@ def main(argv=None) -> int:
     # started at 10:09, test_deploy.py was edited at ~10:30 while it ran, and the hash -- then taken
     # only at the end -- certified test files neither arm had executed. A classification whose inputs
     # moved under it is not a measurement; nothing is written.
-    before = tests_hash()
+    before, code_before = tests_hash(), code_version()
     data = run_arm(ROOT, sys.executable)
     clean = run_arm(pathlib.Path(a.clean), a.clean_python)
-    after = tests_hash()
-    if before != after:
+    after, code_after = tests_hash(), code_version()
+    if before != after or code_before != code_after:
         print("INVALID: test files changed while the arms ran (%s -> %s); nothing written" % (before, after))
         return 1
     c = classify(data, clean)
@@ -99,7 +107,7 @@ def main(argv=None) -> int:
         "method": "two-arm run of the same code: DATA (working tree with state/ and fetched/) vs CLEAN "
                   "(fresh clone, bare venv with pytest+pyyaml+requests). data-bound = fails CLEAN and "
                   "passes DATA; red = fails DATA.",
-        "tests_hash": before,
+        "tests_hash": before, "code_version": code_before,
         "arm_data": data["summary"], "arm_clean": clean["summary"],
         **c,
     }

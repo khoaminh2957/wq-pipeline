@@ -121,12 +121,57 @@ def git_dirty(root=ROOT):
         return None
 
 
+#: The entry points of the live loop. Every module they import -- including lazily, inside functions --
+#: is part of the code that PRODUCES alphas; loop_closure() measures that set by importing them.
+LOOP_ENTRIES = ("forge.runner", "forge.harvest", "forge.submit", "forge.probe", "forge.novelty",
+                "forge.allocate", "forge.score", "forge.digest", "forge.offline.rung_report",
+                "forge.offline.recover_orphans", "layered_sim", "climb_submit", "submit_budget", "msgcat",
+                "mint_link", "fingerprint", "operators", "auto_submit", "submit_plan")
+
+
+def loop_closure(root=ROOT) -> list:
+    """Every repository file the live loop imports, MEASURED in a fresh interpreter (a module this
+    process already imported cannot hide a gap). Raises if an entry point cannot be imported."""
+    import textwrap
+    probe = textwrap.dedent("""
+        import sys, pathlib, importlib, json
+        ROOT = pathlib.Path(%r)
+        sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+        for m in %r:
+            importlib.import_module(m)
+        files = set()
+        for mod in list(sys.modules.values()):
+            f = getattr(mod, "__file__", None)
+            if f and str(pathlib.Path(f).resolve()).startswith(str(ROOT)):
+                files.add(str(pathlib.Path(f).resolve().relative_to(ROOT)))
+        print(json.dumps(sorted(files)))
+    """) % (str(pathlib.Path(root).resolve()), list(LOOP_ENTRIES))
+    r = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True,
+                       cwd=str(root), timeout=180)
+    if r.returncode != 0:
+        raise RuntimeError("could not import the loop: %s" % (r.stderr or "")[-400:])
+    lines = (r.stdout or "").strip().splitlines()
+    if not lines:
+        raise RuntimeError("the closure probe printed nothing")
+    return json.loads(lines[-1])
+
+
 def manifest(root=ROOT, plan=None, now=None, fmap=None) -> dict:
     """`fmap` lets a caller hash exactly the file set it will ship: the third audit found push hashing
     one walk of the repository and shipping a second, so a file that appeared in between shipped with
     no snapshot and no rollback entry."""
     hashes = content_hashes(fmap if fmap is not None else file_map(root, plan))
-    return {"version": version_id(hashes), "files": len(hashes), "hashes": hashes,
+    # Two identities (architecture round 1, S1 ii). `version` = everything shipped, so a deploy can say
+    # exactly which bytes are on the host. `pipeline_version` = only what the LOOP imports, so recording
+    # a CI baseline or re-classifying tests -- files inside tools/ that no alpha ever passes through --
+    # does not make the pipeline a "new version" and split D14's cohorts.
+    try:
+        closure = [f for f in loop_closure(root) if f in hashes]
+        pv = version_id({k: hashes[k] for k in closure})
+    except (RuntimeError, OSError, ValueError, subprocess.SubprocessError):
+        closure, pv = [], None
+    return {"version": version_id(hashes), "pipeline_version": pv, "closure_files": len(closure),
+            "files": len(hashes), "hashes": hashes,
             "git_sha": git_sha(root), "git_dirty": git_dirty(root),
             "built_at": now if now is not None else time.time()}
 
@@ -456,6 +501,10 @@ def _push(force=False, out=print) -> int:
         return EXIT["refused"]
     fmap = file_map()
     local = manifest(fmap=fmap)
+    if not local.get("pipeline_version"):
+        out("the loop's import closure could not be measured, so the deploy has no pipeline version for "
+            "D1/D14 -- refusing (run: python3 -c 'import tools.deploy as D; D.loop_closure()')")
+        return EXIT["refused"]
     remote, readable = remote_manifest()
     if not readable:
         out("could not read %s on the target; refusing rather than guess it was never deployed" % MANIFEST_NAME)

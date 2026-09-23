@@ -5,58 +5,70 @@ Khoa's /goal asks one question in three parts, and this module answers exactly t
   AXIS 2  the THROUGHPUT -- four a day? how many scored alphas per submission? sustainable or luck?
   AXIS 3  the GEARING -- can branches be grown onto this pipeline, or is it a dead end?
 
-THE SCORING FRAME (D2, and it is the whole design). Each axis carries a HARD FLOOR. Failing any
-floor is a FAIL, full stop: no weighted sum may let a strong axis hide a dead one, which is how most
-benchmarks quietly die. Only after every floor is cleared does the 0-100 composite mean anything, and
-its only job is to RANK versions. A version can therefore read "FAIL, score 62" -- which is the
-honest reading of this desk today and is meant to be.
+DRAW 2 (docs/evalharness/01_architecture.md), after adversarial round 1 found the composite unable to
+rank, axis 1 structurally zero, axis 2 in the wrong unit and the pre-merge gate grading the journal
+instead of the diff. What changed in structure:
+  * `build_from()` is PURE -- rows, scores, curves in; a card out. `build()` only reads files. So the
+    scorer can be run on a FROZEN fixture and pinned by a golden card (tools/ci_gate.py), and a change to
+    any floor, weight or gate shows in the diff of that golden file.
+  * `compare()` judges a VERSION after it has run: cohorts stamped with meta.pipeline_version, equal
+    numbers of ET quota days, Poisson intervals, and a verdict that is allowed to be "indistinguishable".
+  * Days are ET QUOTA days (the platform resets at 00:00 America/New_York), whole days only.
 
-WHAT IS GRADED (D14, Khoa's words: "ko dựa trên dữ liệu cũ"). A version is graded on the alphas THAT
-VERSION produced. Grading a new version on its predecessors' 31,044 alphas is a category error.
-KNOWN GAP, stated rather than papered over: no journal row carries a pipeline version today
-(`grep pipeline_version forge/ tools/` finds nothing -- audit 2026-09-23), so `rows_of_version` reads
-`meta.pipeline_version` when present and otherwise falls back to a TIME WINDOW between two deploys.
-The fallback is labelled in the scorecard as `version_attribution: "time-window (weak)"` and it is
-weak: anything the loop ran from a hand-rsynced tree lands in the wrong bucket. The fix is one line
-in the planner and it is named in the scorecard's `gaps`.
+THE SCORING FRAME (D2). Each axis carries a HARD FLOOR; failing any floor is a FAIL, whatever the
+others score. The composite only RANKS: per axis s = min(value / floor, 2), composite = 100·Σ w·s / 2,
+so meeting a floor contributes half that axis's weight and twice the floor contributes all of it. It
+is monotone in clean output and does not saturate at the floor (round 1, F4).
 
-THE DENOMINATOR (the research brief's fourth constraint). Rates are per SCORED ALPHA -- a distinct
-alpha id carrying a check set -- never "per simulation". 31,511 scored rows are 31,044 distinct
-alphas, and no sim-slot ledger exists for the forge era to convert either into quota spent. Anyone
-who needs "per simulation" must build that ledger first.
+WHAT IS GRADED (D14, "ko dựa trên dữ liệu cũ"): the rows the graded version produced. With a version
+id, by `meta.pipeline_version`; without one, by the ET quota-day window, labelled WEAK.
+
+THE DENOMINATOR: rows scored = distinct alpha ids carrying a check set with status COMPLETE or WARNING
+(round 1: WARNING rows are 16 % of the journal and include the first ACTIVE submission). No sim-slot
+ledger exists to convert scored alphas into quota spent.
 """
 from __future__ import annotations
 
 import collections
+import datetime
 import json
 import math
 import pathlib
 import statistics
 import sys
+import zoneinfo
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from forge import harvest as HV, score as SC, submit as SUB  # noqa: E402
+from forge import harvest as HV, submit as SUB  # noqa: E402
 
+ET = zoneinfo.ZoneInfo("America/New_York")
+SCORED_STATUS = ("COMPLETE", "WARNING")
 BINDING = ("LOW_SHARPE", "LOW_FITNESS", "LOW_SUB_UNIVERSE_SHARPE", "IS_LADDER_SHARPE",
            "CONCENTRATED_WEIGHT", "HIGH_TURNOVER", "LOW_TURNOVER")
 
 # ----------------------------------------------------------------------------- the floors (D6, D2)
-#: Khoa chose ABSOLUTE floors from the goal rather than a ratchet, knowing the arithmetic: the best
-#: measured rate is 3 submissions over 31,044 scored alphas = 0.48 per 5,000, and the floor is 8.3x
-#: that. Every scorecard will read FAIL for a long time. That is the point -- the floor states the
-#: goal, the composite ranks the attempts, and §"sustainable" below says how little one day proves.
+#: Khoa chose ABSOLUTE floors from the goal (D6). The best measured rate is ~0.5 submissions per quota
+#: day; the axis-2 floor is 4. Every card reads FAIL for a long time -- the floor states the goal, the
+#: composite ranks attempts. Changing any number here changes the pinned golden card (tools/ci_gate.py).
 FLOOR = {
-    "axis1_product": 1.00,      # every submitted alpha must clear every robustness gate: 100 %
-    "axis2_throughput": 4.0,    # submissions per 5,000-sim quota day
-    "axis3_gearing": 0.80,      # fraction of the architecture fitness functions that must hold
+    "axis1_product": 1.00,      # every submitted alpha PROVEN: every robustness gate measured and passed
+    "axis2_throughput": 4.0,    # clean submissions per ET quota day
+    "axis3_gearing": 0.80,      # fraction of the measured architecture checks that hold
 }
 WEIGHT = {"axis1_product": 0.40, "axis2_throughput": 0.40, "axis3_gearing": 0.20}
+#: An UNPROVEN alpha (no gate failed, at least one could not be measured) counts half in axis 1's value.
+#: A convention, not a measurement: it keeps "we could not look" apart from both "it passed" and "it
+#: failed". It never affects the floor, which requires every alpha PROVEN.
+UNPROVEN_CREDIT = 0.5
+#: DORA thresholds for axis 3: the "high performer" band of Forsgren, Humble & Kim, Accelerate (2018) and
+#: the State of DevOps report of the same series. EX-ANTE, taken from the literature, not fitted here.
+DORA_BAND = {"change_failure_rate_max": 0.15, "time_to_restore_hours_max": 24.0, "deploys_per_week_min": 1.0}
 
 
+# ------------------------------------------------------------------------------- the uncertainty
 def wilson(k: int, n: int, z: float = 1.96) -> tuple:
-    """(low, high) for a rate k/n. At k=3, n=31044 the interval spans a factor of ~3.4, and at n=1
-    day it spans everything -- which is why it is printed beside every rate and never omitted."""
+    """(low, high) for a proportion k/n."""
     if n <= 0:
         return (0.0, 1.0)
     p = k / n
@@ -67,48 +79,90 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple:
 
 
 def rule_of_three(n: int) -> float:
-    """Upper 95 % bound on a rate after n trials with ZERO events. One quota day with no submission
-    does not exclude a true rate of 3 per day, which is why D5's one-day window cannot rank versions
-    on the count alone."""
+    """Upper 95 % bound on a rate after n trials with ZERO events."""
     return 3.0 / n if n > 0 else float("inf")
 
 
-# --------------------------------------------------------------------- axis 1: is the product good
-def neighbourhood_stability(rows_by_construction, row) -> dict:
-    """How much an alpha's Sharpe moves when a SETTING moves one notch (D3).
+def _poisson_cdf(k: int, lam: float) -> float:
+    term, total = math.exp(-lam), math.exp(-lam)
+    for i in range(1, k + 1):
+        term *= lam / i
+        total += term
+    return total
 
-    A signal whose Sharpe collapses because decay went 4 -> 8, or a window 5 -> 10, is fitted to its
-    settings rather than to the market. The neighbours are the journal rows that share the
-    construction's mechanism, region, delay and category but differ in exactly one of decay /
-    neutralisation / truncation. MECHANISM of why fragility predicts OS failure: UNKNOWN -- this is
-    a consistency measure, and no experiment on this desk links it to out-of-sample behaviour.
+
+def poisson_interval(k: int, days: int, alpha: float = 0.05) -> tuple:
+    """Exact (Garwood) interval on an EVENT RATE per day: k events over `days` days.
+
+    Round 1 (statistician): a Wilson interval on a per-alpha proportion scaled to "per 5,000" described
+    rates the system cannot produce -- submissions are capped at 4 per quota day. Submissions per day
+    are counts over days, so the interval is a Poisson one on the count, divided by the days.
     """
-    m = row.get("meta") or {}
+    if days <= 0:
+        return (0.0, float("inf"))
+
+    def solve(target_fn):
+        lo, hi = 0.0, max(10.0, 3.0 * k + 20.0)
+        for _ in range(100):
+            mid = (lo + hi) / 2
+            if target_fn(mid):
+                hi = mid
+            else:
+                lo = mid
+        return (lo + hi) / 2
+    upper = solve(lambda lam: _poisson_cdf(k, lam) <= alpha / 2)
+    lower = 0.0 if k == 0 else solve(lambda lam: 1 - _poisson_cdf(k - 1, lam) >= alpha / 2)
+    return (lower / days, upper / days)
+
+
+# --------------------------------------------------------------------- axis 1: is the product good
+def _norm_formula(f) -> str:
+    return "".join((f or "").split())
+
+
+def neighbourhood_stability(rows_by_formula, row) -> dict:
+    """Sharpe of the alpha's TRUE one-setting neighbours (D3).
+
+    Round 1 (S2): the first version compared an alpha with its whole hypothesis group -- every leg, every
+    window -- which measures the hypothesis, not the alpha's sensitivity to its own settings. A true
+    neighbour has the SAME formula and region/delay/universe and differs in exactly ONE of decay,
+    neutralisation, truncation. Fewer than two such neighbours is UNMEASURED, never a pass and never a
+    fail. MECHANISM linking settings-fragility to OS failure: UNKNOWN.
+    """
     s = row.get("settings") or {}
-    key = (m.get("hypothesis"), s.get("region"), s.get("delay"), m.get("category"))
-    peers = [r for r in rows_by_construction.get(key, []) if r.get("alpha") != row.get("alpha")]
-    sharpes = [r["sharpe"] for r in peers if isinstance(r.get("sharpe"), (int, float))]
-    if len(sharpes) < 3:
-        return {"n": len(sharpes), "verdict": "insufficient", "spread": None, "retained": None}
-    med = statistics.median(sharpes)
+    key = (_norm_formula(row.get("formula")), s.get("region"), s.get("delay"), s.get("universe"))
+    knobs = ("decay", "neutralization", "truncation")
+    peers = []
+    for r in rows_by_formula.get(key, []):
+        if r.get("alpha") == row.get("alpha"):
+            continue
+        rs = r.get("settings") or {}
+        if sum(1 for k in knobs if str(rs.get(k)) != str(s.get(k))) == 1 and isinstance(r.get("sharpe"), (int, float)):
+            peers.append(r["sharpe"])
     own = row.get("sharpe")
-    spread = statistics.pstdev(sharpes)
-    retained = (med / own) if isinstance(own, (int, float)) and own else None
-    return {"n": len(sharpes), "median_peer_sharpe": round(med, 3), "spread": round(spread, 3),
-            "retained": round(retained, 3) if retained is not None else None,
-            "verdict": "stable" if retained is not None and retained >= 0.5 else "fragile"}
+    if len(peers) < 2 or not isinstance(own, (int, float)) or own == 0:
+        return {"n": len(peers), "verdict": "unmeasured", "retained": None}
+    retained = statistics.median(peers) / own
+    return {"n": len(peers), "median_neighbour_sharpe": round(statistics.median(peers), 3),
+            "retained": round(retained, 3), "verdict": "stable" if retained >= 0.5 else "fragile"}
+
+
+def curve_values(curve) -> list:
+    """Cumulative PnL as an ordered list. Round 1 (F2): every cached curve is a {date: cumulative} dict,
+    and the first version turned each into [] -- axis 1 read 'insufficient' for every alpha."""
+    if isinstance(curve, dict):
+        return [curve[k] for k in sorted(curve)]
+    return list(curve or [])
 
 
 def regime_stability(curve) -> dict:
-    """Sharpe in each third of the alpha's own history (D3).
-
-    An alpha that earned everything in one window and nothing in the others is one regime's bet.
-    Thirds, not calendar regimes: a calendar split chosen after seeing the curve is a POST-HOC
-    boundary, and three equal pieces are chosen before looking.
-    """
-    if not curve or len(curve) < 300:
-        return {"n": len(curve or []), "verdict": "insufficient", "thirds": None}
-    rets = [b - a for a, b in zip(curve, curve[1:])]
+    """Did each third of the alpha's own history make money? (D3). Thirds are chosen before looking,
+    unlike a calendar regime split drawn after seeing the curve. Positivity is judged on the MEAN; a
+    third with gains and no dispersion has an unbounded Sharpe, not a zero one."""
+    vals = curve_values(curve)
+    if len(vals) < 300:
+        return {"n": len(vals), "verdict": "unmeasured", "thirds": None}
+    rets = [b - a for a, b in zip(vals, vals[1:])]
     k = len(rets) // 3
     thirds, means = [], []
     for i in range(3):
@@ -116,60 +170,11 @@ def regime_stability(curve) -> dict:
         mean = statistics.fmean(seg) if seg else 0.0
         sd = statistics.pstdev(seg) if len(seg) > 1 else 0.0
         means.append(mean)
-        # A third that earned with NO dispersion has an unbounded Sharpe, not a zero one. Reporting
-        # it as 0.0 made a perfectly steady alpha read "one-regime" -- caught by its own test.
-        thirds.append(round(mean / sd * math.sqrt(252), 3) if sd else (float("inf") if mean > 0 else
-                      (float("-inf") if mean < 0 else 0.0)))
-    # the question "did this third make money" is a question about the MEAN; the Sharpe describes
-    # how well, and cannot decide the sign on its own
+        thirds.append(round(mean / sd * math.sqrt(252), 3) if sd else
+                      (float("inf") if mean > 0 else (float("-inf") if mean < 0 else 0.0)))
     positive = sum(1 for m in means if m > 0)
-    return {"n": len(rets), "thirds": thirds, "third_means": [round(m, 6) for m in means],
-            "positive_thirds": positive,
+    return {"n": len(rets), "thirds": thirds, "positive_thirds": positive,
             "verdict": "consistent" if positive == 3 else ("mixed" if positive == 2 else "one-regime")}
-
-
-def axis1_product(graded_rows, scored, corr, curves=None) -> dict:
-    """Is what this version SUBMITTED good, robust and trustworthy? (D3, D10)
-
-    The cohort is the version's own submitted alphas. With none, the axis reports `no-product` and
-    the floor is unmet -- a version that shipped nothing has not demonstrated product quality, and
-    scoring it 100 % for having no failures would be the compensation D2 forbids.
-    """
-    by_construction = collections.defaultdict(list)
-    for r in graded_rows:
-        m, s = r.get("meta") or {}, r.get("settings") or {}
-        by_construction[(m.get("hypothesis"), s.get("region"), s.get("delay"), m.get("category"))].append(r)
-
-    submitted = [r for r in graded_rows if r.get("_submitted")]
-    checks, detail = [], []
-    for r in submitted:
-        a = r["alpha"]
-        x = scored.get(a) or {}
-        c = corr.get(a) or {}
-        nb = neighbourhood_stability(by_construction, r)
-        rg = regime_stability((curves or {}).get(a))
-        gates = {
-            "all_binding_pass": all(_chk(r, n).get("result") == "PASS" for n in BINDING),
-            "dsr_ge_095": isinstance(x.get("dsr"), (int, float)) and x["dsr"] >= 0.95,
-            "pbo_le_050": x.get("pbo_pass") is True,
-            "corr_under_lines": _corr_ok(r, c),
-            "neighbourhood_stable": nb["verdict"] == "stable",
-            "regime_not_one_sided": rg["verdict"] in ("consistent", "mixed"),
-        }
-        checks.append(all(gates.values()))
-        detail.append({"alpha": a, "gates": gates, "neighbourhood": nb, "regime": rg,
-                       "dsr": x.get("dsr"), "pbo": x.get("pbo")})
-
-    n = len(submitted)
-    passed = sum(checks)
-    return {"cohort": "alphas this version submitted", "n": n,
-            "value": (passed / n) if n else 0.0,
-            "floor": FLOOR["axis1_product"],
-            "floor_met": bool(n) and passed == n,
-            "verdict": "no-product" if not n else ("all clear" if passed == n else "%d of %d fail a robustness gate" % (n - passed, n)),
-            "detail": detail,
-            "caveat": "OS is never observable; every gate here is an in-sample consistency test. "
-                      "MECHANISM linking any of them to out-of-sample behaviour: UNKNOWN."}
 
 
 def _chk(row, name) -> dict:
@@ -185,7 +190,65 @@ def _corr_ok(row, c) -> bool:
     return isinstance(p, (int, float)) and isinstance(s, (int, float)) and p < pl and s < sl
 
 
-# ------------------------------------------------------------ axis 2: is the throughput real
+def alpha_status(gates: dict) -> str:
+    """proven (every gate measured and passed) / refuted (any gate failed) / unproven (none failed,
+    some could not be measured). A gate value of None means UNMEASURED."""
+    if any(v is False for v in gates.values()):
+        return "refuted"
+    return "proven" if all(v is True for v in gates.values()) else "unproven"
+
+
+def axis1_product(graded_rows, scored, corr, curves=None, standard=None, all_rows=None) -> dict:
+    """Is what this version SUBMITTED good, robust and trustworthy? (D3, D10)
+
+    Gates per submitted alpha, each True / False / None (unmeasured): every binding platform check PASS;
+    DSR ≥ 0.95; PBO pass; both correlation lines clear; true-neighbour stability; regime stability; and
+    D10's eight hard gates of the hypothesis standard (round 1: they were missing).
+    `standard` maps hypothesis id -> list of tripped gates ([] = admissible), or is None (unmeasured).
+    `all_rows` is the pool neighbours are drawn from (the whole journal, not only this cohort).
+    """
+    by_formula = collections.defaultdict(list)
+    for r in (all_rows if all_rows is not None else graded_rows):
+        s = r.get("settings") or {}
+        by_formula[(_norm_formula(r.get("formula")), s.get("region"), s.get("delay"), s.get("universe"))].append(r)
+
+    submitted = [r for r in graded_rows if r.get("_submitted")]
+    detail, statuses = [], collections.Counter()
+    for r in submitted:
+        a = r["alpha"]
+        x = scored.get(a) or {}
+        c = corr.get(a) or {}
+        nb = neighbourhood_stability(by_formula, r)
+        rg = regime_stability((curves or {}).get(a))
+        hyp = (r.get("meta") or {}).get("hypothesis")
+        trips = (standard or {}).get(hyp) if standard is not None else None
+        gates = {
+            "all_binding_pass": all(_chk(r, n).get("result") == "PASS" for n in BINDING),
+            "dsr_ge_095": (x["dsr"] >= 0.95) if isinstance(x.get("dsr"), (int, float)) else None,
+            "pbo_pass": x.get("pbo_pass") if isinstance(x.get("pbo_pass"), bool) else None,
+            "corr_under_lines": _corr_ok(r, c) if isinstance(c.get("prod"), (int, float)) else None,
+            "neighbourhood_stable": None if nb["verdict"] == "unmeasured" else nb["verdict"] == "stable",
+            "regime_not_one_sided": None if rg["verdict"] == "unmeasured" else rg["verdict"] != "one-regime",
+            "hypothesis_standard_8of8": None if trips is None else not trips,
+        }
+        st = alpha_status(gates)
+        statuses[st] += 1
+        detail.append({"alpha": a, "status": st, "gates": gates, "neighbourhood": nb, "regime": rg,
+                       "dsr": x.get("dsr"), "pbo": x.get("pbo"), "hypothesis": hyp})
+    n = len(submitted)
+    value = (statuses["proven"] + UNPROVEN_CREDIT * statuses["unproven"]) / n if n else 0.0
+    measured = sum(1 for d in detail for v in d["gates"].values() if v is not None)
+    total = sum(len(d["gates"]) for d in detail)
+    return {"cohort": "alphas this version submitted", "n": n, "status_counts": dict(statuses),
+            "value": round(value, 4), "floor": FLOOR["axis1_product"],
+            "floor_met": bool(n) and statuses["proven"] == n,
+            "gate_coverage": round(measured / total, 3) if total else None,
+            "verdict": "no-product" if not n else ", ".join("%d %s" % (v, k) for k, v in sorted(statuses.items())),
+            "detail": detail,
+            "caveat": "OS is never observable; every gate is an in-sample consistency test. MECHANISM "
+                      "linking any of them to out-of-sample behaviour: UNKNOWN."}
+
+
 def structural_families(rows) -> dict:
     """Distinct structural families among rows that cleared every binding check.
 
@@ -210,54 +273,52 @@ def structural_families(rows) -> dict:
             fams.append(r["alpha"])
     return {"families": len(fams), "representatives": fams}
 
+# ------------------------------------------------------------ axis 2: is the throughput real
+def quota_day_of_row(r):
+    """ET quota day of a journal row, from its platform timestamp; None when absent or unparseable."""
+    d = r.get("dateCreated")
+    if not d:
+        return None
+    try:
+        return datetime.datetime.fromisoformat(str(d).replace("Z", "+00:00")).astimezone(ET).date().isoformat()
+    except ValueError:
+        return None
 
-def axis2_throughput(graded_rows, submissions, prev_window_rate=None, posts_in_window=None) -> dict:
+
+def axis2_throughput(graded_rows, submissions, days, clean_alphas, prev_rate=None, posts_in_window=None) -> dict:
     """Four a day? At what cost? Sustainable or luck? (D6, D7)
 
-    Three independent pieces of evidence, all three required for "sustainable" -- a rate can survive
-    one of them by chance, not all three:
-      * the Wilson interval on the rate excludes zero,
-      * the submissions span more than one distinct mechanism,
-      * the rate held in the PREVIOUS window too.
+    Unit (round 1, F3): CLEAN submissions per whole ET quota day -- the floor's own unit. Clean = the
+    alpha was not refuted by axis 1 (a submitted alpha that fails a robustness gate does not count as
+    throughput; round 1 found junk scoring above nothing). Sustainable needs all three independent
+    pieces of evidence: the Poisson interval excludes zero, the clean submissions span ≥ 2 mechanisms,
+    and the previous window of the same length also produced a clean submission.
     """
     n = len(graded_rows)
-    k = len(submissions)
-    per5000 = (k / n * 5000) if n else 0.0
-    lo, hi = wilson(k, n)
+    clean = [s for s in submissions if s.get("alpha") in clean_alphas]
+    k = len(clean)
+    rate = k / days if days else 0.0
+    lo, hi = poisson_interval(k, days)
     fam = structural_families(graded_rows)
-    mechanisms = len({s.get("mechanism_key") for s in submissions if s.get("mechanism_key")})
-
-    ci_excludes_zero = lo > 0
-    diverse = mechanisms >= 2
-    repeated = prev_window_rate is not None and prev_window_rate > 0
-    sustainable = ci_excludes_zero and diverse and repeated
-
-    # TWO READINGS, because "a submission" has two honest owners and picking one silently would
-    # hide the other. D14 grades a version on the alphas IT PRODUCED, so a POST of an alpha an
-    # earlier version generated does not belong to this one. But "did we get four today?" is a
-    # question about the SUBMITTER, which is this version's code. MEASURED 2026-09-23: rK5RGeqa was
-    # generated 09-10 and POSTed 09-23, so the two readings differ by exactly that alpha.
-    posted_by = len(posts_in_window or [])
-    return {"scored_alphas": n,
-            "submissions_of_alphas_this_version_produced": k,
-            "posts_this_version_made": posted_by,
-            "submissions": k,
-            "per_5000_scored": round(per5000, 2),
-            "wilson_95_per_5000": [round(lo * 5000, 2), round(hi * 5000, 2)],
-            "zero_event_upper_bound_per_5000": round(rule_of_three(n) * 5000, 2) if k == 0 else None,
-            "scored_per_submission": round(n / k) if k else None,
+    mechanisms = len({s.get("mechanism_key") for s in clean if s.get("mechanism_key")})
+    ev = {"interval_excludes_zero": lo > 0, "two_or_more_mechanisms": mechanisms >= 2,
+          "held_in_previous_window": prev_rate is not None and prev_rate > 0}
+    return {"quota_days": days, "scored_alphas": n,
+            "submissions_of_alphas_this_version_produced": len(submissions),
+            "clean_submissions": k,
+            "posts_this_version_made": len(posts_in_window or []),
+            "clean_per_quota_day": round(rate, 3),
+            "poisson_95_per_day": [round(lo, 3), round(hi, 3) if hi != float("inf") else None],
+            "scored_per_clean_submission": round(n / k) if k else None,
+            "scored_per_quota_day": round(n / days, 1) if days else None,
             "qualified_families": fam.get("families"),
             "scored_per_family": round(n / fam["families"]) if fam.get("families") else None,
             "distinct_mechanisms": mechanisms,
-            "value": round(per5000, 2), "floor": FLOOR["axis2_throughput"],
-            "floor_met": per5000 >= FLOOR["axis2_throughput"],
-            "sustainable": sustainable,
-            "sustainability_evidence": {"ci_excludes_zero": ci_excludes_zero,
-                                        "multiple_mechanisms": diverse,
-                                        "held_in_previous_window": repeated},
-            "caveat": "One quota day at this desk's measured rate returns 0 submissions 61 % of the "
-                      "time, and a day with 0 does not exclude a true rate of 3/day. A single "
-                      "window cannot rank two versions on the count alone."}
+            "value": round(rate, 3), "floor": FLOOR["axis2_throughput"],
+            "floor_met": days > 0 and rate >= FLOOR["axis2_throughput"],
+            "sustainable": all(ev.values()), "sustainability_evidence": ev,
+            "caveat": "At ~0.5 submissions per quota day, one day returns 0 about 61 % of the time; the "
+                      "interval, not the count, is what a single window can support."}
 
 
 # ----------------------------------------------------------- axis 3: can branches be grown on it
@@ -409,188 +470,254 @@ def dora(rows, now=None, window_days=28) -> dict:
             "time_to_restore_hours_median": round(statistics.median(restores) / 3600, 2) if restores else None}
 
 
-def axis3_gearing(dora=None, drill=None, root=ROOT, run_drill=True) -> dict:
-    """DORA + architecture fitness + the branch drill (D8).
+def dora_checks(d: dict) -> list:
+    """DORA keys as axis-3 checks when measured (round 1: DORA was reported but never in the value)."""
+    if not d or d.get("status") != "measured":
+        return []
+    b = DORA_BAND
+    out = [("DORA change-failure rate <= %.0f %%" % (100 * b["change_failure_rate_max"]),
+            d["change_failure_rate"] <= b["change_failure_rate_max"], "measured %.3f" % d["change_failure_rate"]),
+           ("DORA deploys per week >= %.0f" % b["deploys_per_week_min"],
+            d["deploys_per_week"] >= b["deploys_per_week_min"], "measured %.2f" % d["deploys_per_week"])]
+    ttr = d.get("time_to_restore_hours_median")
+    if ttr is not None:
+        out.append(("DORA time to restore <= %.0f h" % b["time_to_restore_hours_max"],
+                    ttr <= b["time_to_restore_hours_max"], "measured %.2f h" % ttr))
+    return out
 
-    The drill counts as one more fitness function, and the one that matters most: the other six say
-    a branch COULD be grown, the drill grows one on a copy of the library and watches the real
-    planner carry it (forge/offline/branch_drill.py).
-    """
+
+def axis3_gearing(dora=None, drill=None, root=ROOT, run_drill=True) -> dict:
+    """Architecture fitness + the branch drill + DORA (D8). Every check that could be MEASURED counts
+    equally; one that could not (the drill without data, DORA with < 2 deploys) is reported, not scored."""
     ffs = fitness_functions(root)
     if drill is None and run_drill:
         from forge.offline import branch_drill as BD
         try:
             drill = BD.drill(root)
-        except Exception as exc:  # noqa: BLE001 -- a drill that crashes is a FAILED drill, reported as such
+        except Exception as exc:  # noqa: BLE001 -- a drill that crashes is a FAILED drill
             drill = {"status": "crashed", "ok": False, "note": "%s: %s" % (type(exc).__name__, exc)}
     if drill is not None:
         ffs = ffs + [("a real branch goes through the planner", bool(drill.get("ok")),
                       "%s: %s" % (drill.get("status"), drill.get("note")))]
+    d = dora if dora is not None else _dora_from_ledger(root)
+    ffs = ffs + dora_checks(d)
     held = sum(1 for _, ok, _ in ffs if ok)
     value = held / len(ffs) if ffs else 0.0
     return {"fitness_functions": [{"name": n, "ok": ok, "evidence": e} for n, ok, e in ffs],
-            "held": held, "of": len(ffs),
-            "dora": dora if dora is not None else _dora_from_ledger(root),
-            "branch_drill": drill or {"status": "not run",
-                                      "note": "a throwaway component plugged in and carried by CI"},
+            "held": held, "of": len(ffs), "dora": d,
+            "branch_drill": drill or {"status": "not run"},
             "value": round(value, 3), "floor": FLOOR["axis3_gearing"],
             "floor_met": value >= FLOOR["axis3_gearing"]}
 
 
 # ------------------------------------------------------------------------------ the scorecard (D2)
 def scorecard(axes: dict) -> dict:
-    """Non-compensatory: any floor unmet is a FAIL, and the composite only ranks what already passed.
-
-    The composite is still reported on a FAIL, because Khoa's D9 gate blocks on REGRESSION against
-    the live version rather than on the floor -- so the number must exist even while the verdict is
-    FAIL, or there is nothing to compare two failing versions with.
-    """
-    unmet = [k for k, v in axes.items() if not v.get("floor_met")]
-    composite = sum(WEIGHT[k] * min(1.0, (axes[k].get("value") or 0) / FLOOR[k]) for k in WEIGHT if k in axes)
-    return {"verdict": "PASS" if not unmet else "FAIL",
-            "floors_unmet": unmet,
-            "composite_0_100": round(composite * 100, 1),
-            "composite_means": "ranking only; a FAIL never becomes a PASS through a high composite",
+    """Non-compensatory verdict; monotone, non-saturating composite that only RANKS."""
+    unmet = [k for k in WEIGHT if k in axes and not axes[k].get("floor_met")]
+    comp = sum(WEIGHT[k] * min((axes[k].get("value") or 0) / FLOOR[k], 2.0) for k in WEIGHT if k in axes) / 2
+    return {"verdict": "PASS" if not unmet else "FAIL", "floors_unmet": unmet,
+            "composite_0_100": round(comp * 100, 1),
+            "composite_means": "ranking only: meeting a floor = half that axis's weight, twice the floor = all of it; "
+                               "a FAIL never becomes a PASS through a high composite",
             "axes": axes}
 
 
-# --------------------------------------------------------------- putting a version on the stand
-def rows_of_version(rows, version=None, since=None, until=None) -> tuple:
-    """(rows the version produced, how they were attributed) -- D14's cohort selector.
+# ------------------------------------------------------------------------- the version on the stand
+def whole_days(first: str, last_exclusive: str) -> list:
+    d0 = datetime.date.fromisoformat(first)
+    d1 = datetime.date.fromisoformat(last_exclusive)
+    return [(d0 + datetime.timedelta(days=i)).isoformat() for i in range((d1 - d0).days)]
 
-    Preferred: `meta.pipeline_version`, written by the planner. No row carries it today, so the
-    fallback is the time window a version was live. The fallback is WEAK and labelled: a tree that
-    was hand-rsynced mid-window puts its alphas in the wrong bucket, and this desk hand-rsynced for
-    thirteen days. Whoever reads a scorecard built on the fallback must read `version_attribution`
-    first.
+
+def current_quota_day(now=None) -> str:
+    return SUB.quota_day(now if now is not None else __import__("time").time())
+
+
+def build_from(rows, scored, corr, history, curves, standard, since=None, until=None, version=None,
+               now=None, axis3=None) -> dict:
+    """PURE: the scorecard from data already in memory. `rows` = one row per alpha id.
+
+    Window (round 1, S5): whole ET quota days. The current, unfinished quota day is never in the rate --
+    a one-minute window used to 'meet' 4 per day. With `version`, the cohort is the rows stamped with it;
+    a version no row carries is an error, not 'all history'.
     """
-    tagged = [r for r in rows if (r.get("meta") or {}).get("pipeline_version")]
-    if version and tagged:
-        return [r for r in tagged if r["meta"]["pipeline_version"] == version], "meta.pipeline_version (strong)"
-    out = []
-    for r in rows:
-        d = r.get("dateCreated") or ""
-        if since and d < since:
-            continue
-        if until and d >= until:
-            continue
-        out.append(r)
-    return out, "time-window (weak: no row carries a version)"
+    today = current_quota_day(now)
+    scored_rows = [r for r in rows if r.get("status") in SCORED_STATUS and r.get("checks")]
+    if version:
+        cohort = [r for r in scored_rows if (r.get("meta") or {}).get("pipeline_version") == version]
+        if not cohort:
+            raise ValueError("no scored row carries pipeline_version %r" % version)
+        how = "meta.pipeline_version (strong)"
+    else:
+        cohort, how = scored_rows, "ET quota-day window (weak: rows are attributed by date, not by version)"
+    by_day = collections.defaultdict(list)
+    for r in cohort:
+        q = quota_day_of_row(r)
+        if q:
+            by_day[q].append(r)
+    first = since or (min(by_day) if by_day else today)
+    last = min(until or today, today)                    # never the unfinished current day
+    days = whole_days(first, last) if first < last else []
+    graded = [r for d in days for r in by_day.get(d, [])]
+
+    accepted = [h for h in history if h.get("http") in (200, 201)]
+    posted = {h["alpha"] for h in accepted}
+    for r in graded:
+        r["_submitted"] = r["alpha"] in posted
+    ids = {r["alpha"] for r in graded}
+    subs = [dict(h, mechanism_key=h.get("mechanism_key") or ((next((r for r in graded if r["alpha"] == h["alpha"]), {})
+                                                              .get("meta") or {}).get("mechanism_key")))
+            for h in accepted if h["alpha"] in ids]
+    posts_in_window = [h for h in accepted if SUB.quota_day(h.get("posted_at") or 0) in set(days)]
+
+    a1 = axis1_product(graded, scored, corr, curves, standard=standard, all_rows=scored_rows)
+    clean = {d["alpha"] for d in a1["detail"] if d["status"] != "refuted"}
+    prev_rate = None
+    if days:
+        prev_days = whole_days((datetime.date.fromisoformat(days[0]) - datetime.timedelta(days=len(days))).isoformat(), days[0])
+        prev_rows = [r for d in prev_days for r in by_day.get(d, [])]
+        prev_ids = {r["alpha"] for r in prev_rows}
+        if prev_rows:
+            prev_clean = [h for h in accepted if h["alpha"] in prev_ids]
+            prev_rate = len(prev_clean) / len(prev_days)
+    a2 = axis2_throughput(graded, subs, len(days), clean, prev_rate=prev_rate, posts_in_window=posts_in_window)
+    axes = {"axis1_product": a1, "axis2_throughput": a2}
+    if axis3 is not None:
+        axes["axis3_gearing"] = axis3
+    card = scorecard(axes)
+    card["window"] = {"since": days[0] if days else None, "until_exclusive": last, "quota_days": len(days),
+                      "version": version, "excluded_unfinished_day": today}
+    card["version_attribution"] = how
+    return card
 
 
-def _epoch(iso: str) -> float:
-    """Midnight local for an ISO date, so a window given as a date includes the whole day."""
-    import datetime
-    return datetime.datetime.fromisoformat(iso).timestamp()
+def load_curves(alphas, curves_dir=None) -> dict:
+    cd = pathlib.Path(curves_dir or (ROOT / "state/pnl_curves"))
+    out = {}
+    for a in alphas:
+        f = cd / ("%s.json" % a)
+        if f.exists():
+            try:
+                out[a] = json.loads(f.read_text())
+            except (ValueError, OSError):
+                pass
+    return out
 
 
-def build(journal=None, since=None, until=None, version=None, curves_dir=None) -> dict:
-    """The whole scorecard for one version over one window, from the files on disk."""
+def load_standard(root=ROOT) -> dict:
+    """{composite id: tripped hard gates} for every composite in the live library; a hypothesis id
+    that is not a composite is simply absent (its gate reads UNMEASURED)."""
+    try:
+        from forge import hypotheses as H, standard as ST
+        lib = H.load_library(root / "forge/hypotheses")
+        return {c.id: ST.hard_gates(c) for c in H.load_composites(root / "forge/composites", lib)}
+    except Exception:  # noqa: BLE001 -- the gate is then unmeasured, never passed
+        return {}
+
+
+def build(journal=None, since=None, until=None, version=None, curves_dir=None, run_drill=True) -> dict:
+    """The scorecard from the files on disk (the only impure part)."""
     latest = {}
     for r in HV.read_jsonl(journal or HV.JOURNAL):
         if r.get("alpha"):
             latest[r["alpha"]] = r
-    scored = HV.load_scored()
     from forge import probe as P
-    corr = P.load_corr()
     history = SUB.posted_history()
     posted = {h["alpha"] for h in history if h.get("http") in (200, 201)}
-
-    graded, how = rows_of_version(list(latest.values()), version, since, until)
-    graded = [r for r in graded if r.get("status") == "COMPLETE" and r.get("checks")]
-    for r in graded:
-        r["_submitted"] = r["alpha"] in posted
-    subs = [h for h in history if h.get("http") in (200, 201)
-            and any(r["alpha"] == h["alpha"] for r in graded)]
-    for h in subs:
-        h.setdefault("mechanism_key", (latest.get(h["alpha"], {}).get("meta") or {}).get("mechanism_key"))
-
-    curves = {}
-    cd = pathlib.Path(curves_dir or (ROOT / "state/pnl_curves"))
-    if cd.exists():
-        for r in graded:
-            if not r.get("_submitted"):
-                continue
-            f = cd / ("%s.json" % r["alpha"])
-            if f.exists():
-                try:
-                    j = json.loads(f.read_text())
-                    curves[r["alpha"]] = j if isinstance(j, list) else (j.get("pnl") or j.get("curve") or [])
-                except (ValueError, OSError):
-                    pass
-
-    # every accepted POST whose POST TIME falls in the window, whoever generated the alpha
-    lo = _epoch(since) if since else 0
-    hi = _epoch(until) if until else float("inf")
-    posts_in_window = [h for h in history if h.get("http") in (200, 201)
-                       and lo <= (h.get("posted_at") or 0) < hi]
-    axes = {"axis1_product": axis1_product(graded, scored, corr, curves),
-            "axis2_throughput": axis2_throughput(graded, subs, posts_in_window=posts_in_window),
-            "axis3_gearing": axis3_gearing()}
-    card = scorecard(axes)
-    card["window"] = {"since": since, "until": until, "version": version}
-    card["version_attribution"] = how
-    card["gaps"] = [
-        "No journal row carries meta.pipeline_version, so D1/D14 rest on a time window. One line in "
-        "forge/runner.py (stamp the deploy manifest's version into every construction's meta) "
-        "converts this from weak to strong.",
-        "DORA has no deploy history: DEPLOYED.json does not exist on the target.",
-        "Regime stability reads local PnL curves; an alpha without a cached curve scores "
-        "'insufficient' rather than being judged.",
-    ]
+    card = build_from(list(latest.values()), HV.load_scored(), P.load_corr(), history,
+                      load_curves(posted, curves_dir), load_standard(), since=since, until=until,
+                      version=version, axis3=axis3_gearing(run_drill=run_drill))
+    tagged = sum(1 for r in latest.values() if (r.get("meta") or {}).get("pipeline_version"))
+    card["gaps"] = [g for g in (
+        None if tagged else "No journal row carries meta.pipeline_version yet (the stamping runner is not deployed); "
+                            "attribution is by date and the post-deploy comparison has no cohorts.",
+        None if card["axes"]["axis3_gearing"]["dora"].get("status") == "measured" else
+        "DORA is unmeasured: fewer than two recorded deploys.",
+        "Axis 1's regime gate needs each submitted alpha's PnL curve; a curve absent from state/pnl_curves "
+        "reads UNMEASURED (the submitted alphas' curves live on the VPS).",
+    ) if g]
     return card
+
+
+def compare(rows, history, curves, standard, scored, corr, version_a, version_b) -> dict:
+    """Post-deploy: did version B produce clean submissions faster than version A? (Draw 2)
+
+    Each cohort is the rows its version stamped. The comparison uses the SAME number of whole ET quota
+    days for both -- each version's first d days, d the smaller count -- so a version is never judged on
+    more exposure than the other. The verdict is 'better'/'worse' only when the two Poisson intervals do
+    not overlap; otherwise 'indistinguishable', which at this desk's rate is the usual honest answer.
+    """
+    res = {}
+    for v in (version_a, version_b):
+        vrows = [r for r in rows if (r.get("meta") or {}).get("pipeline_version") == v
+                 and r.get("status") in SCORED_STATUS and r.get("checks")]
+        days = sorted({quota_day_of_row(r) for r in vrows if quota_day_of_row(r)} - {current_quota_day()})
+        res[v] = {"rows": vrows, "days": days}
+    d = min(len(res[version_a]["days"]), len(res[version_b]["days"]))
+    out = {"quota_days_each": d, "versions": {}}
+    if d == 0:
+        out["verdict"] = "no-data"
+        return out
+    for v in (version_a, version_b):
+        use = set(res[v]["days"][:d])
+        card = build_from([r for r in res[v]["rows"] if quota_day_of_row(r) in use], scored, corr, history,
+                          curves, standard, since=min(use),
+                          until=(datetime.date.fromisoformat(max(use)) + datetime.timedelta(days=1)).isoformat())
+        a2 = card["axes"]["axis2_throughput"]
+        out["versions"][v] = {"clean_per_quota_day": a2["clean_per_quota_day"],
+                              "poisson_95_per_day": a2["poisson_95_per_day"], "clean_submissions": a2["clean_submissions"]}
+    ia, ib = out["versions"][version_a]["poisson_95_per_day"], out["versions"][version_b]["poisson_95_per_day"]
+    hi_a = ia[1] if ia[1] is not None else float("inf")
+    hi_b = ib[1] if ib[1] is not None else float("inf")
+    out["verdict"] = ("better" if ib[0] > hi_a else "worse" if hi_b < ia[0] else "indistinguishable")
+    return out
 
 
 def render(card: dict) -> str:
     a = card["axes"]
-    L = ["PIPELINE SCORECARD  %s" % (card["window"].get("version") or "(current tree)"),
-         "  window: %s -> %s   attribution: %s" % (card["window"].get("since") or "all",
-                                                   card["window"].get("until") or "now",
-                                                   card["version_attribution"]),
-         "",
-         "  VERDICT  %s%s" % (card["verdict"],
-                              ("  (floors unmet: %s)" % ", ".join(card["floors_unmet"])) if card["floors_unmet"] else ""),
-         "  composite %.1f / 100   -- %s" % (card["composite_0_100"], card["composite_means"]),
-         ""]
+    w = card["window"]
+    L = ["PIPELINE SCORECARD  %s" % (w.get("version") or "(date window)"),
+         "  %d whole ET quota day(s) from %s (the unfinished day %s is excluded)   attribution: %s"
+         % (w["quota_days"], w["since"], w["excluded_unfinished_day"], card["version_attribution"]),
+         "", "  VERDICT  %s%s" % (card["verdict"], ("  (floors unmet: %s)" % ", ".join(card["floors_unmet"])) if card["floors_unmet"] else ""),
+         "  composite %.1f / 100   -- %s" % (card["composite_0_100"], card["composite_means"]), ""]
     p = a["axis1_product"]
-    L += ["  AXIS 1  PRODUCT   %s" % ("FLOOR MET" if p["floor_met"] else "floor unmet"),
-          "    submitted by this version: %d | clearing every robustness gate: %.0f %%" % (p["n"], p["value"] * 100),
-          "    %s" % p["verdict"]]
-    for d in p["detail"][:4]:
-        bad = [k for k, v in d["gates"].items() if not v]
-        L.append("      %s  dsr %s pbo %s  %s" % (d["alpha"], d["dsr"], d["pbo"],
-                                                  "all gates pass" if not bad else "FAILS: " + ", ".join(bad)))
+    L += ["  AXIS 1  PRODUCT   %s   value %.3f   gate coverage %s" % ("FLOOR MET" if p["floor_met"] else "floor unmet",
+                                                                        p["value"], p["gate_coverage"]),
+          "    submitted by this version: %d  (%s)" % (p["n"], p["verdict"])]
+    for d in p["detail"][:6]:
+        bad = [k for k, v in d["gates"].items() if v is False]
+        unk = [k for k, v in d["gates"].items() if v is None]
+        L.append("      %-10s %-8s%s%s" % (d["alpha"], d["status"], (" FAILS: " + ", ".join(bad)) if bad else "",
+                                           (" unmeasured: " + ", ".join(unk)) if unk else ""))
     t = a["axis2_throughput"]
     L += ["", "  AXIS 2  THROUGHPUT  %s" % ("FLOOR MET" if t["floor_met"] else "floor unmet"),
-          "    %d scored alphas -> %d submission(s) of its OWN alphas = %.2f per 5,000   (floor %.1f)"
-          % (t["scored_alphas"], t["submissions_of_alphas_this_version_produced"], t["per_5000_scored"], t["floor"]),
-          "    POSTs this version's submitter made in the window: %d  (an alpha an earlier version "
-          "generated counts here, never above)" % t["posts_this_version_made"],
-          "    95 %% interval per 5,000: [%.2f, %.2f]%s" % (t["wilson_95_per_5000"][0], t["wilson_95_per_5000"][1],
-                                                           "" if t["submissions"] else "  (zero events: the upper bound is all this window can say)"),
-          "    qualified structural families: %s | scored alphas per family: %s"
-          % (t["qualified_families"], t["scored_per_family"]),
+          "    %d clean submission(s) over %d quota day(s) = %.3f per day   (floor %.1f)   95 %% %s"
+          % (t["clean_submissions"], t["quota_days"], t["clean_per_quota_day"], t["floor"], t["poisson_95_per_day"]),
+          "    scored alphas %d (%s per day) | per clean submission %s | qualified families %s"
+          % (t["scored_alphas"], t["scored_per_quota_day"], t["scored_per_clean_submission"], t["qualified_families"]),
+          "    POSTs the submitter made in the window: %d" % t["posts_this_version_made"],
           "    sustainable: %s  %s" % (t["sustainable"], t["sustainability_evidence"])]
-    g = a["axis3_gearing"]
-    L += ["", "  AXIS 3  GEARING  %s" % ("FLOOR MET" if g["floor_met"] else "floor unmet"),
-          "    %d of %d architecture fitness functions hold" % (g["held"], g["of"])]
-    for f in g["fitness_functions"]:
-        L.append("      [%s] %s" % ("ok" if f["ok"] else "NO", f["name"]))
-    L += ["    DORA: %s" % g["dora"].get("status"), "    branch drill: %s" % g["branch_drill"].get("status")]
-    L += ["", "  GAPS THIS SCORECARD DOES NOT HIDE:"]
-    L += ["    - %s" % x for x in card["gaps"]]
+    if "axis3_gearing" in a:
+        g = a["axis3_gearing"]
+        L += ["", "  AXIS 3  GEARING  %s   %d of %d measured checks hold" % ("FLOOR MET" if g["floor_met"] else "floor unmet", g["held"], g["of"])]
+        L += ["      [%s] %s" % ("ok" if f["ok"] else "NO", f["name"]) for f in g["fitness_functions"]]
+        L.append("    DORA: %s" % g["dora"].get("status"))
+    if card.get("gaps"):
+        L += ["", "  GAPS THIS SCORECARD DOES NOT HIDE:"] + ["    - %s" % x for x in card["gaps"]]
     return "\n".join(L)
 
 
 def main(argv=None) -> int:
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--since", default="", help="ISO date; only alphas created on or after it")
-    ap.add_argument("--until", default="", help="ISO date; only alphas created before it")
-    ap.add_argument("--version", default="", help="grade this pipeline version (needs tagged rows)")
+    ap.add_argument("--since", default="", help="first ET quota day, YYYY-MM-DD")
+    ap.add_argument("--until", default="", help="ET quota day to stop BEFORE, YYYY-MM-DD")
+    ap.add_argument("--version", default="", help="grade the rows stamped with this pipeline version")
+    ap.add_argument("--no-drill", action="store_true")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
-    card = build(since=a.since or None, until=a.until or None, version=a.version or None)
+    card = build(since=a.since or None, until=a.until or None, version=a.version or None, run_drill=not a.no_drill)
     print(json.dumps(card, indent=1, default=str) if a.json else render(card))
     return 0 if card["verdict"] == "PASS" else 1
 

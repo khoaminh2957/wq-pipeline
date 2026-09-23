@@ -92,3 +92,23 @@ def test_same_construction_planned_in_two_rounds_is_not_ambiguous():
     # a genuine settings difference is still separated by the discriminators, not by identity
     other_decay = {**base, "meta": {**base["meta"], "seed": 222}, "settings": {**st, "decay": 4}}
     assert RO.match({RO._norm(base["formula"]): [base, other_decay]}, base["formula"], st) is base
+
+
+def test_the_pipeline_version_stamp_is_provenance_not_identity():
+    """Architecture attack round 1, S1: with the stamp in the identity, a construction planned by two
+    versions matched NOTHING (pre-stamp + stamped: False; two stamps: False) and every child of it
+    would have been filed ORPHAN-UNMATCHED at the first stamped deploy."""
+    from forge.offline import recover_orphans as RO
+    base = {"formula": "rank(x)", "settings": {"delay": 1, "decay": 4, "neutralization": "INDUSTRY"},
+            "meta": {"hypothesis": "h", "category": "News", "seed": 1}}
+    cases = [
+        ({}, {}),                                                      # unstamped, two rounds
+        ({"pipeline_version": "a"}, {"pipeline_version": "a"}),        # same stamp
+        ({}, {"pipeline_version": "a"}),                               # pre-stamp + stamped
+        ({"pipeline_version": "a"}, {"pipeline_version": "b"}),        # two different stamps
+    ]
+    for m1, m2 in cases:
+        c1 = {**base, "meta": {**base["meta"], **m1, "seed": 1}}
+        c2 = {**base, "meta": {**base["meta"], **m2, "seed": 2}}
+        index = {RO._norm("rank(x)"): [c1, c2]}
+        assert RO.match(index, "rank(x)", base["settings"]) is not None, (m1, m2)

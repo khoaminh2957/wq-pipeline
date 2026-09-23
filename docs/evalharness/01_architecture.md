@@ -98,3 +98,53 @@ Where I expect a reviewer to find something, written before they look:
 5. `check_no_live` greps for a string. A test that builds the flag from parts passes the check.
 6. `check_regression` writes the baseline on first run, so the first run can never fail it, and
    nothing stops a change from rewriting `state/ci_baseline.json` to lower the bar.
+
+---
+
+# Draw 2 (2026-09-23 ~11:30), after adversarial round 1
+
+Round 1 (docs/evalharness/audits/architecture_round1.md, 46 findings, adjudicated on commit 5281873)
+kept the three boxes, the judged-never-imports-judge direction and the non-compensatory floors. It
+broke one arrow and four measurements. This drawing changes exactly those.
+
+## The arrow that was wrong, and its replacement
+
+Draw 1: `scorecard composite ──▶ gate (regression)`. Wrong because, under D14, a candidate version has
+produced no rows at merge time; the composite a pre-merge gate computes is a function of the journal
+that ALREADY exists, so no diff can move axes 1–2, an unchanged tree can "regress" when the journal
+grows (committed 25.5, the VPS computes 25.4), and on a hosted runner axes 1–2 are always zero.
+
+Draw 2 splits it by WHAT CAN KNOW WHAT:
+
+```
+   PRE-MERGE  (tools/ci_gate.py — judges the DIFF)            POST-DEPLOY (benchmark.compare — judges the VERSION)
+   ├─ tests (two tiers, measured classification)               ├─ cohort A = rows stamped version A
+   ├─ schema · no-live · version · fitness · branch drill      ├─ cohort B = rows stamped version B
+   ├─ known-red                                                ├─ equal numbers of ET quota days each
+   └─ PINNED SCORER: the scorecard run on a FROZEN fixture     ├─ clean submissions per quota day, Wilson interval
+      cohort must reproduce a committed golden card.            └─ verdict: better / worse / INDISTINGUISHABLE
+      A change to FLOOR / WEIGHT / any gate is a change to
+      the golden file — visible in the diff (fixes S8).
+```
+
+## The four measurements that were wrong
+
+| | draw 1 | draw 2 |
+|---|---|---|
+| F2 axis 1 regime | curves read as lists; every cached curve is a `{date: cumulative}` dict → `[]` → "insufficient" → fail | curves sorted by date, cumulative VALUES passed in |
+| F3 axis 2 unit | per 5,000 COMPLETE rows against a per-quota-day floor; WARNING rows (16 %, incl. vRk095rv) dropped | per ET quota day; COMPLETE and WARNING both scored |
+| F4 composite | flat at 100 above the floors; 4 subs/3 clean (56.4) < 1 clean (61.6); junk (21.8) > nothing (20.0) | axis 2 counts CLEAN submissions only; composite monotone in clean count, not clamped at the floor (floor = 50, 2× floor = 100) |
+| S5 window | local midnight; a 1-minute window "meets" 4/day; an unknown `--version` graded all history | ET quota days, whole days only; unknown version is an error |
+
+Plus: S2 neighbourhood uses TRUE one-setting neighbours (same formula, exactly one of decay /
+neutralisation / truncation different) and reports "unmeasured" separately from "fail"; D10's eight
+hypothesis-standard gates enter axis 1; DORA enters axis 3's value when measured; the pipeline version
+is the hash of the loop's MEASURED import closure, so recording a CI baseline no longer changes it (S1 ii).
+
+## What draw 2 still does not do (for round 2 to attack)
+
+- The post-deploy comparison needs two stamped versions with equal quota days; until the first stamped
+  deploy there is exactly zero data for it.
+- Axis 1 on submitted alphas needs their PnL curves, which live only on the VPS.
+- The fixture cohort for the pinned scorer is synthetic: it proves the scorer did not CHANGE, not that it
+  is RIGHT.

@@ -27,7 +27,12 @@ JOURNAL = ROOT / "state/layered/runs/forge.jsonl"
 PLANS = ROOT / "state/forge/plans"
 DISCRIMINATORS = ("region", "universe", "delay", "neutralization", "decay", "truncation")
 PACE_S = 1.1
-ROUND_KEYS = ("seed",)      # per-round bookkeeping in meta; not part of a construction's identity
+# Per-round bookkeeping in meta; not part of a construction's identity. `pipeline_version` joined on
+# 2026-09-23: forge/runner.py began stamping every construction with the deployed version (D1/D14), and
+# the architecture attack (round 1, S1) confirmed with this very match() that a construction planned by
+# two versions then read as two candidates -- ambiguous, filed ORPHAN-UNMATCHED, the 2026-09-09 class
+# again. The same formula and settings are the same simulation whichever version planned them.
+ROUND_KEYS = ("seed", "pipeline_version")
 
 
 def _norm(f: str) -> str:

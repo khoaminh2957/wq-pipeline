@@ -32,10 +32,6 @@ DATA_BOUND = {
     "forge/tests/test_llm_author.py": "forge/llm/verify.py loads fetched/rc/field_labels.jsonl (101 MB)",
     "forge/tests/test_llm_formula.py": "same Context(): field_labels.jsonl + a 50 MB field catalogue",
 }
-#: COMMITTED, one value per tier. It used to live in state/, which a hosted runner never keeps: every
-#: Actions run recorded a fresh baseline and passed against it, so the regression check could not fail
-#: on CI at all. Moving the line is now a commit that shows in the diff.
-BASELINE = ROOT / "tools/ci_baseline.json"
 CLASSIFIED = ROOT / "tools/ci_data_bound.json"
 #: The files whose presence makes this the DATA tier (the MacBook, the VPS). A hosted runner has none of
 #: them, and the gate then runs the HERMETIC tier: the tests measured to need no data. The measurement
@@ -84,8 +80,8 @@ def check_tests(hermetic_only=None) -> dict:
         try:
             sys.path.insert(0, str(ROOT / "tools"))
             import ci_classify as CC
-            if cls and cls.get("tests_hash") != CC.tests_hash():
-                stale = "test files changed since the classification; re-run tools/ci_classify.py"
+            if cls and (cls.get("tests_hash") != CC.tests_hash() or cls.get("code_version") != CC.code_version()):
+                stale = "tests or code changed since the classification; re-run tools/ci_classify.py"
         except Exception:  # noqa: BLE001
             stale = "could not verify the classification is current"
         if not cls:
@@ -222,59 +218,59 @@ def check_known_red(root=ROOT) -> dict:
                        % (len(red), cls.get("measured_at"), ", ".join(red))}
 
 
-def _composite(root=ROOT):
-    code = ("import sys, json; sys.path.insert(0, %r);"
-            "from forge.offline import benchmark as B;"
-            "c = B.build();"
-            "print(json.dumps({'composite': c['composite_0_100'], 'verdict': c['verdict']}))" % str(root))
+GOLDEN = ROOT / "tools/ci_golden_card.json"
+
+
+def check_pinned_scorer(root=ROOT, golden_path=None) -> dict:
+    """Draw 2 (round 1, F1 + S8): the pre-merge gate judges what a DIFF can change -- including the
+    scorer. The frozen cohort in tools/ci_fixture.py must reproduce the committed golden card exactly.
+
+    What this REPLACED, and why: a regression check on the composite over the live journal. Under D14 a
+    candidate version has produced no rows at merge time, so no diff could move axes 1-2; the number
+    moved only as the journal grew, and an unchanged tree read 25.4 on the VPS against a committed 25.5
+    -- a gate that blocks nothing it should and something it should not. Judging a VERSION's output is
+    benchmark.compare(), after it has run.
+    """
+    gp = pathlib.Path(golden_path or GOLDEN)
+    code = ("import sys, json; sys.path[:0] = [%r, %r];"
+            "import ci_fixture as F; print(json.dumps(F.card(), sort_keys=True))" % (str(root), str(root / "tools")))
     r = _run([sys.executable, "-c", code])
     if r.returncode != 0:
-        raise RuntimeError("scorecard failed to build: %s" % (r.stderr or "")[-200:])
-    return json.loads((r.stdout or "").strip().splitlines()[-1])
-
-
-def check_regression(root=ROOT, baseline_path=None) -> dict:
-    """D9: block when the composite falls below the committed baseline for this tier.
-
-    The FLOOR is reported by the scorecard and never enforced here -- at the measured rate every
-    version fails it. Regression is what a gate can act on. A missing baseline FAILS: recording one
-    silently on first sight is exactly how the check became unfailable on a hosted runner.
-    """
-    bp = pathlib.Path(baseline_path or BASELINE)
-    t = tier(root)
+        return {"name": "pinned-scorer", "ok": False, "blocking": True,
+                "summary": "the scorer failed on the frozen cohort: %s" % (r.stderr or "")[-200:]}
+    now = json.loads((r.stdout or "").strip().splitlines()[-1])
     try:
-        now = _composite(root)
-    except (RuntimeError, ValueError, IndexError) as exc:
-        return {"name": "regression", "ok": False, "summary": str(exc), "blocking": True}
-    try:
-        base = json.loads(bp.read_text()).get(t)
+        want = json.loads(gp.read_text())
     except (OSError, ValueError):
-        base = None
-    if base is None:
-        return {"name": "regression", "ok": False, "blocking": True,
-                "summary": "no committed %s-tier baseline (composite now %.1f); run "
-                           "`python3 tools/ci_gate.py --record-baseline` and commit tools/ci_baseline.json"
-                           % (t, now["composite"])}
-    fell = now["composite"] < base["composite"]
-    return {"name": "regression", "ok": not fell, "blocking": True,
-            "summary": "[%s] composite %.1f vs committed %.1f%s" % (t, now["composite"], base["composite"],
-                                                                  "  REGRESSION" if fell else "")}
+        return {"name": "pinned-scorer", "ok": False, "blocking": True,
+                "summary": "no committed golden card; run `python3 tools/ci_gate.py --record-golden`, read the "
+                           "diff, and commit tools/ci_golden_card.json"}
+    diffs = _diff(want, now)
+    return {"name": "pinned-scorer", "ok": not diffs, "blocking": True,
+            "summary": ("the frozen cohort reproduces the golden card (composite %.1f)" % now["composite_0_100"])
+                       if not diffs else "the scorer's judgement CHANGED: %s" % "; ".join(diffs[:4]),
+            "details": diffs[:12]}
 
 
-def record_baseline(root=ROOT, baseline_path=None) -> dict:
-    bp = pathlib.Path(baseline_path or BASELINE)
-    try:
-        cur = json.loads(bp.read_text())
-    except (OSError, ValueError):
-        cur = {}
-    now = _composite(root)
-    cur[tier(root)] = {"composite": now["composite"], "verdict": now["verdict"],
-                       "recorded_at": time.strftime("%Y-%m-%d %H:%M:%S")}
-    bp.write_text(json.dumps(cur, indent=1) + "\n")
-    return cur
+def _diff(a, b, path=""):
+    if isinstance(a, dict) and isinstance(b, dict):
+        out = []
+        for k in sorted(set(a) | set(b)):
+            out += _diff(a.get(k), b.get(k), "%s.%s" % (path, k) if path else str(k))
+        return out
+    return [] if a == b else ["%s: %r -> %r" % (path, a, b)]
 
 
-CHECKS = (check_no_live, check_schema, check_version, check_fitness, check_branch_drill, check_tests, check_known_red, check_regression)
+def record_golden(root=ROOT, golden_path=None) -> dict:
+    import importlib
+    sys.path[:0] = [str(root), str(root / "tools")]
+    F = importlib.import_module("ci_fixture")
+    card = F.card()
+    pathlib.Path(golden_path or GOLDEN).write_text(json.dumps(card, indent=1, sort_keys=True) + "\n")
+    return card
+
+
+CHECKS = (check_no_live, check_schema, check_version, check_fitness, check_branch_drill, check_tests, check_known_red, check_pinned_scorer)
 
 
 def gate(checks=CHECKS, out=print) -> int:
@@ -298,11 +294,11 @@ def gate(checks=CHECKS, out=print) -> int:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json", action="store_true")
-    ap.add_argument("--record-baseline", action="store_true",
-                    help="write this tier's current composite to tools/ci_baseline.json (then commit it)")
+    ap.add_argument("--record-golden", action="store_true",
+                    help="re-record tools/ci_golden_card.json from the frozen cohort (read the diff, then commit)")
     a = ap.parse_args(argv)
-    if a.record_baseline:
-        print(json.dumps(record_baseline(), indent=1))
+    if a.record_golden:
+        print(json.dumps(record_golden(), indent=1))
         return 0
     if a.json:
         results = [c() for c in CHECKS]

@@ -81,7 +81,9 @@ def pipeline_version(root=None) -> str:
         return _VERSION
     base = pathlib.Path(root or ROOT)
     try:
-        _VERSION = json.loads((base / "DEPLOYED.json").read_text())["version"]
+        m = json.loads((base / "DEPLOYED.json").read_text())
+        # the LOOP's identity, not the whole shipped tree's: a CI-only change is not a new pipeline
+        _VERSION = m.get("pipeline_version") or m["version"]
         return _VERSION
     except (OSError, ValueError, KeyError):
         pass

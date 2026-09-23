@@ -45,31 +45,32 @@ def test_the_data_tier_leaves_red_tests_to_the_tests_check(tmp_path):
     assert G.check_known_red(root)["ok"] is True       # the tests check runs it directly there
 
 
-def test_a_missing_baseline_fails_closed(tmp_path, monkeypatch):
-    """The baseline used to be recorded on first sight in state/, which a hosted runner never keeps --
-    so every CI run recorded a fresh line and passed against it, and the check could not fail."""
-    root = _root(tmp_path)
-    monkeypatch.setattr(G, "_composite", lambda root=None: {"composite": 50.0, "verdict": "FAIL"})
-    r = G.check_regression(root, baseline_path=tmp_path / "tools/ci_baseline.json")
-    assert r["ok"] is False and "no committed hermetic-tier baseline" in r["summary"]
+def test_the_frozen_cohort_reproduces_the_committed_golden_card():
+    """Draw 2: the pre-merge gate judges the scorer, not the journal (round 1, F1)."""
+    r = G.check_pinned_scorer()
+    assert r["ok"] is True, r["summary"]
 
 
-def test_a_fall_below_the_committed_baseline_blocks_and_a_rise_does_not(tmp_path, monkeypatch):
-    root = _root(tmp_path, baseline={"hermetic": {"composite": 20.0}})
-    bp = tmp_path / "tools/ci_baseline.json"
-    monkeypatch.setattr(G, "_composite", lambda root=None: {"composite": 19.9, "verdict": "FAIL"})
-    assert G.check_regression(root, baseline_path=bp)["ok"] is False
-    monkeypatch.setattr(G, "_composite", lambda root=None: {"composite": 20.0, "verdict": "FAIL"})
-    assert G.check_regression(root, baseline_path=bp)["ok"] is True
+def test_a_changed_judgement_is_caught_and_named(tmp_path):
+    """A floor, weight or gate changed in the same commit as the pipeline used to pass unseen (round 1, S8).
+    Any difference between the scorer's card and the golden card blocks, naming the field."""
+    golden = json.loads(G.GOLDEN.read_text())
+    golden["constants"]["FLOOR"]["axis2_throughput"] = 3.0          # someone lowered the bar
+    fake = tmp_path / "golden.json"
+    fake.write_text(json.dumps(golden))
+    r = G.check_pinned_scorer(golden_path=fake)
+    assert r["ok"] is False and "FLOOR.axis2_throughput" in r["summary"]
 
 
-def test_each_tier_is_compared_with_its_own_baseline(tmp_path, monkeypatch):
-    """The hermetic composite has no journal behind it (axis 3 only), so one shared line would make
-    every hosted run look like a regression against the data tier's number."""
-    root = _root(tmp_path, data=True, baseline={"hermetic": {"composite": 20.0}, "data": {"composite": 25.5}})
-    monkeypatch.setattr(G, "_composite", lambda root=None: {"composite": 22.0, "verdict": "FAIL"})
-    r = G.check_regression(root, baseline_path=tmp_path / "tools/ci_baseline.json")
-    assert r["ok"] is False and "[data]" in r["summary"]
+def test_a_missing_golden_card_fails_closed(tmp_path):
+    r = G.check_pinned_scorer(golden_path=tmp_path / "absent.json")
+    assert r["ok"] is False and "no committed golden card" in r["summary"]
+
+
+def test_the_diff_walks_nested_cards():
+    assert G._diff({"a": {"b": 1}}, {"a": {"b": 1}}) == []
+    assert G._diff({"a": {"b": 1}}, {"a": {"b": 2}}) == ["a.b: 1 -> 2"]
+    assert G._diff({"a": 1}, {"a": 1, "c": 3}) == ["c: None -> 3"]
 
 
 def test_no_live_flags_a_quota_spending_line_and_ignores_the_guards_about_it(tmp_path):

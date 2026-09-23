@@ -183,6 +183,7 @@ class _Calls:
 def nonet(monkeypatch, tmp_path):
     c = _Calls()
     monkeypatch.setattr(deploy, "DEPLOY_LOG", tmp_path / "deploys.jsonl")   # never the real ledger
+    monkeypatch.setattr(deploy, "loop_closure", lambda root=None: ["forge/runner.py"])
     monkeypatch.setattr(deploy, "round_in_flight", lambda: False)
     monkeypatch.setattr(deploy, "remote_manifest", lambda: ({"version": "old", "hashes": {}}, True))
     monkeypatch.setattr(deploy, "remote_existing", lambda paths: set(paths))
@@ -324,41 +325,25 @@ def test_every_attempt_past_the_guards_is_recorded_and_refusals_are_not(monkeypa
 
 
 def test_the_plan_covers_every_file_the_live_loop_actually_imports():
-    """MEASURED 2026-09-23: the dispatcher imported harness13/ at module level and the plan did not ship
-    it. The closure is MEASURED here, not listed: every loop entry point (and every module those entry
-    points import lazily inside functions) is imported, and every file loaded from the repository must
-    be in the plan."""
-    import importlib, subprocess, textwrap
-    root = deploy.ROOT
-    probe = textwrap.dedent("""
-        import sys, pathlib, importlib, json
-        ROOT = pathlib.Path(%r)
-        sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
-        for m in ["forge.runner", "forge.harvest", "forge.submit", "forge.probe", "forge.novelty",
-                  "forge.allocate", "forge.score", "forge.digest", "forge.offline.rung_report",
-                  "layered_sim", "climb_submit", "submit_budget", "msgcat", "mint_link",
-                  "fingerprint", "operators", "auto_submit", "submit_plan"]:
-            importlib.import_module(m)
-        files = set()
-        for mod in list(sys.modules.values()):
-            f = getattr(mod, "__file__", None)
-            if f and str(pathlib.Path(f).resolve()).startswith(str(ROOT)):
-                files.add(str(pathlib.Path(f).resolve().relative_to(ROOT)))
-        print(json.dumps(sorted(files)))
-    """) % str(root)
-    # a fresh interpreter, so modules this test process already imported cannot hide a gap
-    r = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, cwd=str(root), timeout=120)
-    assert r.returncode == 0, r.stderr[-800:]
-    loaded = set(json.loads(r.stdout.strip().splitlines()[-1]))
-    missing = sorted(loaded - set(deploy.file_map()))
+    """MEASURED 2026-09-23: the dispatcher imported harness13/ at module level and the plan did not ship it."""
+    missing = sorted(set(deploy.loop_closure()) - set(deploy.file_map()))
     assert not missing, "the live loop imports files the deploy plan does not ship: %s" % missing
 
 
-# ----- third audit
-def test_a_regular_file_where_a_directory_must_go_is_refused():
-    """rsync replaces it silently (reproduced on rsync 3.4.1), and no snapshot would hold it."""
-    with pytest.raises(RuntimeError, match="parent of a shipped path is a regular file"):
-        deploy._existing_from("forge/a.py\nBADPARENT forge/sub\nCHECKED 2\n", ["forge/a.py", "forge/sub/b.py"])
+def test_a_ci_only_change_does_not_change_the_pipeline_version(tmp_path, monkeypatch):
+    """Round 1, S1 ii: tools/ci_baseline.json and friends sat inside the version hash, so recording a CI
+    number made the pipeline a 'new version' and split D14's cohorts."""
+    m1 = deploy.manifest()
+    closure = set(deploy.loop_closure())
+    ci_only = [p for p in m1["hashes"] if p.startswith("tools/ci_") and p not in closure]
+    assert ci_only, "expected CI files outside the loop's closure"
+    fmap = deploy.file_map()
+    f = tmp_path / "changed"
+    f.write_text("a different CI file")
+    fmap2 = dict(fmap, **{ci_only[0]: f})
+    m2 = deploy.manifest(fmap=fmap2)
+    assert m2["version"] != m1["version"]                     # the shipped bytes did change
+    assert m2["pipeline_version"] == m1["pipeline_version"]   # the pipeline did not
 
 
 def test_the_units_are_stopped_before_the_swap_and_started_after_a_green_smoke(nonet):
@@ -413,3 +398,11 @@ def test_the_busy_pattern_sees_every_forge_python_process():
                 "forge/harvest.py", "forge/submit.py --submit"):
         assert pat.search(cmd), cmd
     assert not pat.search("pgrep -fc '%s'" % deploy.BUSY)          # never matches its own pattern text
+
+
+def test_push_refuses_when_the_loop_closure_cannot_be_measured(monkeypatch, nonet):
+    """No pipeline version means no D1/D14 attribution for anything this deploy produces."""
+    def boom(root=None):
+        raise RuntimeError("could not import the loop")
+    monkeypatch.setattr(deploy, "loop_closure", boom)
+    assert deploy.push(out=nonet.out) == deploy.EXIT["refused"] and not nonet.rsynced

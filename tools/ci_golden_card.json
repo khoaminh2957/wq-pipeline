@@ -1,0 +1,99 @@
+{
+ "axis1": {
+  "gate_coverage": 0.905,
+  "per_alpha": {
+   "P1": {
+    "gates": {
+     "all_binding_pass": true,
+     "corr_under_lines": true,
+     "dsr_ge_095": true,
+     "hypothesis_standard_8of8": true,
+     "neighbourhood_stable": true,
+     "pbo_pass": true,
+     "regime_not_one_sided": true
+    },
+    "status": "proven"
+   },
+   "R1": {
+    "gates": {
+     "all_binding_pass": true,
+     "corr_under_lines": true,
+     "dsr_ge_095": true,
+     "hypothesis_standard_8of8": false,
+     "neighbourhood_stable": false,
+     "pbo_pass": true,
+     "regime_not_one_sided": false
+    },
+    "status": "refuted"
+   },
+   "U1": {
+    "gates": {
+     "all_binding_pass": true,
+     "corr_under_lines": true,
+     "dsr_ge_095": true,
+     "hypothesis_standard_8of8": true,
+     "neighbourhood_stable": null,
+     "pbo_pass": true,
+     "regime_not_one_sided": null
+    },
+    "status": "unproven"
+   }
+  },
+  "status_counts": {
+   "proven": 1,
+   "refuted": 1,
+   "unproven": 1
+  },
+  "value": 0.5
+ },
+ "axis2": {
+  "clean_per_quota_day": 0.667,
+  "clean_submissions": 2,
+  "poisson_95_per_day": [
+   0.081,
+   2.408
+  ],
+  "posts_this_version_made": 3,
+  "quota_days": 3,
+  "scored_alphas": 8,
+  "sustainable": false
+ },
+ "composite_0_100": 25.8,
+ "constants": {
+  "BINDING": [
+   "LOW_SHARPE",
+   "LOW_FITNESS",
+   "LOW_SUB_UNIVERSE_SHARPE",
+   "IS_LADDER_SHARPE",
+   "CONCENTRATED_WEIGHT",
+   "HIGH_TURNOVER",
+   "LOW_TURNOVER"
+  ],
+  "DORA_BAND": {
+   "change_failure_rate_max": 0.15,
+   "deploys_per_week_min": 1.0,
+   "time_to_restore_hours_max": 24.0
+  },
+  "FLOOR": {
+   "axis1_product": 1.0,
+   "axis2_throughput": 4.0,
+   "axis3_gearing": 0.8
+  },
+  "UNPROVEN_CREDIT": 0.5,
+  "WEIGHT": {
+   "axis1_product": 0.4,
+   "axis2_throughput": 0.4,
+   "axis3_gearing": 0.2
+  }
+ },
+ "floors_unmet": [
+  "axis1_product",
+  "axis2_throughput"
+ ],
+ "verdict": "FAIL",
+ "window": {
+  "quota_days": 3,
+  "since": "2026-09-17",
+  "until_exclusive": "2026-09-20"
+ }
+}
