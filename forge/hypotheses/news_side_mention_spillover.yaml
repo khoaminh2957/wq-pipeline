@@ -1,0 +1,156 @@
+id: news_side_mention_spillover
+family: indirect_news
+category: News
+title: News about another firm that mentions this one is priced late, because attention is on the headline firm
+mechanism: >
+  FORCE: behavioural mispricing (limited attention), sustained by the fact that attention is a
+  fixed budget spent on the firm in the headline. Every item in this archive carries a relevance
+  weight (1 = the firm is the story's primary subject; < 1 = the firm is a secondary or side
+  mention in a story about someone else) and a trinary sentiment (1 positive, 0 neutral, -1
+  negative). A stock-day whose items are mostly side mentions has received information about the
+  firm while the readers' attention was on a different firm: a customer, a supplier, a competitor
+  or a partner whose story named this one. Cohen and Frazzini measured what the market does with
+  that: in the presence of attention-constrained investors, prices do not promptly incorporate
+  news about economically related firms, and the delayed incorporation is predictable. The leg
+  keeps each stock-day's mean tone (standardised across names that day, which preserves its sign
+  and order) ONLY when the day's mean relevance shows the coverage was dominated by side mentions,
+  sums it over the window, and is LONG the names whose side-mention coverage has been most
+  positive within the peer group. Days on which the firm is itself the headline (relevance 1)
+  contribute zero: headline tone is the drift construct the library already holds five legs of,
+  and it is deliberately left out of this one. Days with no items contribute zero.
+counterparty: >
+  Outside shareholders who read news by ticker - index funds, retail holders and mandate-driven
+  institutions whose news feed is filtered to stories whose subject is their own firm. They see a
+  story about another firm that mentions theirs only when the price has already moved, and they
+  persist because attention is a scarce resource allocated to the headline firm (the bias is in
+  what is read, not in how it is read) and because the side-mentioned firm is typically the
+  smaller party in the link, where arbitrage capital does not hold the inventory.
+sign: 1
+source: >
+  EX-ANTE - Cohen & Frazzini 2008, Journal of Finance 63(4), "Economic Links and Predictable
+  Returns", DOI 10.1111/j.1540-6261.2008.01379.x. FETCHED
+  https://api.openalex.org/works?search=Economic%20Links%20and%20Predictable%20Returns (record
+  https://openalex.org/W2164320228) HTTP 200 (2026-09-09; abstract re-derived from the raw
+  abstract_inverted_index with curl, not from a summariser; the Wiley publisher page was not
+  fetched and is not the source of this text). Verbatim from that abstract: "We test the hypothesis
+  that in the presence of investors subject to attention constraints, stock prices do not promptly
+  incorporate news about economically related firms, generating return predictability across
+  assets." and "we show that stock prices do not incorporate news involving related firms,
+  generating predictable subsequent price moves." CONSTRUCT CORRESPONDENCE, stated not glossed:
+  the paper identifies the related firm from a disclosed principal-customer link and uses the
+  customer's stock RETURN as the related-firm news; this leg identifies the related-firm news
+  directly - a story whose primary subject is another firm and in which this firm is a side mention
+  (vendor relevance < 1) - and uses the story's TONE as the news. Same force, same direction
+  (positive news about the related firm, positive subsequent return for this one), similar horizon
+  (the paper's is the following month). The difference - a co-mention link includes competitors and
+  other relations whose sign for this firm is not the story's sign, whereas a customer link is
+  same-direction by construction - is the reason this leg is built for a composite and not as a
+  bet on its own. Scherbina & Schlusche 2015 (SSRN 2363436), which infers economic links from
+  news co-mentions, has no fetchable abstract (OpenAlex W2140558552, Semantic Scholar and Crossref
+  all HTTP 200 with abstract null) and is therefore NOT cited as evidence (Q14).
+datasets: [news104]
+signal:
+  fields: [nws104_sentiment, nws104_1_sentiment]
+  vector: vec_avg
+  density: zero
+signal2:
+  fields: [nws104_relevance, nws104_1_relevance]
+template: "group_rank(ts_sum(if_else(and(greater({signal2}, 0), less({signal2}, {k})), zscore({signal}), 0), {w}), {group})"
+params:
+  k: [0.5, 0.8]
+  w: [10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE, description first. The bet is on the tone fields. Their descriptions ("Trinary
+  sentiment classification for the news item: 1 = positive, 0 = neutral, -1 = negative" and
+  "Reveals in a trinary score the highest probable state of sentiment found in the news item, 1 =
+  positive, 0 = neutral, and -1 = negative") state the polarity coding of the score and no return
+  direction; forge.labels gives both sign '+' with sign_source 'description'. The return direction
+  for THIS construct - tone delivered as a side mention - is taken from Cohen & Frazzini (quoted
+  above): positive related-firm news, positive subsequent return. Label and paper agree on '+', so
+  there is no disagreement to report, but the basis is the paper, not the label's tone-drift prior.
+  RELEVANCE IS A CONDITION, NOT A BET. Description of nws104_relevance: "Degree to which the news
+  item focuses on the target company; 1 = primary, <1 = secondary/side mention"; nws104_1_relevance:
+  "Weighting of the sentiment to the company in that line of data. Relevance of 1.00 = primary
+  relevance, any less indicates the appropriate degree of relevance." Both stand only inside
+  greater() and less(), a condition role (typed.py H5), so their label signs carry no weight. THE
+  LABEL FILE IS WRONG ABOUT BOTH and the catalogue is trusted instead: forge.labels puts
+  nws104_relevance in domain 'social' (kind ratio, sign unstated) and nws104_1_relevance in domain
+  'sentiment' with a '+' domain-prior sign - a relevance weight is neither a social nor a sentiment
+  quantity. fetched/rc/fields/USA_TOP3000_d1.jsonl attributes both to dataset news104 "Archive
+  News Data", category News.
+  THRESHOLD. The day's vec_avg of relevance is 1 when every item is about this firm and falls as
+  side mentions enter. k = 0.5 fires when side mentions dominate the day's coverage; k = 0.8 when
+  they are a substantial part of it. The vendor does not document the scale of its sub-1 relevance
+  values, so the two thresholds bracket the construct rather than pin it; which one (if either)
+  isolates side-mention days is a measurement. The greater({signal2}, 0) clause exists because
+  density 'zero' renders a no-news day as relevance 0, which less(0, k) would otherwise admit with
+  a tone of zscore(0) instead of nothing. With the clause, a no-news day contributes exactly 0.
+  DENSITY. density 'zero' is declared because a stock-day without items is "no news"; the factory
+  (forge/factory.py _leg) applies it to both signal and signal2, so both are add(vec_avg(x), 0,
+  filter=true). All four fields are dense at field level (H4 requires nothing), but at day level
+  most names have no items, which is the sparse-book case measured on the 2026-09-04 canary
+  (CONCENTRATED_WEIGHT); the if_else else-branch of 0 plus density makes the ts_sum dense.
+  TYPE VERIFICATION, run not assumed (2026-09-09). All 24 renderings (2 field pairs x k {0.5,
+  0.8} x w {10, 20} x 3 groups) were produced with forge.factory.render and judged with
+  forge.typed.judge on USA/d1: structural mode (the live pre-sim gate, forge/runner.py) ok with no
+  hard reasons on every rendering; full mode also ok on every rendering (H5 satisfied because the
+  relevance fields stand only in condition roles; H6 orientation +1 matching sign 1); soft score
+  0.55; 13 operators against the factory cap of 62 (MAX_OPS). Example rendering at k 0.5, w 10:
+  group_rank(ts_sum(if_else(and(greater(add(vec_avg(nws104_relevance), 0, filter=true), 0),
+  less(add(vec_avg(nws104_relevance), 0, filter=true), 0.5)), zscore(add(vec_avg(nws104_sentiment),
+  0, filter=true)), 0), 10), subindustry). The platform operator list (fetched/rc/operators.json)
+  carries and(input1, input2), greater, less, if_else, vec_avg, zscore, ts_sum and add with filter.
+  TYPE RULES (forge/typed.py) as they apply here:
+  VECTOR fields are read only through vec_avg (H4); the if_else then-branch is zscore({signal}),
+  a cross-sectional standardisation that keeps the tone's sign and order and is bounded under H3
+  (the raw level in [-1, 1] is refused by the judge in structural mode - the correction the staged
+  stale-news leg already documents); nothing is divided or added across fields (H1); ts_sum is not
+  a change operator (H2); greater/less compare a ratio with a constant (H1).
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, dataset news104, category News, delay 1, all
+  VECTOR, pyramidMultiplier 1.2): nws104_sentiment coverage 0.9748, dateCoverage 0.9507,
+  dateCreated 2025-11-01, userCount 18 / alphaCount 24; nws104_relevance coverage 0.9748,
+  userCount 10 / alphaCount 16; nws104_1_sentiment coverage 0.9823, dateCreated 2024-10-01,
+  userCount 1 / alphaCount 2; nws104_1_relevance coverage 1.0, userCount 1 / alphaCount 1. The
+  two generations are paired 1:1 (new with new, _1_ with _1_). The *_fast_d1 variants carry the
+  same descriptions and were not used: what "fast" denotes is not documented anywhere on file, and
+  a field whose meaning is not stated is not chosen. Dataset userCount 93 / alphaCount 244
+  (02_dataset_map tier U, 0 journal rows).
+  HISTORY, CHECKED NOT ASSUMED (hard gate 8). Local forge journal state/layered/runs/forge.jsonl
+  (25,035 rows, counted 2026-09-09): 0 rows mention nws104 or news104. VPS journal read over ssh -n on 2026-09-09 (28,004 rows): 0
+  and 0. state/resim_targets.json holds two old climb-era ensemble formulas that read
+  nws104_1_prob_neg and nws104_1_headlineonly as one term among six - different fields, different
+  construct, no collision. state/banned_fields.json, state/climb/spent_fields.json and every other
+  state/*targets*.json: no nws104 field. state/cell_target_fields.json and
+  state/all_fields_usa_top1000_d1.jsonl list every field of the dataset because they are
+  catalogues, not ledgers; a hit there carries no meaning.
+  RELATION TO THE STAGED news_stale_tone_reversal (same dataset, written by another researcher
+  this round). Same shape - the day's tone gated by a day-level condition from the same archive -
+  but a different condition (relevance, not novelty), the opposite sign, a different quantity
+  (information delivered while attention was elsewhere, not information repeated) and a different
+  paper. A stock-day can be both stale and side-mentioned; how often, and how correlated the two
+  books are, is a measurement nobody has made. MECHANISM OF ANY OVERLAP: UNKNOWN. If the measured
+  self-correlation between the two legs is high, one of them has not added a distinct mechanism
+  and should be dropped rather than re-argued.
+  OVERLAP TO WATCH, not a claim. The live leg sentiment_weekly_continuation lists
+  secondary_sentiment_average (news_sentiment_transfer, "Mean value of the secondary sentiment
+  scores for the entity", userCount 0) as one of three alternative fields. That description does
+  not say whether "secondary" means the entity's role in the story or a second scoring model, and
+  the leg that carries it claims weekly continuation of tone regardless of role. It is recorded
+  here as a possible relative, not as a duplicate.
+  HORIZON AND TURNOVER. The paper's predictability is over the following month; w is 10 or 20
+  trading days and decay 8 or 16. The ladder bar drops from 2.37 to 2.02 only under turnover 0.30
+  (diagnosis_ladder.md section 1); the turnover this leg produces is a measurement the harness
+  must read, not a number claimed here. If it is above 0.30 the fix is the longer w, not an
+  argument.
+  WHAT THIS LEG DOES NOT CLAIM. It does not claim headline tone drifts (the other five legs'
+  claim, not re-tested here), it does not claim the vendor's relevance reproduces a disclosed
+  customer link, and it does not claim the proxy reproduces the paper's effect size. The one thing
+  it claims is the direction: positive news about a related firm, delivered while attention was on
+  that firm, is followed by a positive return for the firm mentioned in passing.

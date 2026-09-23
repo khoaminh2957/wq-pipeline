@@ -1,0 +1,11 @@
+[Unit]
+Description=wq mint — keep a live persona link in front of the operator until the session is authenticated
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+# mint_link.py reads state/auth_mint_wall.json and REFUSES while the biometric wall is up, so this
+# can fire every minute without extending the wall. It exits 0 only once a tap has been collected
+# and the cookie jar written, which is what stops the timer chasing an already-live session.
+ExecStart=/opt/wq/venv/bin/python /opt/wq/tools/mint_link.py --quiet
+TimeoutStartSec=900

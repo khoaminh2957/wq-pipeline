@@ -1,0 +1,83 @@
+id: taxsurprise_x_accruals
+title: Earnings growth the tax ledger also recorded, minus the earnings the cash ledger did not
+arm: new
+legs: [tax_expense_surprise_momentum, usa_accruals_cashflow]
+families: [tax_expense, accruals]
+combiners: [multiply]
+mechanism: >
+  The two legs check reported earnings against the two ledgers management cannot freely write:
+  the cash flow statement and the tax return. The accrual leg bets that earnings not backed by
+  operating cash reverse; Hanlon 2005 shows that reversal is not uniform - firm-years in which book
+  income runs ahead of taxable income have less persistent earnings and accruals, and special items
+  explain only part of it. A flat or falling tax provision while book earnings are held up by
+  accruals is the quarterly trace of that widening book-tax gap, so the product's short side - high
+  accruals AND a falling provision - is the subset of the accrual anomaly where Hanlon's
+  persistence result says the reversal is largest. The long side - low accruals AND a rising
+  provision - is income growth that both the cash ledger and the tax ledger recorded, which Thomas
+  & Zhang 2011 show the market prices with a delay. The conjunction is not two quality scores
+  added: the tax line selects which accrual positions carry the documented persistence failure,
+  and the accrual line keeps only those tax-surprise names whose reported earnings the cash flow
+  statement also supports, so a rising provision is not read as core profit where the cash line
+  says the earnings were accrued.
+counterparty: "Earnings-chasing retail investors and sell-side analysts anchored on reported EPS, who price book earnings without decomposing them into cash and accruals and who plug the tax provision from an assumed effective rate instead of reading it as information about taxed profit"
+source: "EX-ANTE — Hanlon 2005, The Accounting Review 80(1), 'The Persistence and Pricing of Earnings, Accruals, and Cash Flows When Firms Have Large Book-Tax Differences'. FETCHED https://api.openalex.org/works?search=persistence%20and%20pricing%20of%20earnings%20accruals%20and%20cash%20flows%20when%20firms%20have%20large%20book-tax%20differences&filter=publication_year:2005 HTTP 200 (2026-09-09; work https://openalex.org/W3121890812, doi 10.2308/accr.2005.80.1.137; abstract reconstructed verbatim from OpenAlex's abstract_inverted_index; the publisher page was NOT fetched). Verbatim: 'I investigate the role of book-tax differences in indicating the persistence of earnings, accruals, and cash flows for one-period-ahead earnings.' and 'I find that firm-years with large book-tax differences have earnings that are less persistent than firm-years with small book-tax differences.' and 'I find that special items contribute in part to the results but that firm-years with large booktax differences continue to have lower persistence in earnings after controlling for the effect of the special items.' - this is the conjunction's evidence: the persistence of earnings and accruals depends on the book-tax relation, so the accrual leg's reversal is conditioned by the tax leg. Two limits stated honestly: Hanlon's construct is the LEVEL of the book-tax difference (its measurement is not on the fetched page and is not asserted here), while this composite's tax leg is the seasonal CHANGE in total tax expense - a proxy for the direction of the gap, not its level; and Thomas & Zhang 2011 (FETCHED https://openalex.org/W2323670465 HTTP 200, verbatim: 'This anomaly is separate from previously documented pricing anomalies based on financial and tax variables.') establish that the tax-surprise return is INCREMENTAL to accruals, i.e. independent information, not an interaction - no fetched paper measures the interaction itself. Sloan 1996 grounds the accrual leg through usa_accruals_cashflow's own source line and is not re-fetched here."
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with positive pre-tax income in both compared quarters, a single tax jurisdiction and a clean quarterly cash-flow statement: the seasonal tax change then reads taxed profit rather than rate or mix, and the accrual ratio has a real cash-flow number to condition on"
+weakens_when: "the tax line describes tax law rather than profit - the four quarters of seasonal differences spanning the December 2017 TCJA rate cut and deferred-tax remeasurements (fiscal 2018 against 2017) and the 2020 CARES Act carrybacks - in loss-making firms where the provision is near zero or a valuation-allowance release records a tax benefit that reads as a falling provision, and in multinationals whose provision moves with geographic mix; and when the last accrual reading is stale, the two quarters after an operating shock"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file, and per
+  diagnosis_ladder.md 3b these maps carry no measured information about the ladder - they are the
+  standard's reasoning only and must not rank composites.
+  value_winter_2014_2020 '+': neither leg is a cheapness bet; the long side is cash-backed, taxed
+  income growth, the quality side that led 2014-2020, and the short side is accrual-heavy names
+  whose tax line did not follow. Inside this block fiscal 2018's seasonal differences are
+  contaminated by the TCJA rate cut (see weakens_when); the sign is for the mechanism, the
+  contamination is a pre-registered noise year, not a sign reversal.
+  momentum_crash_2016 '-': the early-2016 junk rally lifted low-quality, high-accrual names, the
+  short side of the product, and a quarterly leg cannot exit; the conjunction gives back.
+  covid_2020 '0': the CARES Act carrybacks and loss quarters make the 2020 tax line describe tax
+  law, and the last accrual reading describes a pre-COVID firm; both legs degrade toward noise in
+  both directions rather than losing in one.
+  rate_shock_2022 '+': 2022 repriced promised earnings; the long side's earnings are current, taxed
+  and cash-backed, the short side's are book-only, so the conjunction sits on the rewarded side.
+  COMBINER. usa_accruals_cashflow is a bearish leg (sign -1), so [multiply] only - the gate branch
+  inverts a bearish leg (measured 2026-09-08; Verifier note carried on newsneg_x_short and
+  transcriptneg_x_revision). POST-HOC, used only to prefer multiply: rows at the bar reach fitness
+  1.0 at 130/355 with multiply against 6/184 with gate.
+  PARTNER CHOICE, POST-HOC allocation knowledge used only to choose the partner, never for a sign:
+  on rows with Sharpe >= 1.3, composites carrying usa_accruals_cashflow cleared the 2022-2024
+  ladder window at 0.40 (n 184), against sentiment_weekly_continuation 0.42 (247),
+  insider_significant_buying_drift 0.40 (204), option_call_put_iv_spread 0.37 (1,251) and
+  usa_profitability_ratios 0.35 (206). Accruals was chosen over the equal-or-higher-rate tone and
+  insider legs because a fetched abstract (Hanlon 2005) ties earnings and accrual persistence to
+  the book-tax relation, which no fetched evidence supplies for tone, insiders or option flow;
+  profitability was set aside because a rising provision already co-moves with pre-tax profit, so
+  that product would be closer to one signal twice. short_volume_ratio_informed,
+  news_ravenpack_composite_tone and short_interest_surprise were not considered, per the round's
+  partner rule. Whether the 0.40 rate transfers is the measurement, not a prediction.
+  DISTINCTNESS, checked not assumed (grep of legs: in forge/composites/*.yaml and staged/,
+  2026-09-09): no composite carries a tax leg of any family; the library's only tax construct,
+  deferred_tax_earnings_quality (family accruals, fundamental93), sits in no composite; the
+  thirteen accrual composites pair accruals with capex, range volatility, credit language,
+  insiders, predicted surprise, PR tone, profitability, quality, sentiment, short flow and
+  intangibles. fundamental13 appears in no hypothesis and no composite. The pair (tax_expense,
+  accruals) duplicates no existing domain pair. The accrual leg is shared with 9 existing
+  composites, so the book may correlate with them through that leg; that is a correlation
+  measurement, not a claim made here.
+  STANDARD GATE 4 (crowding), stated for the Verifier rather than argued away: fnd13_ttax carries
+  alphaCount 530 and the partner's Compustat fields 15,084 to 169,009, so by the letter every
+  leg's FIELD is above 200. The same is true of every existing composite carrying
+  usa_accruals_cashflow or usa_profitability_ratios; whether the clause reads fields or
+  constructs is the Verifier's call.
+  ORIENTATION. Rendered by forge/compose.py as multiply(group_rank(tax leg), (1 - group_rank(accrual
+  leg))); both operands are group_rank scores in [0, 1], so the product is bounded
+  (typed H3) and higher = long (H6). Checked 2026-09-09 with typed.judge structural=True on the
+  rendered USA/d1 formula for both tax templates: ok, no hard failure (13 and 14 operators against
+  MAX_OPS 62). The full judge's refusals are the tax field's missing label sign (H5) and the
+  partner's quarterly-backfill rule (H4), which typed.py records as OFF in gate use.
+  DATE COVERAGE. Both fundamental13 fields read dateCoverage 1.0 and fundamental6 1.0, so no leg
+  starts late inside the 5-year window.

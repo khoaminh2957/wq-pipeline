@@ -1,0 +1,24 @@
+id: tail_risk_x_insider_confidence
+title: Tail risk mitigation amplified by insider conviction
+arm: new
+legs: [tail_dependence_beta_interaction, insider_net_value_eur]
+families: [tail_risk, insider]
+combiners: [multiply]
+mechanism: >
+  This combination identifies stocks where high systemic tail risk (which typically depresses
+  returns) is counterbalanced by strong insider buying. Insiders, possessing superior information,
+  are willing to hold tail-risk assets when they perceive the market is overpricing the crash
+  probability, creating a stronger reversal signal than either factor alone.
+counterparty: retail investors who overreact to market-wide tail fears
+source: "EX-ANTE — Jeng and Hsiao 2004, insider trading and risk premium"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: high-volatility, high-beta stocks
+weakens_when: insider trading is suspended or information asymmetry is low
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.1
+notes: >
+  The effect is strongest in winter and crisis periods when tail risk premia are high and insider
+  information advantage is most valuable. It weakens in rate shock environments where macro
+  factors dominate idiosyncratic signals.

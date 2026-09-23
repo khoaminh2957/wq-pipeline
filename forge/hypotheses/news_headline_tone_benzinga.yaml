@@ -1,0 +1,25 @@
+id: news_headline_tone_benzinga
+family: tone
+category: News
+title: Daily mean headline sentiment (Benzinga headlines) predicts short-horizon drift
+mechanism: >
+  The mean sentiment of the day's headlines for a stock summarises the tone of the news flow.
+  Positive tone is followed by continued buying as the news diffuses to slower readers, so the
+  most positively covered names drift up over the next days. Long the most positive headline tone.
+counterparty: "Slow-diffusion investors who react to headlines with a delay; index funds that rebalance mechanically"
+sign: 1
+source: "EX-ANTE — Tetlock 2007 JF (media tone and short-horizon returns); Tetlock, Saar-Tsechansky & Macskassy 2008 JF (words in firm-specific news predict earnings and returns)"
+datasets: [news82]
+signal:
+  fields: [mean_headline_sentiment_score, median_headline_sentiment_score, mean_primary_headline_sentiment]
+  density: zero
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [3, 5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

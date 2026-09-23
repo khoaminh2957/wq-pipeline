@@ -1,0 +1,63 @@
+id: news_downgrade_recommendation_topic
+family: recommendation
+category: Other
+title: Downgrade / sell-recommendation topic intensity in the day's news predicts continued underperformance
+mechanism: >
+  A topic model scores every article about a stock, and these fields report how strongly the day's
+  coverage sits on the "downgrade recommendation" and "sell recommendation" topics — that is, how
+  much of today's news is a broker cutting its rating. The force is behavioural under-reaction with
+  an institutional constraint attached: the price move on the day of a sell-side rating cut is
+  incomplete, and the holders who must act on it are long-only accounts that can only sell what
+  they already own, so the selling arrives over weeks instead of at once. Womack measured the
+  asymmetry that makes the bearish channel the one worth building: the post-event drift after a
+  BUY recommendation is +2.4% and short-lived, while after a SELL recommendation it is -9.1% and
+  runs for six months. Short the names carrying the most downgrade / sell-recommendation coverage
+  over the window.
+counterparty: >
+  Retail accounts and long-only mandated funds that hold the downgraded name: they cannot short,
+  they receive the broker's call after the wire has carried it, and mandate and tax frictions make
+  them unwind a position over weeks. The constraint is structural, not a one-off dislocation, which
+  is why the incomplete reaction Womack measured in 1996 is not arbitraged away by the holders
+  themselves.
+sign: -1
+source: "EX-ANTE — Womack 1996, 'Do Brokerage Analysts' Recommendations Have Investment Value?', Journal of Finance 51(1) 137-167, DOI 10.1111/j.1540-6261.1996.tb05205.x (Crossref HTTP 200): 'For buy recommendations, the mean postevent drift is modest (+2.4%) and short-lived, but for sell recommendations, the drift is larger (-9.1%) and extends for six months.'"
+datasets: [mmp_nlp_sentiment]
+signal:
+  fields: [avg_downgrade_topic_score, median_downgrade_topic_score, max_downgrade_topic_score, max_sell_recommendation_score]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SET FROM THE DESCRIPTION, AGAINST THE LABEL PRIOR. fetched/rc/field_labels.jsonl gives
+  avg_downgrade_topic_score, median_downgrade_topic_score and max_downgrade_topic_score sign '+'
+  with sign_source 'domain-prior' — the analyst-rating prior in forge/labels.py, whose stated
+  rationale is "Womack 1996: upgrades / better recommendations -> higher returns". The
+  descriptions say the opposite thing about these particular fields: "Average / Median / Maximum
+  score among topics indicating a downgrade recommendation". A downgrade is not an upgrade, so the
+  prior is mis-applied here and the description wins: sign -1. max_sell_recommendation_score
+  ("Maximum value of the sell recommendation topic score in the news sample") is labelled sign
+  'unstated'; its sign is likewise taken from the description. Consequence for the type judge
+  (forge/typed.py): with the label file as it stands, the full-mode judge reads the leg's
+  orientation off the '+' prior and reports H6 orientation -1; the live pre-sim gate
+  (forge/runner.py:158) runs structural=True, which applies only H1/H2/H4 and passes the formula.
+  The fix belongs in forge/labels.py (not written here — this file only stages a hypothesis).
+  TYPE CHECKS: all four fields are MATRIX at USA/TOP3000/delay 1, kind score, unit score, cadence
+  daily, coverage 0.9025 (>= 0.5 and >= 0.9, so no density and no ts_backfill are required); no
+  VECTOR reducer needed; nothing is divided, so no unit is crossed.
+  CROWDING: alphaCount 2 / 0 / 0 / 0 and userCount 1 / 0 / 0 / 0 in the USA/d1 catalogue.
+  HISTORY: one journal row (VPS state/layered/runs/forge.jsonl, read 2026-09-08) touches
+  avg_downgrade_topic_score, from the random typed arm
+  (typed:sentiment_x_price-technical_x_analyst-rating, 3 datasets, the field entering POSITIVELY as
+  rank(ts_zscore(avg_downgrade_topic_score, 252))). Different construct, opposite orientation, no
+  collision with this leg.
+  KNOWN WEAKNESS, stated rather than argued away: a topic score measures TOPIC PRESENCE, not
+  direction, so "downgrade-recommendation talk about this firm" is a proxy for "this firm was
+  downgraded" and will also fire on coverage of an avoided or reversed downgrade. MECHANISM FOR
+  THE RESIDUAL: UNKNOWN. No experiment here separates the two readings.

@@ -1,0 +1,121 @@
+id: epssurprise_x_sentiment
+title: A beat, and the weeks of coverage that follow it saying the beat was not a one-off
+arm: new
+legs: [earnings_eps_surprise_drift, sentiment_weekly_continuation]
+families: [earnings_surprise, tone]
+combiners: [multiply]
+mechanism: >
+  The first leg is the hard half of a quarterly report: one number, printed once, free to read, and
+  in the price within a day. What it trades is the residual - the drift that remains because
+  investors do not carry this quarter's surprise into what they expect of the next quarters. That
+  failure is not uniform across beats, and the thing that separates a beat worth extrapolating from
+  a one-off item is information that arrives AFTER the print. The second leg is that information:
+  the accumulated tone of the firm-specific stories written in the weeks that follow. Tetlock,
+  Saar-Tsechansky and Macskassy measure that the language of firm news forecasts the firm's own
+  accounting earnings, that prices underreact to it, and that the predictability is largest for
+  stories about fundamentals - so the running tone is not a second opinion about the announcement's
+  price move, it is an independent forecast of whether the quarter that just beat will be followed
+  by another. Livnat measures the same conditioning structure with a different confirming variable:
+  the earnings drift is stronger when a contemporaneous revenue surprise points the same way as the
+  earnings surprise, and stronger when earnings persistence is greater. The product therefore keeps
+  the beats whose continuing coverage is consistent with persistence and drops the beats the
+  following weeks' news does not support, which is precisely the population the drift does not pay.
+  It is not two bullish signals agreeing: one is a published number the market has already seen and
+  under-extrapolated, the other is the unpriced text that says whether extrapolating it is right.
+counterparty: >
+  Retail investors and screen-driven quant managers whose earnings input is the reported surprise
+  from a screen and who never process the stories written after it, together with the index funds
+  and passive holders that revise on neither. They stay on the other side because reading the
+  number is free and reading a quarter of firm-specific text is not, and because the population is
+  replenished every reporting cycle rather than learning once and leaving.
+source: >-
+  EX-ANTE — the conjunction's own evidence is Tetlock, Saar-Tsechansky & Macskassy 2008, The Journal
+  of Finance 63(3), "More Than Words: Quantifying Language to Measure Firms' Fundamentals". FETCHED
+  https://api.crossref.org/works/10.1111/j.1540-6261.2008.01362.x HTTP 200 (2026-09-09; the
+  publisher page at doi.org was NOT the source of this text). Verbatim from that abstract: "(1) the
+  fraction of negative words in firm-specific news stories forecasts low firm earnings; (2) firms'
+  stock prices briefly underreact to the information embedded in negative words; and (3) the
+  earnings and return predictability from negative words is largest for the stories that focus on
+  fundamentals." That is what makes the second leg a forecast of the NEXT earnings rather than a
+  restatement of the last one, which is the whole of the conjunction's claim. The conditioning FORM
+  - a drift that is stronger when a second reading of the same firm agrees with the surprise - is
+  measured by Livnat 2003, FETCHED https://api.crossref.org/works/10.2139/ssrn.416302 HTTP 200
+  (2026-09-09), verbatim: "this study shows that the earnings drift is stronger when the revenue
+  surprise is in the same direction as the earnings surprise. Moreover, the study provides direct
+  evidence that the drift is stronger when the earnings persistence is greater." STATED, NOT
+  GLOSSED: Livnat's confirming variable is a revenue surprise from the same income statement, NOT
+  the following weeks' news tone. No paper fetched here tests the interaction this composite
+  actually forms (reported EPS surprise x subsequent weekly news tone). Each half is evidenced
+  separately; the interaction itself is MECHANISM UNKNOWN and is what the simulation measures. The
+  tone leg's own grounding (Heston & Sinha 2017) is carried by sentiment_weekly_continuation's
+  source line and is not re-fetched here.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps that report on a normal quarterly cycle and carry continuous but not saturating press coverage - enough stories for a weekly tone average to be a real reading of the firm rather than one wire item, and small enough that the drift is not competed away within days by the desks that watch mega-cap prints"
+weakens_when: "quarters in which guidance is withdrawn market-wide, so the printed surprise stops describing the firm forward and the coverage stops being about the firm at all; and at the mega-cap end, where the surprise is tiny, instantly arbitraged, and the tone average is dominated by macro and index stories that say nothing about this company's next quarter"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for THIS conjunction and for nothing else. They are the hypothesis
+  standard's EX-ANTE reasoning and must not be used to rank composites: diagnosis_ladder.md section
+  3b REFUTED the regime map as a screen (the '0' group cleared the 2022-2024 window as often as the
+  '+' group), and that refutation is accepted here.
+  value_winter_2014_2020 '0': neither leg is a cheapness bet and neither is a growth bet. The long
+  side is "reported a beat and the coverage since has stayed positive", which cuts across the
+  value/growth split rather than sitting on one side of it, so the 2014-2020 spread has no clear
+  path into this book.
+  momentum_crash_2016 '-': both legs are, by construction, long what has recently gone well - a beat
+  already printed, and coverage already positive. The early-2016 reversal paid the previously-losing
+  side, so a book built on recent confirmation gives back in it.
+  covid_2020 '0': in Q1-Q2 2020 guidance was withdrawn en masse, so the last printed surprise
+  described a pre-pandemic firm, and firm-specific coverage was displaced by market-wide pandemic
+  news, so the tone average stopped being about the company. Both readings degrade toward noise at
+  the same time rather than one of them turning against the book.
+  rate_shock_2022 '+': the bet is on the next one or two quarterly prints, not on cash flows a
+  decade out, so it carries little duration for a discount-rate shock to reprice; the cash-and-now
+  side was the rewarded one in 2022.
+  COMBINER. Both legs are bullish (sign +1 each), so the gate branch's inversion problem does not
+  arise; [multiply] is chosen on the standing POST-HOC preference (the round brief's count was multiply 130/355 against gate 6/184; re-derived on the current journal - state/layered/runs/forge.jsonl, 28,220 lines, rows with status COMPLETE or WARNING carrying metrics, one row per alpha id with the last row winning, 25,001 distinct; USA/d1; classified by meta.combiner; sharpe >= 1.58; fitness >= 1.0 - multiply 150/647 = 23.2%, gate 6/289 = 2.1%; direction confirmed and stronger, counts superseded) and because confirmation, not conditioning, is the
+  stated mechanism: a beat with hostile coverage should be pushed toward the middle of the book, not
+  set to zero.
+  PARTNER CHOICE, and the honest reason for it. sentiment_weekly_continuation is the leg whose
+  composites cleared the 2022-2024 ladder window most often (0.42 on 247 rows with Sharpe >= 1.3,
+  diagnosis_ladder.md section 3a). That is a POST-HOC allocation statistic about rows that already
+  exist, it is a pattern and not a mechanism, and it played no part in the sign or the label of any
+  field here - it decided WHICH of the eligible different-family partners to pair with, nothing
+  more. Whether that rate transfers to a pair it has never been measured on is the measurement, not
+  a prediction.
+  THE OTHER HALF OF THAT LEG'S RECORD, re-derived read-only from
+  /opt/wq/state/layered/runs/forge.jsonl (28,220 lines; rows with status COMPLETE or WARNING
+  carrying metrics, one row per alpha id, last row wins - 25,001 distinct alphas; USA/d1):
+  sentiment_weekly_continuation n 5,033, Sharpe >= 1.58 on 79 rows (1.6%), and ZERO rows on which
+  all seven binding checks (LOW_SHARPE, LOW_FITNESS, LOW_TURNOVER, HIGH_TURNOVER,
+  CONCENTRATED_WEIGHT, LOW_SUB_UNIVERSE_SHARPE, IS_LADDER_SHARPE) are present and PASS. For
+  comparison on the same rule: option_call_put_iv_spread 646/5,536 at the bar with 20 all-binding
+  passes, short_volume_ratio_informed 711/6,679 with 21. The 0.42 y2pass rate is conditioned on
+  Sharpe >= 1.3, i.e. it selects on the variable this leg is worst at; it is a rate among rows
+  that reached a bar this leg rarely reaches. The partner is still chosen (the better-scoring
+  partners are either on the round's AVOID list or already paired with an earnings-event leg in
+  staged ivspread_x_announcement), but it is chosen with this known.
+  DISTINCTNESS, checked against the files and not assumed. No composite in forge/composites/ or
+  forge/composites/staged/ pairs an earnings-surprise family with the tone family: the live
+  sentiment_weekly_continuation composites are short_x_sentiment (short), usa_sentiment_x_ivspread
+  (options), usa_sentiment_x_ivspread_x_profitability and usa_sentiment_x_profitability_x_accruals,
+  and the staged ones are exdaycycle_x_sentiment (payout calendar) and opleverage_x_sentiment (operating leverage), so three staged composites in this round share this partner leg and its three sentiment fields; their prod/self correlation to each other is a measurement to make before more than one is promoted. The surprise-x-accruals pair was
+  deliberately NOT taken because it is already used twice (live predsurprise_x_accruals, staged
+  taxsurprise_x_accruals), and surprise-x-options was not taken because staged ivspread_x_announcement
+  already pairs the option leg with an earnings-event leg. Dataset other326 appears in no other
+  hypothesis, live or staged.
+  KNOWN OVERLAP TO MEASURE, not a claim. The staged leg news_earnings_coverage_tone cites the same
+  Tetlock 2008 abstract for a different claim (the tone of earnings coverage as a leg in its own
+  right). This composite uses that paper only for what the news LANGUAGE forecasts about future
+  earnings, and its tone leg is the general weekly news sentiment feed, not the earnings-coverage
+  subset. If the two books turn out correlated, that is a correlation measurement to act on, not an
+  argument to have.
+  TURNOVER DOES NOT INHERIT FROM THE SLOW LEG. earnings_eps_surprise_drift argues EX-ANTE that its
+  own rank barely moves (one name in sixty-three reports per day). This composite multiplies it by
+  a tone leg at ts_mean 5/10/20 with decay 4/8, so the product's turnover is set by the FAST leg.
+  diagnosis_ladder.md section 1: the 0.85x discount that drops the ladder bar from 2.37 to 2.02
+  applies only below turnover 0.30, and all 18 USA/d1 all-binding passers sit at 0.06-0.28. Which
+  side of 0.30 this product lands on is a measurement that has not been made.

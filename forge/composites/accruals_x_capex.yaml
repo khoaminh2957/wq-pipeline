@@ -1,0 +1,19 @@
+id: accruals_x_capex
+title: Low accruals AND low capex intensity
+legs: [accruals_cashflow_classic, capex_investment_reversal]
+families: [accruals, investment]
+combiners: [multiply]
+mechanism: >
+  Accruals and abnormal capital investment are two faces of the same over-extension: earnings
+  not backed by cash and cash spent on assets that will not earn. Firms that are clean on both
+  ranks have conservative, cash-generating operations that investors under-price because neither
+  signal is salient on its own; the product concentrates on that quiet corner.
+counterparty: "Analysts and growth funds that reward reported earnings growth and capex announcements without discounting their cash cost"
+source: "EX-ANTE — Sloan 1996; Titman, Wei & Xie 2004; Richardson, Sloan, Soliman & Tuna 2005"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "capital-intensive industries with lumpy investment"
+weakens_when: "a commodity or rate cycle rewards all capex at once"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

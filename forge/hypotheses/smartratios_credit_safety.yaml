@@ -1,0 +1,26 @@
+id: smartratios_credit_safety
+family: distress
+category: Model
+title: Safer balance sheets outperform distressed ones
+mechanism: >
+  The distress anomaly from the safe side: firms whose SmartRatios credit rank, profitability
+  and leverage components say "safe" earn higher returns than distressed peers. Long the safest
+  names by these percentile ranks (higher is safer).
+counterparty: Holders of distressed equity paying for skewness.
+sign: 1
+source: "EX-ANTE — Campbell, Hilscher & Szilagyi 2008; Asness, Frazzini & Pedersen 2019 (quality minus junk: safety)"
+datasets: [model36]
+signal:
+  fields: [star_sr_global_rank, star_sr_profitability, star_sr_leverage, creditworthiness_letter_rating_numeric_main]
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

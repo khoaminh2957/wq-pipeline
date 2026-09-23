@@ -1,0 +1,26 @@
+id: news_frontpage_attention_reversal
+family: attention
+category: News
+title: Front-page coverage draws attention buying that reverses
+mechanism: >
+  A Reuters front-page development puts a stock in front of attention-constrained investors, who
+  are net buyers of whatever they notice. That buying pressure lifts the price for a few days and
+  then reverts. Short the names with the most front-page items over the window.
+counterparty: Retail and attention-driven investors who buy what they read about.
+sign: -1
+source: "EX-ANTE — Barber & Odean 2008 (attention-grabbing stocks are net-bought by individuals and underperform); Da, Engelberg & Gao 2011 (attention spikes then reversal)"
+datasets: [news29]
+signal:
+  fields: [nws29_frontpage]      # nws29_full_frontpage dropped 2026-09-04: same description, and the canary's guard refused the twin pairs (POST-HOC, mechanism unknown)
+  vector: vec_sum
+  density: zero
+template: "-group_rank(ts_sum({signal}, {w}), {group})"
+params:
+  w: [3, 5, 10]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

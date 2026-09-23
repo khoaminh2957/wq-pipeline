@@ -1,0 +1,33 @@
+id: etf_negative_flow_breadth
+family: etf_flow
+category: Other
+title: Breadth of negative ETF holdings changes predicts short-horizon reversal
+mechanism: >
+  The count of ETFs reducing their positions in a stock aggregates the flow of mandated, non-discretionary capital.
+  When a large number of funds trim holdings simultaneously, the resulting supply shock pushes the price below its
+  fundamental value because these sellers are not reacting to new public information but rather to mechanical
+  rebalancing or tracking errors. As these forced flows dissipate over the next few days, the price reverts to
+  reflect the underlying firm fundamentals, creating a predictable upward drift for stocks that experienced this
+  negative breadth.
+counterparty: passive index funds and mandate-driven institutions following mechanical rebalancing rules
+sign: -1
+source: "EX-ANTE — Barber and Odean 2008, systematic trading by passive funds creates short-term price pressure that reverses"
+datasets: [other580]
+signal:
+  fields: [negative_percent_change_count_5d]
+  density: zero
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  A count of zero indicates no ETFs reduced holdings in the period, which is a valid state of "no event" rather than
+  a missing value, so we use zero density handling. The sign is -1 because high negative breadth (many sellers)
+  predicts lower future returns as the price reverses up.

@@ -1,0 +1,26 @@
+id: operating_margin_change
+family: profitability
+category: Fundamental
+title: Improving operating margin drifts
+mechanism: >
+  A rise in operating margin (operating income over revenue) versus a year ago is a fundamental
+  signal that prices absorb slowly. Long the names with the largest margin improvement.
+counterparty: Investors who react to earnings but not to their drivers.
+sign: 1
+source: "EX-ANTE — Lev & Thiagarajan 1993 (fundamental information analysis: gross margin signal); Abarbanell & Bushee 1998; Soliman 2008"
+datasets: [fundamental6, fundamental7]
+signal:
+  fields: [fnd6_newq_oibdpq, fnd6_newq_oiadpq, fnd6_ewq_gpq, fnd7_ointfund_qpdbio]
+signal2:
+  fields: [fnd6_cptnewq_revtq, fnd6_cptnewq_revtq, fnd6_cptnewq_revtq, fnd7_ointfund_qelas]
+template:
+  - "group_rank(ts_delta(ts_backfill({signal} / {signal2}, 63), {w}), {group})"
+params:
+  w: [252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

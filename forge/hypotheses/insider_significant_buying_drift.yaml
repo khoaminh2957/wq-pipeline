@@ -1,0 +1,25 @@
+id: insider_significant_buying_drift
+family: insider
+category: [Insiders, Other]
+title: Significant directional insider activity drifts for months
+mechanism: >
+  Insiders buy on information the market does not have; filtered, significant purchases predict
+  positive abnormal returns for several months while the information diffuses. Long the names
+  with the largest accumulated directional insider activity over the window.
+counterparty: Sellers to insiders who do not see what the insiders see.
+sign: 1
+source: "EX-ANTE — Lakonishok & Lee 2001; Jeng, Metrick & Zeckhauser 2003 (insider purchases earn abnormal returns, sales do not); Cohen, Malloy & Pomorski 2012 (opportunistic trades)"
+datasets: [insider_agg_matrix, insider_trx_matrix]
+signal:
+  fields: [directional_indicator_2, top_directional_significant_value_1, directional_significant_value_1, directional_indicator_score, usd_top_primary_signal_value]
+  density: zero
+template: "group_rank(ts_sum({signal}, {w}), {group})"
+params:
+  w: [20, 60, 120]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

@@ -1,0 +1,29 @@
+id: social_sentiment_l2_method18
+family: social_sentiment
+category: Social Media
+title: Method 18 social sentiment predicts short-horizon drift
+mechanism: >
+  Method 18 aggregates social media tone into a unitless level, and because the marginal buyer of
+  small-cap names is a retail participant who consumes these feeds with a lag, positive tone
+  diffuses into prices slowly, causing the most positively discussed names to keep drifting up.
+counterparty: retail investors who trade on social media chatter with a lag
+sign: 1
+source: "EX-ANTE — Da et al. 2011, online investor attention predicts stock returns"
+datasets: [twitter_sentiment_l2]
+signal:
+  fields: [aggregated_sentiment_value_18]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is a level score, so a day with no new data is "no change" and backfills rather than
+  reading as the most negative value.

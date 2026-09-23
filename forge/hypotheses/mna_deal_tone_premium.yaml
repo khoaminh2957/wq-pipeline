@@ -1,0 +1,28 @@
+id: mna_deal_tone_premium
+family: tone_mna
+category: News
+title: Mergers and acquisitions news tone predicts post-deal drift
+mechanism: >
+  Positive sentiment in M&A news often reflects over-optimism about synergies or strategic fit from
+  the acquiring firm, but these benefits are difficult to verify and frequently fail to materialize.
+  As the uncertainty of the deal's success is resolved over time, the initial positive premium
+  decays as investors reassess the true value created, leading to negative drift.
+counterparty: retail investors and momentum traders who chase positive deal news
+sign: -1
+source: "EX-ANTE — Mitchell 2011, positive news tone in M&A announcements predicts negative abnormal returns"
+datasets: [news50]
+signal:
+  fields: [merger_acquisition_sentiment_score_4]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  Uses the MATRIX type field for merger acquisition sentiment to ensure compatibility with the
+  template and correct data structure for the News category.

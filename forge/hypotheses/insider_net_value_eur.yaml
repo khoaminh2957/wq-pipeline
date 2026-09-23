@@ -1,0 +1,27 @@
+id: insider_net_value_eur
+family: insider
+category: [Other, Insiders]
+title: Net euro value of significant insider buying drifts
+mechanism: >
+  The euro value bought minus sold by insiders with significant trades, accumulated over one
+  to three months, measures the information insiders are acting on. Long the names with the
+  largest net buying. A day without a filing is zero, not missing.
+counterparty: Sellers to insiders who do not see what the insiders see.
+sign: 1
+source: "EX-ANTE — Lakonishok & Lee 2001; Cohen, Malloy & Pomorski 2012 (opportunistic insider trades)"
+datasets: [insider_matrix]
+signal:
+  fields: [eur_top_signal_value_2, eur_signal_value_2, eur_director_signal_value_2]
+  density: zero
+signal2:
+  fields: [eur_top_signal_value_4, eur_signal_value_4, eur_director_signal_value_4]
+template: "group_rank(ts_sum({signal} - {signal2}, {w}), {group})"
+params:
+  w: [21, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

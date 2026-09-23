@@ -1,0 +1,24 @@
+id: social_twitter_sentiment_continuation
+family: tone
+category: Social Media
+title: Filtered Twitter sentiment continues over days
+mechanism: >
+  Relevance-filtered aggregate Twitter sentiment reflects the mood of active retail traders, and
+  that mood carries into their next days of trading. Long the names with the highest average
+  filtered sentiment over the window.
+counterparty: Late-arriving retail flow that follows the mood.
+sign: 1
+source: "EX-ANTE — Sprenger, Tumasjan, Sandner & Welpe 2014; Renault 2017 (investor sentiment on social media predicts short-horizon returns)"
+datasets: [twitter_sentiment_l2]
+signal:
+  pattern: "^aggregated_sentiment_value_[0-9]+$"
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [3, 5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [0, 4, 8]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

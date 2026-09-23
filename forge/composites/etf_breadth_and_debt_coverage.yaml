@@ -1,0 +1,27 @@
+id: etf_breadth_and_debt_coverage
+title: Passive ETF selling meets strong debt service coverage
+arm: new
+legs: [etf_breadth_reversion, usa_debt_service_coverage]
+families: [etf_flow, coverage]
+combiners: [multiply]
+mechanism: >
+  This combination identifies stocks where passive flows are depressing prices while the firm
+  maintains robust operating earnings relative to its debt load. The ETF selling creates the
+  mispricing, but the high debt service coverage confirms that the business can service its
+  obligations without distress, making the subsequent reversion more reliable as fundamental
+  safety supports the price recovery.
+counterparty: passive ETF managers vs. bondholders and credit analysts
+source: "EX-ANTE — Fama and French 1992, value and profitability anomalies"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: mid-cap industrial and utility stocks with high passive ownership
+weakens_when: credit spreads widen sharply and leverage becomes a risk factor
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value winter 2014-2020 is positive because value stocks often had high passive ownership and
+  strong coverage. Momentum crash 2016 is positive because high-coverage stocks held up better
+  during momentum reversals. COVID 2020 is positive because panic selling by passive funds was
+  offset by the safety of high-coverage firms. Rate shock 2022 is negative because rising rates
+  increase debt costs, weakening the protective effect of coverage ratios.

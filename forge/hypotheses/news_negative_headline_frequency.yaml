@@ -1,0 +1,32 @@
+id: news_negative_headline_frequency
+family: tone_negative
+category: News
+title: High-frequency negative headline counts predict post-event drift
+mechanism: >
+  A surge in the count of negative news headlines reflects a rapid, high-volume dissemination of bad
+  news that outpaces the capacity of professional analysts to update fundamental models. This
+  creates a temporary information asymmetry where retail investors and algorithmic flow react to
+  the surface-level tone, driving prices down slightly more than justified by the immediate
+  cash-flow impact, which then partially reverts as informed institutional investors correct the
+  valuation.
+counterparty: retail investors and high-frequency flow reacting to headline sentiment
+sign: -1
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+datasets: [news7]
+signal:
+  fields: [headline_negative_term_count_fast_d1]
+  density: zero
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is a count of headlines; a day with zero negative headlines is a valid state of "no
+  negative events," so the density rule is 'zero' rather than backfill.

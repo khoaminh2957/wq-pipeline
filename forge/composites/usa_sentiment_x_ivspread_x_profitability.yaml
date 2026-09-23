@@ -1,0 +1,36 @@
+id: usa_sentiment_x_ivspread_x_profitability
+title: Weekly news sentiment confirmed by the option market, in profitable firms (USA Sentiment cell)
+arm: new
+legs: [sentiment_weekly_continuation, option_call_put_iv_spread, usa_profitability_ratios]
+families: [tone, options, profitability]
+combiners: [multiply]
+mechanism: >
+  Weekly-aggregated news sentiment continues because investors underreact to accumulated tone,
+  and it continues most where option traders already price the upside (calls at a higher implied
+  volatility than puts). The third rank keeps the confirmed names whose profitability the tone can
+  be about: a profitable firm's good news is earnings news that persists, an unprofitable firm's
+  good news is a story. The product isolates profitable names with positive tone that the option
+  market confirms; headline-following holders of unprofitable, unconfirmed names supply the drift.
+counterparty: "Headline-following retail investors who trade tone in unprofitable names without the option market's confirmation"
+source: "EX-ANTE — Heston & Sinha 2017 (weekly news sentiment); Cremers & Weinbaum 2010 (call-put IV spread); Novy-Marx 2013 (gross profitability). Conjunction stated by docs/harness5/round_2/subuniverse.md §6 (Portfolio, 2026-09-09): every high sub-universe-retention composite carries a fundamental6 leg; the IV pairs on this cell reach the Sharpe bar and fail the sub-universe 0/161."
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "mid caps with steady news coverage, listed options and a reported income statement"
+weakens_when: "market-wide news dominates firm-specific tone (March 2020); profitability is stale between reports"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  NEUTRALISATION GRID EXTENDED 2026-09-09 19:58 (INDUSTRY added). MEASURED on this composite's own
+  469 rows: STATISTICAL reads PROD_CORRELATION 0.537-0.553 (clear of the 0.71 line) but fitness max
+  0.89 in 229 rows; SUBINDUSTRY reads PROD 0.649-0.732 and produced the one all-binding pass
+  (Vk67oQ5V, fitness 1.03, PROD 0.732 - held). The neutralisation that buys fitness is the one that
+  raises PROD. INDUSTRY was never in this grid; diagnosis_fitness.md §3 measures INDUSTRY and
+  SUBINDUSTRY at the same book volatility (sigma 0.027-0.051 vs STATISTICAL 0.018-0.022), so its
+  fitness should reach SUBINDUSTRY's. Its PROD on this mechanism is UNKNOWN and is the measurement.
+  PURPOSE (subuniverse.md §6.1): rows at the Sharpe bar on the Sentiment cell that also pass
+  LOW_SUB_UNIVERSE_SHARPE (today 0 / 161 on the IV pairs). Truncation 0.08 rather than the pair's
+  0.15 so the arm matches every other composite (worth ~0.03, stated so it is not read as the
+  mechanism afterwards). EX-ANTE expectation written before any simulation: sub-universe PASS >= 50 %
+  among rows >= 1.58; refuted if < 20 % with N >= 30 at the bar. rate_shock_2022 '+' from the
+  profitability leg (quality led 2022); the pair's map said '0'. Regime signs are EX-ANTE reasoning.

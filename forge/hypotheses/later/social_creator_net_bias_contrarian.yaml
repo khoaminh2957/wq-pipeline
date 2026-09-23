@@ -1,0 +1,28 @@
+id: social_creator_net_bias_contrarian
+family: attention
+category: Social Media
+title: Net long bias of finance creators marks retail crowding; fade it
+mechanism: >
+  Finance content creators broadcast long/short calls to retail audiences. A large net-long count
+  over the window means the audience is being pushed into a name; the buying that follows is
+  crowded and reverses. Short the names with the largest net-long creator bias.
+counterparty: Followers who buy the calls.
+sign: -1
+source: "SOURCE — Barber & Odean 2008 (retail attention buying underperforms). SPECULATION — that creator prediction counts proxy retail crowding; no experiment yet"
+datasets: [creator_signal_perf]
+signal:
+  fields: [asset_long_predictions_count, asset_long_predictions_count_2]
+  vector: vec_sum
+  density: zero
+signal2:
+  fields: [asset_short_predictions_count, asset_short_predictions_count_2]
+template: "-group_rank(ts_sum({signal} - {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

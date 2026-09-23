@@ -1,0 +1,25 @@
+id: sentiment_abnormal_coverage_reversal
+family: attention
+category: Sentiment
+title: Abnormal article volume marks attention peaks that reverse
+mechanism: >
+  Today's article count relative to the stock's own trailing average measures abnormal attention.
+  Attention peaks bring net buying by individuals and the resulting price pressure reverts.
+  Short the names with the highest abnormal coverage.
+counterparty: Attention-driven buyers.
+sign: -1
+source: "EX-ANTE — Barber & Odean 2008; Da, Engelberg & Gao 2011 (abnormal attention predicts short-term price pressure then reversal)"
+datasets: [news_sentiment_transfer]
+signal:
+  fields: [news_article_count, normalized_news_article_count]
+  density: zero
+template: "-group_rank({signal} / ts_mean({signal}, {w}), {group})"
+params:
+  w: [20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

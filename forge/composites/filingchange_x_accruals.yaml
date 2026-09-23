@@ -1,0 +1,94 @@
+id: filingchange_x_accruals
+title: The accrual that had to be explained, and the document that had to be rewritten to explain it
+arm: new
+legs: [filing_construction_change, usa_accruals_cashflow]
+families: [filing_revision, accruals]
+combiners: [multiply]
+mechanism: >
+  Accruals reverse because reported earnings that operating cash did not deliver have to be given
+  back, and the reversal is paid by whoever priced those earnings as if they were cash. SPECULATION
+  - that an accrual which has to be carried is the kind that draws a new note, a new item or a
+  longer document is not established by anything cited or measured here; what IS cited is that
+  filing changes forecast the earnings path (Lazy Prices abstract), which is the quantity the
+  accrual leg says will reverse. MECHANISM of the conjunction: UNKNOWN. The filing leg reads one
+  thing and nothing else - the year-over-year change in the size and structure of the firm's own
+  mandatory filing - and Cohen, Malloy and Nguyen report that such changes predict future
+  earnings, profitability and even firm-level bankruptcies, with no price reaction at the filing
+  date. So the conjunction is not two bearish screens nodding at each other: the accrual names the
+  quantity that is going to reverse, and the filing change is the firm's own admission, in the
+  document it is legally required to file, that something about that quantity now needs new
+  disclosure. The short side keeps accrual-heavy firms that also rewrote the document explaining
+  the accrual; the long side keeps cash-backed firms that left the document alone, which is
+  precisely the group the paper reports earns positive abnormal returns. The two cases the product
+  discards are the informative ones: a high accrual under an untouched filing is a timing
+  difference nobody needed to explain, and a rewritten filing at a cash-backed firm is a
+  reorganisation with no earnings to give back.
+counterparty: "Earnings-chasing retail investors and mandate-driven institutions that price reported EPS as if it were cash, together with the passive and index-tracking holders who carry the same names straight through a filing that nobody diffs against last year's"
+source: >
+  EX-ANTE - the conjunction's own evidence is Cohen, Malloy & Nguyen, "Lazy Prices" (working-paper
+  record; published Journal of Finance 2020, 75(3)), FETCHED
+  https://api.crossref.org/works/10.2139/ssrn.1658471 HTTP 200 (2026-09-09). Verbatim from that
+  abstract: 'We show that changes to the 10-Ks predict future earnings, profitability, future news
+  announcements, and even future firm-level bankruptcies; meanwhile firms that do not make changes
+  experience positive abnormal returns.' The filing change is therefore documented to forecast the
+  earnings path, which is exactly the quantity the accrual leg says is going to reverse - that link
+  is the conjunction's evidence, not either leg's. Sloan 1996 grounds the accrual leg and is
+  carried by usa_accruals_cashflow's own source line; it is not re-fetched here. NO study of this
+  exact pairing was found fetchable. Huddart, Ke & Shi (2006, Journal of Accounting and Economics)
+  on informed trading around 10-K and 10-Q filings was checked as the closest candidate and is NOT
+  cited: OpenAlex W1999485747 and W2007185274 both return HTTP 200 with abstract_inverted_index
+  null, so under harness5 Q14 it is unfetchable and dropped.
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "0"}
+strongest_in: "mid-cap US filers with a stable single-segment business and a full quarterly cash-flow statement: the document's size and structure move only when something in the business moved, and the accrual number is a real reading rather than a consolidation artefact"
+weakens_when: "the whole market rewrites its filings at once - 2020 COVID risk factors, 2022 inflation and supply-chain language - so the change measure fires nearly everywhere and separates nothing; and at firms that restated, acquired or divested, where the document grew for a reason the accrual does not describe"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS - reasoned for THIS conjunction, and note first what they are worth:
+  docs/harness5/round_2/diagnosis_ladder.md section 3b measured every composite's
+  regimes.rate_shock_2022 sign against its year-2 ladder value and found the '0' group clears the
+  2022-2024 window as often as the '+' group. Regime maps are REFUTED as a screen and must not be
+  used to rank composites; they are recorded here only because the ratified hypothesis standard
+  (gate 4) requires the reasoning.
+  value_winter_2014_2020 '+': neither leg is a cheapness bet. The long side is a cash-backed firm
+  that left its filing alone, which is the quality side that led 2014-2020; the short side is
+  accrual-heavy rewriters. A value winter does not run against it.
+  momentum_crash_2016 '-': the early-2016 reversal rewarded low-quality, high-accrual names, and
+  the accrual leg is short exactly those, so the conjunction gives back in a junk rally. The filing
+  leg does not offset it - a junk rally does not make rewriters stop rewriting.
+  covid_2020 '0': essentially every US filer rewrote its 10-K in 2020 (COVID risk factors,
+  going-concern and liquidity language), so the change measure fires almost everywhere and stops
+  separating firms, while the last accrual reading describes a pre-COVID business. The conjunction
+  degrades toward noise rather than losing money in one direction.
+  rate_shock_2022 '0': two components pointing opposite ways and no basis here for ranking them.
+  The accrual half should help - cash-backed earnings were the rewarded side in 2022 and the bet
+  resolves through earnings rather than duration - while the filing half is diluted by the same
+  market-wide rewrite that 2020 produced (inflation, supply chain, rate exposure appearing in risk
+  factors across the universe). Stated as '0' because the net is not determinable ex ante, not
+  because it is expected to be flat.
+  COMBINER. Both legs are bearish (filing_construction_change sign -1, usa_accruals_cashflow sign
+  -1), so [multiply] only: the gate branch inverts a bearish leg (Verifier note carried on
+  newsneg_x_short and transcriptneg_x_revision, 2026-09-08). Independently POST-HOC from the round
+  brief: multiply rows at the bar reach fitness 1.0 at 130/355 against 6/184 for gate. Under
+  forge/compose.py positive_form each bearish leg becomes (1 - group_rank(...)), so the product is
+  high only where the filing was left alone AND the earnings are cash-backed.
+  DISTINCTNESS, checked not assumed. grep over forge/composites/*.yaml: no composite pairs a
+  document-structure leg with anything, and the 14 composites that carry an accruals-family leg
+  (counted, not recalled) pair it with capex, range volatility, credit language, insiders,
+  intangibles, predicted surprise, profitability, PR tone, quality, asset growth, credit safety,
+  sentiment and short flow - never with the filing document itself. The
+  filing_sentiment dataset appears in no leg in forge/hypotheses/ and in no leg staged by another
+  round-2 researcher in forge/hypotheses/staged/. The other staged composites of this round pair
+  news or conference-call tone legs with insider flow or profitability; none reads the filing.
+  Whether the resulting book is actually distinct is a prod/self-correlation measurement, not a
+  claim made here.
+  PARTNER CHOICE, and what it is worth. usa_accruals_cashflow was picked from the round brief's
+  POST-HOC allocation table (y2pass 0.40 on n 184 rows with Sharpe >= 1.3) over
+  insider_significant_buying_drift (0.40, n 204) because eight composites already staged this round
+  use insider_significant_buying_drift (corpaction, earningsnews, mnascale, newsimpact, newsquarter,
+  sidemention, spin, stalenews), seven of them against a news or tone leg, and the round's guardrail
+  is distinct mechanisms. That is
+  an allocation reason. It says nothing about whether either pairing predicts returns, and the
+  0.40 rate is a pattern in the journal whose MECHANISM is UNKNOWN.

@@ -1,0 +1,69 @@
+id: analyst_bold_estimate_conviction
+family: analyst_boldness
+category: Model
+title: Bold analyst estimates placed above the consensus, net of those placed below
+mechanism: >
+  A "bold" estimate is one an analyst places away from the standing consensus instead of moving
+  toward it. The vendor counts, for the current fiscal quarter's EPS, how many bold estimates sit
+  ABOVE consensus and how many sit BELOW. The net of the two, scaled by how many bold estimates
+  were filed at all, is the direction in which the analysts who broke from the crowd are leaning.
+  Clement & Tse 2005 measure that bold forecasts are more accurate than herding forecasts because
+  they carry the analyst's private information; Gleason & Lee 2003 measure that the market does not
+  sufficiently distinguish revisions that carry new information from revisions that merely move
+  toward the consensus. The quantity a price-taker is anchored to is the MEAN estimate, in which the
+  bold tail is averaged away. Long the names where the bold estimates lean above consensus.
+counterparty: >
+  Index funds and consensus-tracking institutions that mark their earnings expectation to the mean
+  estimate, so an analyst who breaks from the crowd is averaged into the number they already hold.
+sign: 1
+source: >-
+  EX-ANTE — Clement & Tse 2005, Journal of Finance, "Financial Analyst Characteristics and Herding
+  Behavior in Forecasting" (https://api.openalex.org/works/doi:10.1111/j.1540-6261.2005.00731.x,
+  HTTP 200), abstract verbatim: "bold forecasts are more accurate than herding forecasts".
+  Gleason & Lee 2003, The Accounting Review, "Analyst Forecast Revisions and Market Price Discovery"
+  (https://api.openalex.org/works/doi:10.2308/accr.2003.78.1.193, HTTP 200), abstract verbatim:
+  "the market does not make a sufficient distinction between revisions that provide new information
+  ('high-innovation' revisions) and revisions that merely move toward the consensus
+  ('low-innovation' revisions)".
+datasets: [analyst_revision_horizons]
+signal:
+  fields: [count_positive_bold_estimates_quarterly_eps_short_2, count_positive_bold_estimates_quarterly_eps_long_2]
+signal2:
+  fields: [count_negative_bold_estimates_quarterly_eps_short_2, count_negative_bold_estimates_quarterly_eps_long]
+template:
+  - "group_rank(ts_backfill(({signal} - {signal2}) / (1 + {signal} + {signal2}), {w}), {group})"
+  - "group_rank(ts_mean(ts_backfill(({signal} - {signal2}) / (1 + {signal} + {signal2}), 63), {w}), {group})"
+params:
+  w: [21, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SET FROM THE DESCRIPTIONS PLUS ONE STATED INFERENCE, NOT THE LABEL PRIOR. forge/labels.py
+  records these four fields as kind=count / sign=unstated (three of four) because the coarse rule
+  leaves counts sign-free; only count_negative_bold_estimates_quarterly_eps_short_2 picked up a "-"
+  from the word "negative". "above consensus" is stated outright only on the sibling
+  count_positive_bold_estimates_quarterly_eps_medium ("Number of bold analyst estimates
+  above consensus for current quarter's earnings"), which this leg does NOT use; of the four
+  fields it does use, only count_negative_bold_estimates_quarterly_eps_long carries "below
+  consensus" verbatim and the other three read "Number of positive/negative bold analyst estimates
+  for current quarter earnings, <horizon> horizon". The +1 / -1 pairing is therefore INFERRED from
+  the vendor family's own naming (same dataset, same convention, the medium-horizon sibling spells
+  it out), not quoted from the used fields — stated as an inference because labels.py leaves three
+  of the four sign=unstated. Field facts read from
+  fetched/rc/fields/USA_TOP3000_d1.jsonl on 2026-09-08: all four are MATRIX at delay 1, USA TOP3000,
+  coverage 0.9968, category Model, subcategory Reversion Models, pyramidMultiplier 1.4,
+  userCount 0, alphaCount 0. Dense (>= 0.5), so no density operator is required; the labels mark
+  them time=quarterly, so every template carries ts_backfill (H4). The denominator (1 + pos + neg)
+  is a count over a count (H1 unit-safe) and turns the raw net into a share of the bold estimates
+  actually filed, so a 20-analyst name and a 5-analyst name are on the same scale before group_rank.
+  MECHANISM: UNKNOWN for whether the drift here is underreaction, a risk premium for the names bold
+  analysts pick, or the vendor's own model leaking a fitted signal into the field; no experiment in
+  this repo separates them. The two citations establish (a) bold forecasts are more accurate and
+  (b) the market under-distinguishes bold from herding revisions; neither was measured on this
+  vendor's field, and this dataset has never been drawn by a hand-written hypothesis
+  (docs/harness5/02_dataset_map.md tier T, 63 random typed rows).

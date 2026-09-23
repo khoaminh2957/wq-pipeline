@@ -1,0 +1,19 @@
+id: cashflow_credit_safety
+title: Cash flow growth combined with credit safety language
+arm: new
+legs: [cashflow_growth_discounted, credit_language_safety]
+families: [cashflow, credit_language]
+combiners: [multiply]
+mechanism: >
+  The conjunction of improving operating cash flow and strong credit-safety language in filings predicts returns because the text signal reveals management's strategic intent to maintain low leverage, which de-risks the future cash flows that the quantitative signal identifies as improving, creating a compounded positive signal for fundamental investors who discount future cash flows.
+counterparty: sell-side analysts who rely on historical leverage ratios and miss the forward-looking intent in credit language
+source: "EX-ANTE — Loughran and McDonald 2011, text analysis of 10-K filings predicts returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: Mid-cap industrials and utilities with high debt levels
+weakens_when: Credit markets are highly illiquid and spread volatility is extreme
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value winter 2014-2020: Positive because credit-safe firms with growing cash flow outperformed. Momentum crash 2016: Neutral because both are fundamental, non-momentum signals. Covid 2020: Positive because credit-safe firms with cash flow growth survived the liquidity crunch. Rate shock 2022: Negative because rising rates increased the cost of the debt that the credit language refers to, reducing the net benefit of the cash flow growth.

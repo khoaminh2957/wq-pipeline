@@ -1,0 +1,64 @@
+id: news_tone_disagreement_trna
+family: disagreement
+category: Sentiment
+title: Within-day disagreement among a stock's news items predicts low returns
+mechanism: >
+  FORCE: behavioral-mispricing under a short-sale constraint; the limits-to-arbitrage bearer is
+  the borrow fee, which is what keeps the pessimist out of the marginal price.
+  Each day the vendor scores every TRNA equity-linked news item about a stock and reports the
+  cross-article standard deviation of those scores, so the field measures how much the day's news
+  items disagree with each other about the same firm. Contradictory news splits investors'
+  valuations. The pessimists among them
+  can only act by borrowing the shares, which is costly and sometimes impossible, so the marginal
+  holder of a contested name is an optimist and the price sits above the average opinion; when the
+  ambiguity resolves the price falls back to it. Short the names whose news flow disagrees with
+  itself, measured against each stock's own history so that a name simply covered by more
+  articles is not ranked as more contested.
+counterparty: "Optimistic retail holders who buy a contested name in the stock market, plus the equity-lending desk whose borrow cost keeps the pessimistic institution out of the price"
+sign: -1
+source: "EX-ANTE — Miller 1977 JF (divergence of opinion with short-sale constraints leaves the optimist as the marginal holder) and Diether, Malloy & Scherbina 2002 JF, https://api.openalex.org/works/https://doi.org/10.1111/0022-1082.00490 HTTP 200, verbatim: 'We provide evidence that stocks with higher dispersion in analysts' earnings forecasts earn lower future returns than otherwise similar stocks.' CONSTRUCT DIFFERENCE, stated rather than glossed: that paper measures dispersion across ANALYST EPS forecasts, this leg measures dispersion across the day's NEWS ITEMS. The force (differences of opinion + non-trading pessimists) transfers; the measurement channel does not. The sign is taken from that literature, NOT from the field labels, which mark snt21_*neg_std with a minus only because the word 'negative' appears in the description of a standard deviation."
+datasets: [sentiment21]
+signal:
+  fields: [snt21_neg_std, snt21_4neg_std, snt21_3neg_std]
+template:
+  - "-group_rank(ts_rank(ts_mean({signal}, {w}), 250), {group})"
+  - "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  Fields verified in fetched/rc/fields/USA_TOP3000_d1.jsonl at delay 1, all MATRIX, coverage 0.9996,
+  alphaCount 4 / 7 / 3 — no density or backfill operator is needed (H4) and none is a VECTOR (H4).
+  All three are the same economic quantity, the within-day cross-article standard deviation of the
+  transformer's negative-channel score, computed in three of the dataset's USA modules.
+  KNOWN CONFOUND, EX-ANTE and unmeasured: a stock covered by one article a day has a mechanically
+  small dispersion, so a bare cross-sectional rank of the raw level would partly rank news coverage
+  volume, which is the construct sentiment_abnormal_coverage_reversal already trades. The first
+  template puts each stock's dispersion inside its own 250-day history before the cross-sectional
+  rank, which removes that fixed per-name level; the second template is kept as the unnormalised
+  comparison arm. Whether the confound is actually removed is an experiment nobody has run.
+  SECOND KNOWN CONFOUND, EX-ANTE and unmeasured: the vendor's scores are bounded 0-1
+  (fetched/rc/fields/USA_TOP3000_d1.jsonl, snt21_pos_min: 'the daily positive sentiment scores
+  (0-1)'), so sd <= sqrt(m(1-m)) and a stock-day whose negative scores all sit near zero cannot
+  have a large sd. Dispersion is therefore mechanically coupled to the negative LEVEL, which is a
+  different mechanism with its own field in this dataset (snt21_neg_mean, alphaCount 61). This leg
+  does not divide by the mean the way analyst_forecast_dispersion does (stddev / abs(mean)); the
+  250-day within-name ts_rank removes a fixed per-name level, not a given day's level. Whether the
+  two are separated is unmeasured.
+  COMPETING SIGN, not resolved here: an ambiguity-premium reading of the same quantity (investors
+  demand compensation for holding a name whose information is contradictory) predicts the opposite,
+  positive sign. This leg commits ex-ante to the Miller / Diether-Malloy-Scherbina direction because
+  that is the one with a measured cross-sectional record; a negative result is therefore diagnostic
+  and must not be re-labelled as evidence for the ambiguity premium after the fact.
+  MECHANISM: UNKNOWN for why any particular module (bare, 3, 4) should differ from the others; the
+  descriptions distinguish them only by module.
+  HISTORY, READ-ONLY on the VPS 2026-09-09 (state/layered/runs/forge.jsonl, 28,679 lines at this
+  read; the file is appended live): snt21_neg_std / snt21_3neg_std / snt21_4neg_std appear in 0
+  rows, re-derived two ways (raw line grep, and a parsed formula-substring scan over distinct alpha
+  ids); this leg's id and the composite's id appear in 0 rows. Hard gate 8 clear on the letter.

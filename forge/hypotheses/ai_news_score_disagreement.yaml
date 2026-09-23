@@ -1,0 +1,58 @@
+id: ai_news_score_disagreement
+family: disagreement
+category: Other
+title: Cross-event dispersion of a stock-day's press-release sentiment scores predicts low returns
+mechanism: >
+  FORCE: behavioural mispricing under a short-sale constraint. The vendor scores every
+  press-release event for a stock-day and publishes, besides the mean, the STANDARD DEVIATION of
+  those per-event scores. That dispersion measures how far the day's items stand apart from one
+  another: a firm whose release flow is internally conflicting leaves a wider set of valuations
+  that a reader can defend from the same public record. Miller's condition then applies — when
+  valuations diverge and the investors at the low end cannot sell short, they are absent from
+  price formation, the marginal buyer is the optimist, and the price sits above the mean
+  valuation; the gap closes as the ambiguity resolves, so subsequent returns are low. Short the
+  names whose per-event scores have been most dispersed over the window; the positive and the
+  negative channel are two measurements of the same day's heterogeneity and enter as alternative
+  draws. The bridge from ITEM-level score dispersion to INVESTOR-level divergence of opinion is
+  an assumption of this hypothesis, not an established result: Diether, Malloy & Scherbina
+  measured the effect on analyst-forecast dispersion, and whether news-item dispersion proxies
+  for the same disagreement is exactly what the simulation would test. MECHANISM OF THE PROXY:
+  UNKNOWN.
+counterparty: "The optimistic retail buyer who sets the marginal price on an ambiguous news day, and the short-sale-constrained pessimistic holder who cannot take the other side"
+sign: -1
+source: "EX-ANTE — Miller 1977 JF (divergence of opinion under short-sale constraints); Diether, Malloy & Scherbina 2002 JF, OpenAlex W2160275010 / doi 10.1111/0022-1082.00490, fetched HTTP 200: 'We provide evidence that stocks with higher dispersion in analysts' earnings forecasts earn lower future returns than otherwise similar stocks.'"
+datasets: [ai_news_scores]
+signal:
+  fields: [negative_score_standard_deviation, positive_score_standard_deviation, negative_sentiment_dispersion_2, positive_score_standard_deviation_5]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN PROVENANCE. forge/labels.py labels negative_score_standard_deviation and
+  negative_sentiment_dispersion_2 sign '-' with sign_source 'description'; that is a
+  channel-name artifact, not a description-derived return sign. Their descriptions —
+  'Standard deviation of negative sentiment scores across events for a stock-day in USA
+  (variant prv24, D0)' and 'Standard deviation of negative sentiment scores for USA, series
+  variant prv25, D0 offset' — state a DISPERSION and give no return direction; the two positive
+  channel fields are labelled sign 'unstated' for the same reason. Following the instruction to
+  read the description over the prior, this leg takes NO sign from the labels: the -1 comes from
+  the literature above and from nowhere else.
+  FIELDS. All four grep in fetched/rc/fields/USA_TOP3000_d1.jsonl at delay 1, type MATRIX,
+  category Other, dataset ai_news_scores, coverage 1.0, dateCoverage 0.9001, alphaCount 0-1
+  (uncrowded: hard gate 4's >=750 and >=200 alphaCount bars are far away).
+  TYPES. No add / subtract / divide, so no unit can be crossed (H1); the sd fields are kind
+  'dispersion', which rank and ts_mean accept (H2); MATRIX and daily/event time, so no vec_*
+  and no ts_backfill are required (H4); coverage 1.0 >= 0.5, so no density operator is required
+  and none is declared. The leg is bearish, so the template starts with '-' and the compiler
+  renders it as (1 - group_rank(...)) inside a composite.
+  HISTORY. VPS state/layered/runs/forge.jsonl (24,057 rows, read-only, 2026-09-08): 2 rows touch
+  ai_news_scores, both typed-arm: one uses positive_score_average_value_3, one
+  negative_score_confidence_upper_bound_3 (Verifier re-read 2026-09-09, 24,238 rows); none of these four fields, and no
+  dispersion construct on this dataset, appears in the journal (hard gate 8 clear).

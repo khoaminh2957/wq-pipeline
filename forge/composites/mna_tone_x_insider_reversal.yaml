@@ -1,0 +1,26 @@
+id: mna_tone_x_insider_reversal
+title: M&A news tone reversal combined with insider buying
+arm: new
+legs: [mna_deal_tone_premium, insider_net_value_eur]
+families: [tone_mna, insider]
+combiners: [multiply]
+mechanism: >
+  This combination isolates situations where public sentiment on a merger is positive (predicting
+  downside due to over-optimism) while insiders are simultaneously buying (predicting upside due to
+  private information). The conjunction suggests that when insiders buy despite the public hype,
+  they are likely aware of the deal's true value or are providing a floor to the stock, mitigating
+  the typical reversal of positive M&A news.
+counterparty: retail investors who react to M&A headlines
+source: "EX-ANTE — Jeng 2012, insider trading activity provides a contrarian signal to public news flow"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: High volatility periods where news impact is amplified
+weakens_when: M&A activity is low or insider trading is restricted
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  In value winter, the contrarian nature of both signals aligns with mean reversion. In momentum
+  crashes, the negative signal from M&A tone may be overwhelmed by market-wide selling. In 2020,
+  the divergence between public optimism and insider caution was high. In 2022, rising rates
+  discounted future synergies, reducing the alpha from positive M&A tone.

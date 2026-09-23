@@ -1,0 +1,19 @@
+id: intangibles_x_profitability
+title: Intangible-intensive AND profitable
+legs: [rd_intensity_premium, profitability_classic_ratios]
+families: [intangibles, profitability]
+combiners: [multiply]
+mechanism: >
+  R&D is expensed, so R&D-intensive firms look expensive on book measures; the premium accrues
+  to those whose research already produces profits, while unprofitable R&D spenders are
+  lottery tickets. The product of the R&D-intensity rank and the profitability rank isolates
+  productive intangible capital that book-based value investors systematically avoid.
+counterparty: "Book-value investors and index funds that screen on unadjusted book ratios"
+source: "EX-ANTE — Chan, Lakonishok & Sougiannis 2001; Eisfeldt & Papanikolaou 2013; Peters & Taylor 2017"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: "technology and healthcare names with steady R&D budgets"
+weakens_when: "rates rise sharply and long-duration cash flows are discounted (2022)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

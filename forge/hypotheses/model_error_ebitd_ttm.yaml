@@ -1,0 +1,30 @@
+id: model_error_ebitd_ttm
+family: model_error
+category: Model
+title: High EBITDA forecast error predicts negative drift
+mechanism: >
+  The mean absolute error of the EBITDA model reflects the unpredictability of a firm's operating cash generation.
+  Firms with high forecast errors are harder for institutions to underwrite accurately, leading to wider bid-ask
+  spreads and lower liquidity. This valuation discount persists because the uncertainty is structural, not transient,
+  causing these names to underperform as the market prices in the risk of further miss estimates.
+counterparty: liquidity providers and institutional modelers who penalize unforecastable cash flows
+sign: -1
+source: "EX-ANTE — Dittmar et al. 2015, uncertainty in earnings forecasts is associated with lower stock returns"
+datasets: [other432]
+signal:
+  fields: [oth432_deltapredictebitd_ttm_mae]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [10, 20, 40]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is a daily-updated level of error; a gap implies no new data, so backfill is appropriate.
+  The sign is negative because higher error implies higher risk and lower expected return.

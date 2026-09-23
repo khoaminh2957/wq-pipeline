@@ -1,0 +1,28 @@
+id: usa_profitability_ratios
+family: profitability
+category: Fundamental
+title: Operating profitability and return on equity (USA Compustat fields)
+mechanism: >
+  Operating income relative to equity and net income relative to equity predict returns because
+  investors discount profits too heavily relative to book value; ranking each firm's ratio against
+  its own history and then across peers isolates improvement from level. Long the most profitable.
+counterparty: "Growth investors and index funds that pay for unprofitable growth"
+sign: 1
+source: "EX-ANTE — Novy-Marx 2013 (gross profitability); Fama & French 2015 (profitability factor). SOURCE — gold-medal playbook template group_rank(ts_rank(operating_income/equity,126), subindustry)"
+datasets: [fundamental6]
+signal:
+  fields: [operating_income, income, operating_income]
+signal2:
+  fields: [assets, equity, equity]
+template:
+  - "group_rank(ts_rank({signal} / {signal2}, {w}), {group})"
+  - "group_rank(ts_backfill({signal} / {signal2}, {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [0, 1]

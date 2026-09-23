@@ -1,0 +1,20 @@
+id: options_x_short
+title: Option market and short sellers agreeing
+legs: [option_call_put_iv_spread, short_volume_ratio_informed]
+families: [options, short]
+combiners: [multiply, gate]
+mechanism: >
+  Deviations from put-call parity and short-sale volume are two independent channels through
+  which informed traders express a view; when the option market is bullish and short sellers are
+  absent, or the reverse, the two informed groups agree and the stock drifts. The product of the
+  call-put spread rank and the low-short-volume rank keeps only the agreeing names, and equity
+  holders who watch neither market supply the drift.
+counterparty: "Equity-only institutions and retail holders who do not watch the option market or short volume"
+source: "EX-ANTE — Cremers & Weinbaum 2010 (put-call parity deviations); Boehmer, Jones & Zhang 2008; Pan & Poteshman 2006"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "large, liquid names with active listed options"
+weakens_when: "volatility events distort option prices (March 2020)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08

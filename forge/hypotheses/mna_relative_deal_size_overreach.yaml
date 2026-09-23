@@ -1,0 +1,121 @@
+id: mna_relative_deal_size_overreach
+family: acquisitions
+category: News
+title: The buyer paid a price that is large next to its own revenue base
+mechanism: >
+  A completed acquisition moves the buyer's subsequent return in proportion to how much of the
+  buyer the acquisition is: a purchase worth a fifth of the buyer's annual revenue barely moves
+  its book, one worth twice that revenue reprices the whole equity. Malmendier, Moretti and Peters
+  identify the direction with a control group rather than a factor model - among close bidding
+  contests, the winner's post-merger performance is compared with the loser's, and winners
+  underperform losers by 24 % over the following three years. The force is behavioural: a completed
+  purchase is priced by the buyer's own management, and where a rival bid existed it clears at the
+  most optimistic bidder's valuation; the shortfall is realised slowly as the acquired business is
+  consolidated rather than at the announcement. Whether the population is contested or uncontested
+  is not observable here. Short the names whose recent deals are largest relative to their own
+  revenue base.
+counterparty: "The acquiring firm's own managers and board, who choose the deal and pay none of the purchase price personally, and the index funds and other mandate-driven institutions that must hold the enlarged acquirer at its post-deal weight whatever the price paid"
+sign: -1
+source: "EX-ANTE — Malmendier, Moretti & Peters, NBER Working Paper 18024 (April 2012, revised August 2016), 'Winning by Losing: Evidence on the Long-Run Effects of Mergers'. FETCHED https://www.nber.org/papers/w18024 HTTP 200 (2026-09-09). Verbatim from that abstract: 'After the merger, they diverge: Winners underperform losers by 24 percent over the following three years in the U.S. sample, and by 14 percent in the international sample.' The same abstract also says 'Merger characteristics commonly associated with underperformance, such as acquiror size, acquiror Q, or stock financing do not explain the underperformance.' The paper therefore supplies the DIRECTION (a completed acquisition is followed by acquirer underperformance) and explicitly does NOT supply a cross-sectional scaling; the division by the acquirer's own revenue below is arithmetic (the deal's weight in the acquirer), not an empirical claim taken from this paper. CONSTRUCT GAP, second and unnamed until now: the paper identifies off close bidding contests, comparing winners with LOSERS, so its population is bidders who faced a rival. This leg fires on every USA/TOP3000 name carrying a news23 acquiror row, contested or not, and cannot see whether a contest occurred. The paper's direction is carried across; its selection is not. See notes."
+datasets: [news23]
+signal:
+  fields: [nws23_acquiror_value, nws23_acquiror_saleslltm]
+  vector: vec_avg
+  density: backfill
+  density_window: 250
+signal2:
+  fields: [nws23_acquiror_asalesltm, nws23_acquiror_asalesltm]
+template:
+  - "-group_rank(ts_mean({signal} / {signal2}, {w}), {group})"
+  - "-group_rank(ts_decay_linear({signal} / {signal2}, {w}), {group})"
+params:
+  w: [22, 66, 130]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives all three fields sign 'unstated' (sign_source 'unstated'), so
+  there is no label prior to agree or disagree with. The descriptions give a magnitude, not a
+  direction: 'Total value of consideration paid by the acquiror', 'Net sales of the target company
+  in the last 12 months', 'Acquiror Net Sales in Last 12 Months'. The direction is the cited
+  paper's; the scaling is arithmetic. One label WAS rejected: nws23_acquiror_rank_rankval carries
+  sign '-' with sign_source 'domain-prior' and kind/unit 'score' because its description contains
+  the words 'rank' and 'liabilities' - it is in fact a currency amount (transaction value less
+  liabilities assumed plus target net debt). It is not used here, both because that label's unit
+  'score' would refuse the division under typed.py H1 and because the label's reason is a regex
+  accident, not a reading of the field.
+  FIELDS, and why exactly these. Both ratios express ONE quantity, the size of what was bought
+  relative to the buyer: nws23_acquiror_value / nws23_acquiror_asalesltm is the cash-equivalent
+  consideration per dollar of the buyer's annual revenue; nws23_acquiror_saleslltm /
+  nws23_acquiror_asalesltm is the same relative size read from revenue on both sides and is
+  therefore independent of the price paid. USA/d1 catalogue rows (fetched/rc/fields/USA_TOP3000_d1.jsonl,
+  dataset news23, category News): all three VECTOR, coverage 0.4494, dateCoverage 0.9507, userCount
+  0-8. nws23_acquiror_emu_hostvalue was considered and DROPPED: it is the same deal value in
+  euros at identical coverage, so it re-expresses the numerator in another currency rather than
+  reading a second thing.
+  TYPE RULES (typed.py). H4 vector: every field is VECTOR, so signal.vector vec_avg - which
+  forge/labels.py lists among vec_reducers for all three (vec_role 'event-value') - reduces the
+  deal list to the mean deal before the template. H4 density: coverage 0.4494 < 0.5, so a density
+  operator is required; 'zero' is REFUSED here because it would set the denominator to 0 for every
+  name without a deal, so 'backfill' with density_window 250. H4 backfill: asalesltm and saleslltm
+  are labelled time 'annual', and the same ts_backfill satisfies that rule. H1 units: all three
+  fields carry label unit 'unitless', so numerator and denominator are one unit and the divide is
+  legal; the denominator's kind is 'level', which typed.py accepts as a scale.
+  WINDOW. 250 trading days is about one year, the short end of the horizon over which the cited
+  paper measures the effect (three years); ts_mean / ts_decay_linear over 22-130 days then smooths
+  inside that horizon. The window is chosen from the paper's horizon, not from a turnover target.
+  ATTRIBUTION - THE OPEN ITEM, stated before any simulation. What the descriptions establish is
+  which PARTY each number belongs to (asalesltm the acquiror's sales, saleslltm the target's,
+  value the consideration the acquiror paid). What they do NOT establish is which side of the deal
+  the LINKED instrument sits on. news23 carries two parallel sets with identical SDC suffixes,
+  nws23_acquiror_* and nws23_target_*, and the auto-generated descriptions are duplicated across
+  them - nws23_target_asalesltm reads 'Acquiror net sales in the last 12 months' and
+  nws23_target_apr1dayb reads "Acquiror's stock price 1 day prior to announcement" - so the
+  description text cannot tell the two sets apart. MEASURED and re-derivable from forge/labels.py
+  by_region coverage (2026-09-09): the two sets are different row sets, not one row set listed
+  twice. In the three regions whose per-field coverages actually vary - USA, ASI, GLB - every
+  acquiror_ field sits above its target_ twin in USA (17/17, max 0.4494 vs 0.4041) and GLB (17/17,
+  0.3655 vs 0.3365); in ASI 16 of 17 do (0.2963 vs 0.2795-0.2803), the exception being
+  nws23_acquiror_pricebook 0.1340 < nws23_target_pricebook 0.1429 (re-derived pairwise by SDC
+  suffix, 2026-09-09). EUR (0.3588 / 0.3127) and IND (0.2822 / 0.3096) report one flat number for
+  all 17 fields in each set, which looks like a fallback and carries no per-field
+  information. CANDIDATES, none established: (a) the prefix names the linked instrument's role, so
+  these rows are deals in which the linked company is the buyer; (b) the prefix names two vendor
+  tables (deal status, link type, something else) that both attach to the same company whichever
+  side it is on. The coverage evidence separates 'two row sets' from 'one row set twice'; it does
+  not separate (a) from (b). MECHANISM: UNKNOWN. CONSEQUENCE, pre-registered: under (a) this leg is
+  the hypothesis above; under (b) the population mixes buyers with names being bought, and a name
+  being bought trades toward an offer price, so a bearish leg on that population is not a weaker
+  version of this hypothesis but a different one. If the measurement shows the short side is
+  concentrated in names that are themselves acquisition targets, this file is dropped, not
+  re-argued.
+  VECTOR SEMANTICS: UNKNOWN. Whether the vector on a given day holds only the recently announced
+  deals or the company's whole deal history is documented in nothing on file here; the 250-day
+  backfill assumes the former, and under the latter the leg is a near-constant firm characteristic
+  rather than an event signal. No experiment here distinguishes them.
+  OVERLAP TO WATCH, not a claim. asset_growth_classic (family investment) is the same 'scaled
+  investment predicts low returns' shape read from total assets, and acquisitions are one component
+  of asset growth. If the measured correlation with that leg is high this leg has added no distinct
+  mechanism and should be dropped rather than re-argued; nothing here separates the acquisition
+  channel from the total-asset-growth channel.
+  COVERAGE, pre-registered before any simulation. USA/d1 coverage is 0.4494 and the signal is a
+  RATIO, so a name is in the book only while BOTH operands are present. ts_backfill(., 250) carries
+  a name for a year past its last deal and does not densify one that never had a deal. Re-derived
+  2026-09-09 across every leg in forge/hypotheses/ (live, staged and later/) that declares a
+  backfill density: this is the lowest-coverage backfill leg in the library (next:
+  dividend_exday_demand_cycle 0.481; every other backfill leg 0.7066-1.00) and the only one
+  dividing two sparse fields. Sub-universe retention >= 0.433 is binding and fails on 407 of the
+  539 at-bar rows in diagnosis_ladder.md section 2 (210+82+63+52). Whether this leg breaches it:
+  UNKNOWN, no experiment on file. If the measured retention is below 0.433 the density choice is
+  the first thing changed, not the mechanism.
+  HISTORY CHECK, run not assumed. Neither nws23_acquiror_value nor nws23_acquiror_asalesltm nor
+  nws23_acquiror_saleslltm appears in state/banned_fields.json or state/climb/spent_fields.json.
+  state/resim_results.jsonl holds 69 rows containing some nws23_acquiror_* field (value 4 rows / 7
+  occurrences, asalesltm 3 rows / 4 occurrences, saleslltm 4 rows / 8 occurrences - grep -c vs grep
+  -o, re-derived 2026-09-09); every one is a single weighted term inside a six-term old-climb
+  ensemble carried by close/open/vwap, and none forms either ratio. state/layered/runs/forge.jsonl
+  contains 0 rows with any nws23_ field: the dataset is untouched by forge.

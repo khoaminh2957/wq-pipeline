@@ -1,0 +1,22 @@
+id: restatement_risk_audit_escalation
+title: Restatement Risk and Auditor Price Escalation
+arm: new
+legs: [fnd44_restatement_probability, audit_fee_escalation]
+families: [accruals, audit_pricing]
+combiners: [multiply]
+mechanism: >
+  High restatement probability indicates that reported earnings are likely to be corrected downward. Simultaneously, an auditor raising fees signals that they have identified complex, risky, or questionable accounting practices that require extra scrutiny. The conjunction of these two signals isolates firms where the accounting risk is both high (likely to reverse) and detected by a professional gatekeeper (the auditor), leading to a more pronounced negative drift as the truth is gradually priced in.
+counterparty: passive index holders
+source: "EX-ANTE — Dechow 2011, accruals and restatements predict returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: high-accrual, low-liquidity names
+weakens_when: broad market crashes overwhelm idiosyncratic risk
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+notes: >
+  value_winter_2014_2020: + (Accounting quality is a key driver of value anomalies).
+  momentum_crash_2016: 0 (Momentum crashes are driven by broad risk aversion, not idiosyncratic accounting risk).
+  covid_2020: + (Stress reveals fundamental weaknesses; accounting corrections were prevalent).
+  rate_shock_2022: - (Rate shocks impact all growth/tech stocks; idiosyncratic accounting risk is less dominant than macro beta).

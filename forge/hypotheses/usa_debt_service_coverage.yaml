@@ -1,0 +1,58 @@
+id: usa_debt_service_coverage
+family: coverage
+category: Fundamental
+title: Operating earnings per dollar of debt (debt-service coverage) predicts returns
+mechanism: >
+  A firm's trailing operating earnings measured against the debt it actually owes is the number
+  creditors, rating committees and covenant tests read. George & Hwang (2010) give the economic
+  force behind its cross-sectional pricing: firms whose financial-distress costs are large choose
+  to carry little debt, and by doing so they keep an exposure that hurts precisely in low states —
+  "when in distress, low-leverage firms suffer more than high-leverage firms". Bearing that
+  state-dependent cost is compensated, so the equity of firms with ample earnings per dollar of
+  debt earns a higher average return than the equity of thin-coverage firms. Long the highest
+  coverage within the peer group.
+counterparty: "Index funds and equity-only institutions that hold thin-coverage firms at market weight and read no covenant schedule, and retail buyers of levered equity as a cheap call on recovery"
+sign: 1
+source: "EX-ANTE — George & Hwang 2010 JFE 96(1) 56-79, 'A resolution of the distress risk and leverage puzzles in the cross section of stock returns' (https://ideas.repec.org/a/eee/jfinec/v96y2010i1p56-79.html, HTTP 200): 'The return premiums to low leverage and low distress are significant in raw returns, and even stronger in risk-adjusted returns.'"
+datasets: [fundamental31]
+signal:
+  fields: [fnd31_ebitdadebt, ebitda_to_debt_ratio_3]
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, 252), {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN FROM THE DESCRIPTION, AGAINST THE LABEL PRIOR (step 2 of the brief). forge/labels.py gives
+  ebitda_to_debt_ratio_3 sign '-' from the leverage DOMAIN_SIGN prior (Penman-Richardson-Tuna,
+  which is a prior for a debt-over-assets LEVEL). Its USA/d1 description is "Ratio of EBITDA to
+  total debt": debt sits in the DENOMINATOR, so the orientation is inverted and the description
+  sign is '+'. fnd31_ebitdadebt is labelled '+' (cashflow prior) and agrees. This leg follows the
+  descriptions: both fields are coverage ratios, higher = safer, sign +1.
+  DESCRIPTION DISCREPANCY BETWEEN CRAWLS (observation, RULE 0). Only 6 fundamental31 field ids
+  appear in both fetched/rc/fields/USA_TOP3000_d1.jsonl (crawl 2026-07-15) and the newer
+  EUR/ASI/GLB crawls; 4 of the 6 carry materially different description text, including this leg's
+  fnd31_ebitdadebt — USA: "TTM EBITDA to long-term Debt ... divided by the most recently reported
+  total long-term debt"; EUR/ASI/GLB: "EBITDA-to-Debt ratio (trailing-twelve-month EBITDA divided
+  by current total debt)". Which text the platform serves for USA/d1 today: UNKNOWN, not
+  investigated here. Both readings are the same construct (operating earnings per unit of debt)
+  and carry the same sign, so the leg does not depend on resolving it; a leg built on
+  fnd31_adpmoc, whose two texts describe DIFFERENT constructs (a comprehensive debt/assets level
+  vs a quarter-on-quarter liabilities/assets ratio), was dropped for that reason.
+  TYPES. Both fields are MATRIX on USA/d1 with coverage 0.8379 and 0.8600 (>= 0.5, so no density
+  operator is required); both are quarterly, so every template puts them through ts_backfill
+  before any other operator (H4). Neither is divided by anything here, so no cross-unit division;
+  the fields are vendor-computed ratios. forge.typed.judge(..., 'USA/d1', structural=True) returns
+  ok on all four rendered forms; the full judge trips H6 only on ebitda_to_debt_ratio_3, which is
+  the mislabelled prior described above and is not part of the live pre-sim gate.
+  CROWDING. fnd31_ebitdadebt userCount 25 / alphaCount 86, ebitda_to_debt_ratio_3 0 / 0 — both far
+  below the >=200 and >=750 bars of hard gate 4. Neither field appears in any formula of the VPS
+  journal state/layered/runs/forge.jsonl (24,057 rows, read-only check 2026-09-09); the 29 rows
+  that touch fundamental31 at all are typed-arm random draws on other fields.

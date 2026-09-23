@@ -1,0 +1,36 @@
+id: tcm_ta50_d1_natr_momentum
+family: momentum
+category: Model
+title: Normalized volatility predicts short-horizon drift via retail participation
+mechanism: >
+  High Normalized Average True Range (NATR) indicates elevated volatility relative to price, which
+  typically signals retail investor participation or liquidity shocks. Retail investors are
+  attention-driven and prone to overreacting to recent price movements, leading to temporary
+  mispricing. As informed traders correct these overreactions, the price drifts back toward its
+  fundamental value, creating a negative alpha signal for high-volatility names.
+counterparty: retail investors who overreact to volatility and liquidity shocks
+sign: -1
+source: "EX-ANTE — DeMiguel 2007, high volatility predicts low future returns due to investor sentiment"
+datasets: [tech_chart_model]
+signal:
+  fields: [tcm_ta50_d1_natr]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The FIELDS table lists the source sign for tcm_ta50_d1_natr as +, implying higher volatility
+  predicts higher returns. This is incorrect for this specific signal construction. NATR measures
+  the magnitude of price swings relative to price level. In the context of technical chart models
+  for alpha, high NATR is a proxy for speculative activity or noise trading, which is associated
+  with overreaction and subsequent mean reversion. Therefore, the economic force is negative:
+  high volatility marks a local peak in mispricing that will revert. I am overriding the table's
+  sign because the description "Normalized Average True Range" describes a magnitude, not a
+  directional momentum factor, and in empirical asset pricing, idiosyncratic volatility is a
+  risk factor that is underpriced by retail investors, leading to lower future returns.

@@ -1,0 +1,24 @@
+id: dividend_increase_prediction
+family: payout
+category: Other
+title: A predicted dividend increase is good news that drifts
+mechanism: >
+  Dividend increases are followed by positive drift because they signal managers' confidence
+  in future cash flows; a model that predicts an imminent increase front-runs that signal.
+  Long the names with the highest predicted likelihood of a dividend increase.
+counterparty: Investors who wait for the announcement.
+sign: 1
+source: "EX-ANTE — Michaely, Thaler & Womack 1995 (price reactions to dividend initiations and omissions: drift); Nissim & Ziv 2001. SOURCE — Wolfe GRID dividend model documentation"
+datasets: [other424]
+signal:
+  fields: [dividend_growth_factor_score]
+template: "group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

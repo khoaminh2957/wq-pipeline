@@ -1,0 +1,98 @@
+id: call_tone_spin_over_fundamentals
+family: tone_management
+category: Other
+title: Call tone that runs ahead of what management said about the fundamentals is spin, and spin reverses
+mechanism: >
+  The vendor extracts positive and negative EVENTS from corporate-event transcripts (earnings
+  calls, guidance calls, investor days) and scores each transcript section's polarity as
+  (P-N)/(P+N+1) twice: once over every event, and once over only the events tagged with the
+  Fundamental key driver (the description names margin and pricing-power sentiment). The
+  difference, overall polarity minus fundamental-tagged polarity, is the tone the call carries
+  beyond what management said about the fundamentals themselves: positive when the call sounds
+  better than its fundamental content, negative when management talks the quarter down although
+  the fundamental events were fine. Huang, Teoh and Zhang measure abnormal positive tone, the tone
+  left over after quantitative fundamentals are controlled for, and find it predicts negative
+  future earnings and cash flows, with a positive reaction at the announcement and a delayed
+  negative reaction over the following one to two quarters. Force: behavioural mispricing.
+  Investors take the overall tone at face value and learn only later that the fundamentals did
+  not support it; the edge persists because separating the fundamental content of a call from
+  the rest requires event-level topic extraction that document-level tone products do not do.
+  Short the names whose latest call carries the most tone beyond its fundamentals; long the
+  names whose call understated them.
+counterparty: "Readers of whole-document call tone: retail and discretionary holders who trade the sound of the call, and users of document-level sentiment products (word-list and classifier scores) that price the overall tone without separating the fundamental content from the rest"
+sign: -1
+source: "EX-ANTE — Huang, Teoh & Zhang 2014, The Accounting Review 89(3), 'Tone Management'. FETCHED https://api.openalex.org/works/https://doi.org/10.2308/accr-50684 HTTP 200 (2026-09-09; OpenAlex id W4253889179, which records the year as 2013 for the online-first version; the publisher page was not fetched). Verbatim from that abstract: 'We estimate abnormal positive tone, ABTONE, as a measure of tone management from residuals of a tone model that controls for firm quantitative fundamentals such as performance, risk, and complexity. We find that ABTONE predicts negative future earnings and cash flows' and 'ABTONE has a positive stock return effect at the earnings announcement and a delayed negative reaction in the one and two quarters afterward.' and 'Overall, the evidence is consistent with managers using strategic tone management to mislead investors about firm fundamentals.' CONSTRUCT NOTE, stated not hidden: the paper residualizes press-release tone on reported numbers; this leg subtracts the vendor's fundamental-tagged event polarity from the same transcript's overall polarity, so the vendor's topic tagging stands in for the paper's quantitative controls. The sign and the one-to-two-quarter horizon are the paper's; the operationalization is an analogue and is named as one."
+datasets: [event_sentiment_signals]
+signal:
+  fields: [section_sentiment_score_3]
+  vector: vec_avg
+  density: backfill
+  density_window: 63
+signal2:
+  fields: [section_sentiment_score_2]
+template:
+  - "-group_rank({signal} - {signal2}, {group})"
+  - "-group_rank(ts_mean({signal} - {signal2}, {w}), {group})"
+params:
+  w: [5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives both fields sign '+' from the sentiment domain prior (a
+  higher polarity is better news). That prior is for a polarity LEVEL; this leg trades the
+  DIFFERENCE of two polarities, for which the label file has no prior, so the label is not
+  opposed, it is silent. The sign is read from the descriptions ('Sentiment score for the
+  section, computed as (P-N)/(P+N+1)' against 'Sentiment score for events tagged with the
+  Fundamental-KD key driver in this section, computed as (P-N)/(P+N+1)') and from Huang, Teoh
+  and Zhang's direction for tone in excess of fundamentals: bearish. The leg renders a bearish
+  quantity and its templates start with '-'.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, delay 1, dataset event_sentiment_signals,
+  both VECTOR, both coverage 0.7191, dateCoverage 0.9507): section_sentiment_score_3 userCount 5
+  / alphaCount 10; section_sentiment_score_2 userCount 4 / alphaCount 10. The dataset has 24
+  users and 46 alphas on the platform (survey 2026-09-04). The label file attributes both fields
+  to event_sentiment_signals, agreeing with the catalogue.
+  TYPE RULES (forge/typed.py). Both fields are VECTOR and enter only through vec_avg, the
+  reducer the labels list for their event-value role. Both are 'score' unit, so the subtraction
+  is within one unit (H1). No ts_delta on a score (H2). USA/d1 sparsity is 'medium' (0.72), so H4
+  does not force a density operator, but the transcript is a quarterly event and the canary of
+  2026-09-04 measured that a NaN-for-no-event signal ranks into a 3-20-name book, so density
+  backfill 63 (one quarter) is declared, the same shape as transcript_negative_logit on news87
+  (coverage 0.73). Checked, not assumed: typed.judge on the rendered formula
+  -group_rank(ts_backfill(vec_avg(section_sentiment_score_3), 63) -
+  ts_backfill(vec_avg(section_sentiment_score_2), 63), subindustry) passes structural=True (the
+  pre-sim gate, Khoa's tick 2026-09-07). In structural=False mode it fails H6 ('orientation is
+  unknown'): the sign algebra cannot orient a difference of two '+' fields. The shipped
+  option_call_put_iv_spread leg fails the same mode (H5), so this is the rule's known limit on
+  differences, not a defect specific to this leg; the orientation is fixed here by the source.
+  HISTORY CHECK, run not assumed (2026-09-09): neither field id nor the dataset id appears in
+  any state/*targets*.json, in state/banned_fields.json or state/climb/spent_fields.json, and
+  the local copy of state/layered/runs/forge.jsonl has 0 rows on either. No forge composite or
+  hypothesis reads this dataset; docs/harness5/02_dataset_map.md lists it as tier U (untouched).
+  WHY THIS CONSTRUCT AND NOT THE OBVIOUS ONE. A leg on the section polarity level, or on the
+  negative-event score alone, would be the tone of the call measured by a third vendor: the
+  same economic quantity as transcript_negative_logit (news87 negative logit) and
+  earnings_call_language_quality (fundamental45 net tone), and its composites would duplicate
+  transcriptneg_x_revision and tone_x_profitability. The dataset's one structure no other leg
+  has is the split of the SAME transcript into fundamental-tagged and overall polarity; the
+  difference is the quantity Huang et al call tone management, which is not a tone level. The
+  key_factor_score_section fields were not used: their vector may span several key drivers on
+  one date and the vendor does not say which, so vec_avg over them has no stated meaning.
+  VECTOR LAYOUT, UNKNOWN. On a call date the vector presumably holds one polarity per section
+  (presentation, Q&A), and vec_avg gives the mean across sections. Whether the two fields share
+  the same section rows on every date is not stated by the vendor; both have identical coverage
+  (0.7191 / 0.7188 on the sister fields), which is consistent with it but does not prove it.
+  FALSIFICATION. If the measured sign is the opposite of the source, the difference is the tone
+  of the NON-fundamental topics (strategy, market colour) and is informative in its own right,
+  and this leg is then NOT the paper's construct: it is to be dropped, not flipped (RULE 0,
+  standard gate 5). The signal refreshes once a quarter with a 63-day carry, so turnover will
+  be low: the ladder bar at turnover < 0.30 is 2.02 on a 2- or 3-year window
+  (docs/harness5/round_2/diagnosis_ladder.md section 1).
+  STAGED, NOT LIVE. Written into forge/hypotheses/staged/ only; every field is VECTOR, which
+  Khoa's 2026-09-04 rule parks until dense-MATRIX legs are validated live; transcript_negative_logit
+  is the precedent for a VECTOR leg in the live library. MECHANISM for anything this leg will
+  measure: UNKNOWN until simulated.

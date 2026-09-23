@@ -1,0 +1,57 @@
+id: downgrade_x_short
+title: "Downgrade coverage that short sellers were already positioned for"
+arm: new
+legs: [news_downgrade_recommendation_topic, short_volume_ratio_informed]
+families: [recommendation, short]
+combiners: [multiply]
+mechanism: >
+  A rating cut is public the instant the wire carries it, so on its own the downgrade topic score
+  is information every reader of the news has; the reason it still drifts is that the holders who
+  must act on it are long-only and unwind slowly. Short-sale volume is the opposite kind of
+  quantity: it is not an announcement but a record of where traders who are free to take the other
+  side have actually committed capital. The conjunction matters because the two channels answer
+  different questions — the news says a broker cut the rating, the short flow says whether anyone
+  with a position agreed — and Christophe, Ferri and Hsieh measured exactly that pair: among
+  downgraded stocks, the ones with high abnormal short-selling went on to perform poorly over the
+  next six months relative to the ones with low short-selling. So the short flow is the thing that
+  separates a downgrade carrying private information from a downgrade that only restates what the
+  price already holds, and neither leg can do that separation alone. Both legs are bearish, so the
+  product is taken over their positive forms: the short book is the names with heavy downgrade
+  coverage AND heavy short-sale volume, the long book the names with neither.
+counterparty: >
+  Retail accounts and long-only institutions holding the downgraded name. They cannot short, they
+  learn of the cut from the same wire everyone reads, and mandate, tax and liquidity frictions
+  spread their exit over weeks — while the short seller on the other side is already positioned
+  before the coverage appears.
+source: "EX-ANTE — Christophe, Ferri & Hsieh 2010, 'Informed trading before analyst downgrades: Evidence from short sellers', Journal of Financial Economics 95(1) 85-106, DOI 10.1016/j.jfineco.2009.02.004, abstract via EconPapers https://econpapers.repec.org/article/eeejfinec/v_3a95_3ay_3a2010_3ai_3a1_3ap_3a85-106.htm (HTTP 200): 'Finally, we present evidence that downgraded stocks with high abnormal short-selling perform poorly over the subsequent six months by comparison with those with low abnormal short-selling.' Leg sources: Womack 1996 JF (sell-recommendation drift -9.1% over six months, Crossref HTTP 200); Boehmer, Jones & Zhang 2008 JF (short sellers are informed)."
+regimes:
+  value_winter_2014_2020: "+"
+  momentum_crash_2016: "-"
+  covid_2020: "0"
+  rate_shock_2022: "+"
+strongest_in: >
+  Liquid names with a borrow available, where a rating cut is accompanied by a rise in short-sale
+  volume share and the holder base is long-only and slow (mid-caps with high retail and index
+  ownership rather than hedge-fund ownership), so the unwind Womack measured has time to run.
+weakens_when: >
+  A broad reversal rally squeezes crowded shorts (the short book sits in exactly the heavily
+  shorted, heavily downgraded names, so it gives back first); borrow is tight or short volume is
+  hedging rather than directional, which breaks the informed-flow reading of the second leg; and
+  the downgrade coverage restates an event already priced, which shows up as coverage with no
+  accompanying short flow.
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, REASONED FOR THIS MECHANISM. value_winter_2014_2020 '+': neither leg is a
+  valuation bet — one is a rating-change event, the other a flow — so a decade in which cheap
+  stocks lagged does not touch the transmission. momentum_crash_2016 '-': the short book is by
+  construction concentrated in heavily shorted, heavily downgraded names, which is the exact
+  bucket a sharp reversal rally lifts; this is an EX-ANTE property of the construct, not a memory
+  of a PnL curve, and it is the one regime where the composite should be expected to lose.
+  covid_2020 '0': the mechanism should help through a downgrade wave and hurt through the rebound
+  that follows it, and nothing here says which half dominates — recorded as 0 rather than guessed.
+  rate_shock_2022 '+': redemption-driven selling lengthens exactly the slow long-only unwind the
+  mechanism rides. Under the ratified hypothesis standard's gate 4 this is 3 of 4 non-negative;
+  the '-' is kept rather than softened.

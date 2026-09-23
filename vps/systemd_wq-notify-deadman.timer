@@ -1,0 +1,10 @@
+[Unit]
+Description=wq dead-man check every 5 minutes
+
+[Timer]
+OnBootSec=180
+OnUnitActiveSec=300
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target

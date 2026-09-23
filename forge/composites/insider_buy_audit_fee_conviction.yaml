@@ -1,0 +1,23 @@
+id: insider_buy_audit_fee_conviction
+title: Insider buying during audit fee escalation
+arm: new
+legs: [insider_buy_concentration_short, audit_fee_escalation]
+families: [insider, audit_pricing]
+combiners: [multiply]
+mechanism: >
+  The conjunction of recent insider buying and a rise in audit fees identifies firms where management is accumulating shares while simultaneously signaling increased scrutiny or risk to the auditors.
+  While audit fee increases are often viewed as a negative signal of complexity or risk, when paired with insider buying, it suggests that insiders are confident enough to buy despite the heightened scrutiny, or that the 'risk' is actually a complex opportunity they understand.
+  This combination filters out cases where insider buying is driven by routine compensation or cases where fee increases are purely administrative, isolating a specific type of informed trading that is less likely to be crowded out by other signals.
+counterparty: Sell-side analysts who may misinterpret audit fee increases as pure negative news, overlooking the counter-conviction signal from insiders
+source: "EX-ANTE — Dechow and Sloan 1991, audit fees and accounting quality; Jeng and Loughran 2000, insider trading"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "-", rate_shock_2022: "-"}
+strongest_in: Mid-cap firms with complex accounting structures where audit fees are a significant component of governance costs
+weakens_when: Market-wide liquidity crunches force insiders to sell for personal reasons, decoupling the buy signal from fundamental conviction
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  In value winters, the 'quality' premium of this combination is high, hence "+".
+  In momentum crashes, the signal is neutral "0" because price momentum overwhelms fundamental information.
+  In the 2020 pandemic and 2022 rate shocks, the signal is negative "-" because systemic risk and liquidity constraints dominate, and insider buying becomes less informative due to trading restrictions or forced selling.

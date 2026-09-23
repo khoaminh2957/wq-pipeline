@@ -1,0 +1,60 @@
+id: chart_continuation_pattern_net
+family: chart_pattern
+category: Price Volume
+title: Net bullish-minus-bearish continuation-pattern similarity of the recent price path
+mechanism: >
+  In the vendor's taxonomy a bullish pennant and a bullish rectangle are one shape - a sharp advance
+  followed by a short, tight consolidation - and the bearish pennant and bearish rectangle are the
+  mirror shape after a sharp decline. Each field is the similarity of the recent bars to one of those
+  templates, so the bullish-minus-bearish difference removes the part of the score that only says
+  "this path is clean enough to match some template at all" and keeps the direction of the move the
+  consolidation is pausing. Long the names whose path looks most like an advance pausing and least
+  like a decline pausing. The force claimed is behavioural mispricing - under-reaction while a stock
+  trades sideways after a run - which is the equilibrium Grinblatt and Han derive from investors who
+  are reluctant to keep holding a stock on which they sit on a gain. MECHANISM: UNKNOWN beyond that.
+  Three candidates fit the same construction and this leg distinguishes none of them: (a) the
+  consolidation is disposition-driven profit-taking supply that is finite and clears; (b) it is the
+  gradual diffusion of the news behind the initial move to slower investors; (c) the similarity score
+  is only a nonlinear re-encoding of trailing return and trailing range, in which case the leg is
+  momentum times low realised volatility and the chart shape contributes nothing. Distinguishing them
+  needs an experiment that has not been run.
+counterparty: "Individual investors sitting on an unrealised gain who sell into the consolidation to realise it, against the buyers who wait for the breakout."
+sign: 1
+source: >
+  EX-ANTE - Lo, Mamaysky & Wang 2000, NBER w7613 (https://www.nber.org/papers/w7613, fetched
+  2026-09-08, HTTP 200), verbatim: "several technical indicators do provide incremental information
+  and may have some practical value". Grinblatt & Han, NBER w8734
+  (https://www.nber.org/papers/w8734, fetched 2026-09-08, HTTP 200), verbatim: "stocks with large
+  aggregate unrealized capital gains tend to have higher expected returns than stocks with large
+  aggregate unrealized capital losses".
+  SIGN COMES FROM THE DESCRIPTIONS, NOT FROM THE LABEL PRIOR. forge/labels.py files these fields
+  under domain "sentiment" because DOMAIN_RULES matches the words bullish/bearish, and gives the
+  bullish ones "+" from the Tetlock 2007 TEXT-sentiment prior. That prior is the wrong reason: these
+  are price-chart shapes, not text, and the correct domain is price-technical. The "+" used here is
+  the taxonomy's own definition of a bullish continuation pattern (advance, then pause) and the "-"
+  is the mirror bearish shape; same direction as the label, different and correct provenance.
+  EXCLUDED ON PURPOSE: every bull-flag / bear-flag field, because the labeller reads the chart word
+  "flag" as a boolean and forge.typed H2 refuses group_rank on a flag.
+datasets: [continuation_score]
+signal:
+  fields:
+    - avg_similarity_bullish_rectangle
+    - mean_bull_pennant_similarity_score
+    - median_bull_rectangle_similarity_score
+    - median_similarity_bullish_pennant
+signal2:
+  fields:
+    - avg_similarity_bearish_rectangle
+    - mean_bear_pennant_similarity_score
+    - median_bear_rectangle_similarity_score
+    - median_similarity_bearish_pennant
+template: "group_rank(ts_mean({signal} - {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

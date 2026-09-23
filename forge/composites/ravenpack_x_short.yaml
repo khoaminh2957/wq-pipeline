@@ -1,0 +1,17 @@
+id: ravenpack_x_short
+title: "Composite news tone against short sellers"
+arm: new
+legs: [news_ravenpack_composite_tone, short_volume_ratio_informed]
+families: [tone_composite, short]
+combiners: [multiply, gate]
+mechanism: >
+  When composite news tone is positive and short sellers are absent, the two informed channels agree and the stock drifts up; when tone is positive but shorting is heavy, the informed traders disagree and the drift is absent. The product keeps the agreeing names.
+counterparty: "Retail and institutional equity holders who watch neither the news feed nor short volume"
+source: "EX-ANTE — Tetlock 2007 JF; Boehmer, Jones & Zhang 2008 JF"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "liquid names with active options and lending"
+weakens_when: "volatility events when short volume is hedging, not information"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

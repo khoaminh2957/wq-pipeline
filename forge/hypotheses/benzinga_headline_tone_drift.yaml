@@ -1,0 +1,26 @@
+id: benzinga_headline_tone_drift
+family: tone
+category: News
+title: Benzinga headline sentiment predicts short-horizon drift
+mechanism: >
+  Benzinga targets retail investors who process news headlines with a lag, so positive tone diffuses into prices slowly because the marginal buyer reacting to the feed is not the institutional investor setting the price that day, causing positively covered names to drift up as the information fully incorporates.
+counterparty: retail investors reacting to headlines with a delay
+sign: 1
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+datasets: [news82]
+signal:
+  fields: [mean_primary_headline_sentiment]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  A unitless level score where a day with no headlines is "no change", so backfill is appropriate rather than zeroing which would read as the most negative value.

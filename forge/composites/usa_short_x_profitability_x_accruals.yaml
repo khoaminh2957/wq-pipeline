@@ -1,0 +1,20 @@
+id: usa_short_x_profitability_x_accruals
+title: Low short selling in profitable, cash-backed firms (USA Short Interest cell)
+legs: [short_volume_ratio_informed, usa_profitability_ratios, usa_accruals_cashflow]
+families: [short, profitability, accruals]
+combiners: [multiply]
+mechanism: >
+  Short sellers are informed; a firm they leave alone while it is profitable and cash-backed is
+  one where the informed crowd sees no problem and the fundamentals agree. The product of the
+  low-short-volume rank, the profitability rank and the low-accrual rank isolates those names,
+  and retail holders who track neither short volume nor accrual quality take the other side of
+  the heavily shorted, accrual-heavy names.
+counterparty: "Retail holders and index funds that track neither short volume nor accrual quality"
+source: "EX-ANTE — Boehmer, Jones & Zhang 2008 (informed short selling); Sloan 1996; Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: "mid caps with liquid borrow"
+weakens_when: "a short squeeze regime punishes crowded shorts (2021)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08

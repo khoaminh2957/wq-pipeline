@@ -1,0 +1,27 @@
+id: usa_accruals_cashflow
+family: accruals
+category: Fundamental
+title: Earnings not backed by operating cash flow reverse (USA Compustat fields)
+mechanism: >
+  Net income minus operating cash flow, scaled by equity, is the accrual component of earnings;
+  accrual-heavy earnings persist less and reverse, and investors who price reported earnings as
+  if cash-backed pay the reversal. Short the highest accruals.
+counterparty: "Earnings-chasing retail investors and analysts anchored on reported EPS"
+sign: -1
+source: "EX-ANTE — Sloan 1996; Hribar & Collins 2002 (cash-flow-statement accruals)"
+datasets: [fundamental6]
+signal:
+  fields: [income]
+signal2:
+  fields: [cashflow_op]
+template:
+  - "-group_rank(ts_rank(({signal} - {signal2}) / abs(assets), {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [0, 1]

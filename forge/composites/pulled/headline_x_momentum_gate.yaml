@@ -1,0 +1,17 @@
+id: headline_x_momentum_gate
+title: "Headline tone traded only where momentum confirms"
+arm: new
+legs: [news_headline_tone_benzinga, model12_momentum_component]
+families: [tone, momentum_model]
+combiners: [gate]
+mechanism: >
+  News drifts when it confirms the prevailing trend and is absorbed when it contradicts it; the momentum component gates the headline-tone signal so that only tone in the direction of momentum is traded. The gate is a condition, not a traded signal.
+counterparty: "Retail investors and institutions that under-react to trend-confirming news; index funds that rebalance mechanically"
+source: "EX-ANTE — Chan 2003 JFE (drift after news, reversal after no-news moves); Jegadeesh & Titman 1993 JF"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "trending large caps"
+weakens_when: "momentum crashes (2009, 2016, 2020)"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

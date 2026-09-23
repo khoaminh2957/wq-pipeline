@@ -1,0 +1,25 @@
+id: leverage_coverage_interaction
+title: Fragile leverage combined with weak cash flow coverage predicts underperformance
+arm: new
+legs: [credit_risk_leverage_quality, usa_debt_service_coverage]
+families: [leverage, coverage]
+combiners: [multiply]
+mechanism: >
+  This conjunction isolates firms that are both highly leveraged and have weak ability to service that
+  debt from operating earnings, representing a "double whammy" of financial fragility where the firm
+  lacks both the balance sheet flexibility and the cash flow resilience to withstand economic downturns.
+counterparty: credit-sensitive funds and distressed debt specialists who underweight these high-risk names
+source: "EX-ANTE — Altman 1968, leverage and coverage jointly drive default probability and stock returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: cyclical industries with high debt loads
+weakens_when: interest rates are low and stable, reducing the cost of leverage
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  The effect is positive in value regimes because these firms are often cheap value traps; it is zero
+  in momentum crashes because the signal is fundamental, not momentum-based; it is positive in COVID
+  because stress tests revealed the fragility of highly leveraged firms; it is negative in rate shocks
+  because rising rates directly increase the cost of servicing high leverage, making the underperformance
+  more pronounced and faster.

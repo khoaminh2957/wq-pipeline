@@ -1,0 +1,30 @@
+id: trend_momentum_consistency
+family: trend
+category: Model
+title: Persistence of price path angle predicts short-term drift
+mechanism: >
+  The angle of the linear regression line over the last 50 days captures the consistency of the upward price drift.
+  A steep, consistent angle indicates that buying pressure has been sustained and orderly, reflecting a structural
+  re-rating rather than a spike. Institutional investors who screen for trend continuity view this as a signal of
+  lower execution risk and higher confidence, causing them to add positions gradually. This slow accumulation
+  outpaces the immediate price discovery, leading to continued drift as the market fully absorbs the trend's
+  persistence.
+counterparty: trend-following institutional investors and quantitative momentum funds
+sign: 1
+source: "EX-ANTE — Jegadeesh and Titman 1993, evidence of momentum in stock prices"
+datasets: [tech_chart_model]
+signal:
+  fields: [linear_regression_angle_50d]
+template: "group_rank({signal}, {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is a daily ratio with full coverage, so no density rule is needed. The angle is a measure of slope,
+  not level, so it is scale-invariant and suitable for cross-sectional ranking.

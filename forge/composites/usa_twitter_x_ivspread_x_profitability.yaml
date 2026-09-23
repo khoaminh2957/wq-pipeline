@@ -1,0 +1,33 @@
+id: usa_twitter_x_ivspread_x_profitability
+title: Twitter sentiment confirmed by the option market, in profitable firms (USA Social Media cell)
+arm: new
+legs: [social_twitter_sentiment_continuation, option_call_put_iv_spread, usa_profitability_ratios]
+families: [social, options, profitability]
+combiners: [multiply]
+mechanism: >
+  Social-media sentiment continues where an informed crowd stands behind it; the option market is
+  the paid vote (calls above puts in implied volatility). The third rank keeps the profitable firms:
+  positive chatter about a profitable firm is about earnings, about a loss-maker it is about a
+  story that reverses. The product isolates profitable names with positive social tone that the
+  option market confirms; chatter-following holders of unprofitable, unconfirmed names supply the drift.
+counterparty: "Retail investors who trade social-media tone in unprofitable names without the option market's confirmation"
+source: "EX-ANTE — Bollen, Mao & Zeng 2011 (Twitter mood); Cremers & Weinbaum 2010 (call-put IV spread); Novy-Marx 2013 (gross profitability). Conjunction stated by docs/harness5/round_2/subuniverse.md §6 (Portfolio, 2026-09-09)."
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with active retail following and listed options"
+weakens_when: "meme regimes where social tone is the price move itself (2021)"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  NEUTRALISATION GRID EXTENDED 2026-09-09 19:58 (INDUSTRY added). MEASURED on this composite's own
+  469 rows: STATISTICAL reads PROD_CORRELATION 0.537-0.553 (clear of the 0.71 line) but fitness max
+  0.89 in 229 rows; SUBINDUSTRY reads PROD 0.649-0.732 and produced the one all-binding pass
+  (Vk67oQ5V, fitness 1.03, PROD 0.732 - held). The neutralisation that buys fitness is the one that
+  raises PROD. INDUSTRY was never in this grid; diagnosis_fitness.md §3 measures INDUSTRY and
+  SUBINDUSTRY at the same book volatility (sigma 0.027-0.051 vs STATISTICAL 0.018-0.022), so its
+  fitness should reach SUBINDUSTRY's. Its PROD on this mechanism is UNKNOWN and is the measurement.
+  PURPOSE (subuniverse.md §6.1): rows at the Sharpe bar on the Social Media cell that also pass
+  LOW_SUB_UNIVERSE_SHARPE. Same EX-ANTE expectation and refutation line as
+  usa_sentiment_x_ivspread_x_profitability. Regime signs are EX-ANTE reasoning: momentum_crash_2016
+  '-' because retail tone chases momentum; covid '0' because social tone in March 2020 was market-wide.

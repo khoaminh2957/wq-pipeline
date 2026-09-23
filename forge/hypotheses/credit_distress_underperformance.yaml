@@ -1,0 +1,26 @@
+id: credit_distress_underperformance
+family: distress
+category: Model
+title: Firms with high default probability underperform
+mechanism: >
+  Distressed firms earn anomalously low returns: their default probability is high and rising,
+  yet the equity is priced as a lottery ticket. Short the names with the highest one-year
+  default probability from the structural credit model.
+counterparty: Holders of distressed equity paying for skewness.
+sign: -1
+source: "EX-ANTE — Campbell, Hilscher & Szilagyi 2008 (In Search of Distress Risk); Vassalou & Xing 2004; Dichev 1998"
+datasets: [model28, model25]
+signal:
+  fields: [one_year_default_probability_pct, mdl28_sm_structural_multiple_credit_structural_pd_percent, global_default_risk_percentile, credit_risk_default_probability_percent, global_credit_risk_percentile]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

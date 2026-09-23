@@ -1,0 +1,134 @@
+id: exdaycycle_x_sentiment
+title: A dated bid for the dividend, taken only where the week's news is running the same way
+arm: new
+legs: [dividend_exday_demand_cycle, sentiment_weekly_continuation]
+families: [payout_calendar, tone]
+combiners: [multiply]
+mechanism: >
+  Hartzmark & Solomon place the ex-day run-up explicitly in the window "when there is no news about
+  the dividend": the bid is flow, its date is published a quarter in advance, and the same abstract
+  records that it reverses afterwards. A book made only of that force is a round trip - it collects
+  the pre-ex-day pressure and hands the post-ex-day reversal back to itself unless something else is
+  holding the name up over the same weeks. Weekly-aggregated news tone is the opposite kind of
+  quantity: information with no date attached, documented by Heston & Sinha to predict over one to
+  thirteen weeks, which is the length of one payout cycle. Neither leg can be read off the other -
+  a public payout calendar carries no direction, and a tone level carries no timing - so the product
+  is not one force counted twice. What it keeps is the foreseeable dividend bid only in the payers
+  whose accumulated news is pushing the same way over the weeks the position is held, and what it
+  drops is the payer whose dated bid is arriving into deteriorating tone that will still be working
+  when the reversal starts. NO published study tests this conjunction: each leg carries its own
+  evidence, the composition argument above is EX-ANTE reasoning about two forces with different
+  sources and a matching horizon, and whether the product beats either leg alone is the measurement.
+counterparty: >
+  Income-seeking individual investors and dividend-mandated funds that buy a payer in order to
+  receive its dividend and release it once the ex-day has passed, paying the pressure they create;
+  and, on the other leg, the retail investors and analysts who underreact to tone that accumulates
+  over a week instead of arriving in one headline. Both classes recur: the payout calendar is
+  published in advance and cannot be cancelled, and a slow accumulation of tone is by construction
+  the kind of news no single print forces anyone to act on.
+source: >-
+  EX-ANTE — the conjunction has NO fetched evidence of its own and none is claimed; what follows is
+  each leg's. Payout-clock leg: Hartzmark & Solomon, "The Dividend Month Premium" (JFE 109(3) 2013,
+  doi 10.1016/j.jfineco.2013.02.015, whose Crossref record carries no abstract). FETCHED
+  https://api.crossref.org/works/10.2139/ssrn.1930620 HTTP 200 (2026-09-09, fetched twice - through
+  the bibliographic query and directly by DOI - with identical text; curl reports 200 for both).
+  Verbatim: "We document an asset-pricing anomaly whereby companies have positive abnormal returns
+  in months when a dividend is predicted." and "Measures of liquidity and demand for dividends are
+  associated with larger price increases in the period before the ex-day (when there is no news
+  about the dividend), and larger reversals afterwards." Tone leg: Heston & Sinha 2017, carried on
+  sentiment_weekly_continuation's own source line and NOT re-fetched here, so it is named as that
+  leg's evidence and not as this file's. DROPPED, not cited: no paper testing news tone conditional
+  on the dividend cycle was found, so the conjunction line is composition, labelled as such.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "-", rate_shock_2022: "0"}
+strongest_in: >
+  regular quarterly payers among liquid mid and large caps with continuous news coverage - the
+  ex-day cadence is stable, so the clock means what it says, and there are enough articles in a week
+  for the tone aggregate to be a level rather than a single headline (Hartzmark & Solomon find the
+  larger price increases where liquidity and demand for dividends are highest)
+weakens_when: >
+  (a) payers that suspend or stop paying, whose clock keeps running with no ex-day coming, so they
+  rank as most imminent forever; (b) the ex-day itself, where the price falls mechanically by the
+  dividend while this book is still on the long side - whether the platform's return convention nets
+  that against the documented run-up is not established anywhere on file (see the leg's PRINCIPAL
+  OPEN RISK); (c) thinly covered names where the weekly tone aggregate is one article; (d)
+  market-wide shocks, when tone measures the index rather than the firm and the payout calendar is
+  itself being rewritten
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file. They are the standard's
+  EX-ANTE reasoning only: docs/harness5/round_2/diagnosis_ladder.md section 3b measured that regime
+  maps carry no information about the 2022-2024 ladder window, so nothing here may be used to rank
+  this composite.
+  value_winter_2014_2020 "0": the clock leg is long AND short inside the same payer universe at
+  different points of the same cycle, so a style headwind on dividend payers hits both of its sides;
+  the tone leg is not a cheapness bet. No reason for either sign was found, so none is claimed.
+  momentum_crash_2016 "-": tone continuation is an underreaction bet and sits on the same side as
+  trend for names with persistent tone, so a broad reversal runs against it; the clock leg is
+  orthogonal to trend, so the conjunction inherits a diluted version of that headwind rather than
+  the full one.
+  covid_2020 "-": both legs degrade at once. Payers that suspend leave this construction's clock
+  running with no ex-day coming, so the leg ranks them as most imminent on a cadence that has
+  stopped - a failure mode of the construction, stated as such and not as a claim about the size of
+  2020 suspensions; and a market-wide shock makes weekly tone a reading of the index rather than of
+  the firm.
+  rate_shock_2022 "0": dividend payers were repriced for duration in 2022, but the book is long and
+  short within that universe on cycle position, so a level repricing hits both sides; the tone leg
+  carries no duration. The bet also resolves inside one payout cycle.
+  COMBINER. Both legs are bullish (sign +1), so multiply and gate both preserve orientation;
+  [multiply] is the confirmation reading and the round brief's stated preference on POST-HOC
+  allocation knowledge (multiply rows at the bar reach fitness 1.0 at 130/355 against gate 6/184) -
+  cited from the brief, not measured here.
+  WHAT THE PRODUCT IS, EX-ANTE: group_rank(days since the last ex-dividend date) x group_rank(mean
+  weekly sentiment). A payer three days before its ex-day with a week of positive tone sits at the
+  top; the same payer three days after its ex-day sits near zero whatever its tone. Every name
+  crosses the whole clock rank once per payout cycle; what turnover that implies, and whether the
+  product stays under the ladder's turnover-0.30 line where the 2.02 rung is discounted, is a
+  measurement.
+  PARTNER CHOICE, and what was rejected. sentiment_weekly_continuation was taken from the brief's
+  allocation table (2022-2024 window cleared on 0.42 of rows with Sharpe >= 1.3, n 247 - the highest
+  listed; POST-HOC knowledge used ONLY to choose a partner, never for a field's sign or label) and
+  because no composite, live or staged, pairs it with a payout or calendar family. RE-CHECKED at fix
+  time from mtimes, not assumed: opleverage_x_sentiment (staged 20:38:35) and epssurprise_x_sentiment
+  (20:43:57) were both staged after this file (20:36:44) and also use this partner, so "the only
+  allowed partner no composite staged this round has used" is NO LONGER TRUE and is WITHDRAWN. The
+  domain pair (payout calendar x news tone) is still unique against both of them (operating_leverage
+  x tone, earnings_surprise x tone), and that uniqueness is the claim that matters.
+  Rejected: option_call_put_iv_spread, because the sibling leg
+  forge/composites/staged/ivspread_x_announcement.yaml already pairs it with a calendar clock from
+  this same dataset, and separately because an American call's early-exercise value depends on the
+  expected dividend, so a call-minus-put spread measured next to an ex-day is mechanically entangled
+  with the very event this leg times; insider_significant_buying_drift, already in five composites
+  staged this round; usa_accruals_cashflow and usa_profitability_ratios, whose documented horizons
+  (an accrual reversal over quarters, a profitability premium over years) do not match a payout
+  cycle, so the composition argument would have been weaker; short_volume_ratio_informed,
+  news_ravenpack_composite_tone and short_interest_surprise, excluded by the brief.
+  DISTINCTNESS, checked not assumed. No composite in forge/composites/ or forge/composites/staged/
+  carries a payout or calendar family; earnings2 appears in no live composite and in no journal row
+  from a hand-written hypothesis; the domain pair (payout calendar x news tone) exists nowhere - the
+  four live tone composites pair it with short flow, option IV, profitability and accruals. The
+  nearest neighbour is the sibling staged leg earnings_announcement_imminence, which applies the
+  same operator to this dataset's EARNINGS columns; US payers commonly declare a dividend with an
+  earnings release, so the two clocks may be phase-locked over part of the universe. This composite
+  differs in its universe (payers only, coverage 0.512 against 0.9651), its event, its documented
+  source, its partner leg and in having a sign documented on BOTH sides rather than the long side
+  alone. Whether the two books are actually distinct is a correlation measurement, not a claim.
+  CELLS, re-derived with forge.cells.targets('.'): on USA/d1/TOP3000 the Earnings cell is full
+  (count 3, need 0) but the Sentiment cell is count 1, need 2, and compose.expand's `served` flag
+  lets this composite render on it through the tone leg. So it is supply for the submission count
+  AND a candidate for the Sentiment unlock; the earlier "not for a pyramid unlock" was wrong.
+  DECAY / CROWDING, the Dim-3 question this file did not answer. The premium was published in JFE in
+  2013, before the whole 2014-2023 sample and nine years before the 2022-2024 window that decides
+  submission, so the standard's ~0.4x post-publication haircut is the default. Reason it is not
+  applied here, stated not assumed: the haircut is for a CROWDED classic, and on the platform's own
+  crowding measure this construction is untouched - the two fields are the least-used of the 12
+  earnings2 fields at this cell (userCount 31 and 29) with alphaCount 48 and 42, and they appear in
+  0 of 28,220 rows of state/layered/runs/forge.jsonl (VPS, read-only, re-counted at fix time; the
+  local mirror's 28,195 rows agree). Whether the literature decay binds anyway is the measurement;
+  it is not argued away.
+  Nothing here has been simulated. MECHANISM of the premium itself: the fetched abstract calls it
+  price pressure from dividend-seeking investors and calls risk-based explanations unlikely - that
+  is their claim, quoted; no experiment in this repo separates a flow explanation from any other,
+  and the conjunction rests on composition, not on measured evidence.

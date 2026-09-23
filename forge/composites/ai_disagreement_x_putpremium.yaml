@@ -1,0 +1,56 @@
+id: ai_disagreement_x_putpremium
+title: "Divergence of opinion in the news flow, with the option market showing the pessimist was shut out"
+arm: new
+legs: [ai_news_score_disagreement, option_call_put_iv_spread]
+families: [disagreement, options]
+combiners: [multiply]   # the leg is bearish; the gate branch inverts a bearish leg (measured 2026-09-08)
+mechanism: >
+  Miller's overpricing needs two conditions at once, and each leg supplies exactly one of them.
+  The press-release score dispersion measures how far the day's items stand apart — how much room
+  the public record itself leaves for two readers to disagree — and says nothing about whether the
+  low-valuation reader has been shut out of the stock. The call-minus-put implied-volatility spread
+  measures where option flow sits, and Ofek, Richardson and Whitelaw show that when borrow is costly
+  the put-call parity violation turns asymmetric in the direction of the short-sale constraint and
+  its magnitude tracks the rebate-rate spread: a put that is expensive relative to the call is the
+  observable footprint of a pessimist who has been pushed out of the equity market into the option
+  market. Multiplying the two ranks keeps only the names where both hold — a news flow that leaves
+  genuine room to disagree AND an options market saying the low side is paying to express itself
+  somewhere else. That conjunction is Miller's case itself, and it is where the optimist-set price
+  should stand furthest above the mean valuation. The long side is the mirror: items that agree
+  leave the optimist little room to set the price alone, and calls richer than puts put the informed
+  option flow on the upside. Neither leg identifies the case by itself — dispersion without the
+  constraint is ambiguity that both sides can trade away, and a rich put without disagreement is a
+  hedge, not an excluded opinion.
+counterparty: "The optimistic retail equity buyer who sets the marginal price on an ambiguous news day, while the pessimistic holder is confined to buying a put from a market maker who hedges it rather than taking the view"
+source: "EX-ANTE — Miller 1977 JF (divergence of opinion under short-sale constraints); Diether, Malloy & Scherbina 2002 JF, OpenAlex W2160275010, fetched HTTP 200: 'We provide evidence that stocks with higher dispersion in analysts' earnings forecasts earn lower future returns than otherwise similar stocks.'; Ofek, Richardson & Whitelaw 2004 JFE (NBER w9423), fetched HTTP 200: 'We find that violations of put-call parity are asymmetric in the direction of short sales constraints, their magnitudes are strongly related to the rebate rate spread, and they are maintained even in the presence of transactions costs both in the options and equity lending market.'; Cremers & Weinbaum 2010 (the partner leg's own citation for the call-put IV spread)"
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "hard-to-borrow mid caps that carry both a dense press-release flow and listed options — the divergence is measurable and the constraint actually binds"
+weakens_when: "borrow is cheap and abundant, so the pessimist shorts the stock directly and the put premium stops measuring an exclusion; and in a squeeze, when the most disagreed-about names rally first"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for THIS conjunction and not copied: value_winter_2014_2020 '0' — borrow
+  was cheap and plentiful, so the constraint the mechanism needs was at its weakest and a long
+  optimism-rewarding stretch postpones the correction; momentum_crash_2016 '-' — a reversal rally
+  lifts precisely the disagreed-about, expensive-to-borrow names this composite is short, so the
+  crowded side is our own side; covid_2020 '+' — firm news flow turned internally conflicting
+  (withdrawn guidance against reassuring releases) while borrow costs and put demand spiked, so both
+  conditions fired together; rate_shock_2022 '+' — the discount-rate repricing hit optimist-set
+  valuations hardest and puts stayed expensive through the drawdown.
+  SEMANTICS CHECK against forge/compose.py: multiply(A+, B+) with A+ = (1 - group_rank(dispersion))
+  and B+ = group_rank(call_iv - put_iv). Long = items agree AND calls richer; short = items conflict
+  AND puts richer. The mechanism above is written to that arithmetic, not to a looser 'both bearish'
+  story. Both operands are group_rank in [0,1], so the multiply is rank-bounded (H3).
+  VERIFIER 2026-09-09 (audit_staged.md). (1) Miller 1977 JF resolves (OpenAlex, doi
+  10.1111/j.1540-6261.1977.tb03317.x, HTTP 200) but carries no abstract on any index; under harness5
+  Q14 it stands as background only - the text-verified evidence is Diether-Malloy-Scherbina 2002 and
+  Ofek-Richardson-Whitelaw 2004. (2) MECHANISM CONTESTED on the partner leg's own observable: Cremers
+  & Weinbaum 2010 JFQA (OpenAlex doi 10.1017/s002210901000013x, HTTP 200) find the call-put IV spread
+  predicts returns in a way "which cannot be explained by short sale constraints" and "Rebate rates
+  from the stock lending market directly confirm that our findings are not driven by stocks that are
+  hard to borrow" - the opposite reading of the same spread from ORW 2004 (different sample and
+  measure). This composite is written to the ORW reading; whether a rich put is an excluded
+  pessimist or informed option flow is UNKNOWN here, and a null must not be re-read as evidence for
+  either.

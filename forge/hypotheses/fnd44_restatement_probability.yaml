@@ -1,0 +1,26 @@
+id: fnd44_restatement_probability
+family: accruals
+category: Fundamental
+title: ML-detected restatement risk predicts drift
+mechanism: >
+  The probability of a future restatement captures the risk that reported earnings are artificially inflated and will be reversed in a future filing. This creates a valuation gap because the market prices the current (inflated) earnings, while the eventual correction forces a re-rating of the stock to a lower fundamental value.
+counterparty: index funds and passive followers who hold until the correction
+sign: -1
+source: "EX-ANTE — Dechow 2011, accruals and restatements predict returns"
+datasets: [fundamental44]
+signal:
+  fields: [fnd44_probability_restatement]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [21, 63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  Restatement probability is a forward-looking risk score. A high score indicates a high likelihood of a negative earnings revision (correction), which causes the price to fall. Hence, the signal is negatively correlated with future returns (sign: -1).

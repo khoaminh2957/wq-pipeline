@@ -1,0 +1,19 @@
+id: pr_tone_disagreement_alpha
+title: Press release tone conditioned on news disagreement
+arm: new
+legs: [pr_sentiment_tone_drift, news_tone_disagreement_trna]
+families: [tone, disagreement]
+combiners: [multiply]
+mechanism: >
+  High sentiment tone is only a reliable signal when the news flow is consistent; high disagreement among news items indicates uncertainty about the fundamental interpretation of the event, which attenuates the drift of the tone signal. Multiplying the tone by the inverse of disagreement isolates the cases where the tone is a clear, uncontested signal, enhancing the predictive power of the sentiment drift.
+counterparty: Retail investors who are confused by mixed signals and fail to price the tone correctly
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: Low volatility environments with high news flow consistency
+weakens_when: High market-wide volatility or earnings announcement days where disagreement is naturally high
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  In value winters, tone signals are underpriced by active managers focused on fundamentals, so the drift is strong. In momentum crashes, the tone signal is overwhelmed by liquidity-driven selling. In COVID, the tone of guidance was highly informative as fundamentals were unclear, and disagreement was low for clear winners/losers. In rate shocks, macro factors dominate idiosyncratic tone signals.

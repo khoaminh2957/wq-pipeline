@@ -1,0 +1,29 @@
+[Unit]
+# The simulation feeder, moved off the mac 2026-08-11.
+#
+# NO StartLimitBurst. It was set to 10 in 600s and it turned a TEMPORARY condition into a permanent
+# outage: the account hit its 5000/day simulation cap at 01:19, six pools failed instantly, ten
+# restarts were spent in five minutes, and the unit sat in `failed` for 5h47m — hours after the
+# quota wall it was reacting to had already gone. A restart limit protects against a crash loop
+# that burns CPU; here the thing being "burned" was a counter that resets by itself, so the limit
+# only guaranteed nobody was running when the wall lifted.
+#
+# simq.sh now recognises the daily cap, requeues the pool and sleeps until the reset, so the crash
+# loop this limit existed to stop cannot form in the first place.
+Description=WorldQuant BRAIN simulation feeder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+Environment=PATH=/opt/wq/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/opt/wq:/opt/wq/tools
+ExecStart=/usr/bin/zsh /opt/wq/tools/simfeed.sh
+Restart=always
+RestartSec=30
+StandardOutput=append:/opt/wq/state/wq-loop.out
+StandardError=append:/opt/wq/state/wq-loop.err
+
+[Install]
+WantedBy=multi-user.target

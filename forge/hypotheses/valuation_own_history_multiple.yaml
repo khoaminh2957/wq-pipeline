@@ -1,0 +1,99 @@
+id: valuation_own_history_multiple
+family: valuation
+category: Other
+title: Forward P/E stretched above the firm's OWN historical median reverts (StarMine other685)
+mechanism: >
+  A firm's forward P/E can only rise above the median forward P/E it has carried over its own
+  history if price has moved further than the sell side's forecast earnings for that same firm.
+  The gap is therefore not a level of cheapness; it is the part of price that is opinion rather
+  than reported or forecast fundamentals. The named force is behavioural mispricing by
+  extrapolation: after a run of salient good news investors project the recent growth rate
+  forward and pay a higher multiple for it, while the analysts who set the denominator anchor on
+  their own prior forecasts and raise them more slowly than the price moves. An opinion about the
+  growth rate reverts to the firm's own long-run anchor faster than the franchise that anchor is
+  pricing does, so the correction happens in the multiple and not in the earnings, and it happens
+  over months. Short the names whose multiple has stretched furthest past their own history; long
+  the names trading below their own anchor. Persistence: shorting an expanded multiple is a
+  long-horizon, high-beta, sometimes hard-to-borrow trade with an unbounded left tail, the trade
+  Shleifer-Vishny 1997 shows arbitrageurs cannot hold through a drawdown, and a benchmark-tracking
+  index fund's weight in the name has just risen mechanically with the multiple, so it cannot
+  underweight the name at the moment the deviation is largest.
+counterparty: "Growth investors and momentum-following retail buyers who pay the higher multiple after the news rather than before it; sell-side analysts whose anchoring keeps the forecast behind the price; index funds whose benchmark weight rises with the multiple and who therefore cannot underweight the stretched name"
+sign: -1
+source: >-
+  EX-ANTE — Golubov & Konstantinidi, "Where is the risk in value? Evidence from a market-to-book
+  decomposition" (Dec 2017 working paper; J. Finance 74(6), 2019),
+  https://www.aeaweb.org/conference/2018/preliminary/paper/4EQnQ4Dt — fetched 2026-09-08, HTTP 200,
+  verbatim: "The market-to-value component drives all of the value strategy return, while the
+  value-to-book component exhibits no return predictability in either portfolio sorts or firm-level
+  return regressions." The construct match is the point of the leg: the fields below are the
+  DEVIATION of the current multiple from a fundamentals-based anchor (the firm's own historical
+  median), i.e. the market-to-value side of that decomposition, not the multiple LEVEL, which the
+  same paper reports carries no predictability.
+  Lakonishok, Shleifer & Vishny 1994, "Contrarian Investment, Extrapolation, and Risk" (NBER w4360),
+  https://www.nber.org/papers/w4360 — fetched 2026-09-08, HTTP 200, verbatim: "This paper provides
+  evidence that value strategies yield higher returns because these strategies exploit the mistakes
+  of the typical investor and not because these strategies are fundamentally riskier." — the
+  extrapolation force named in the mechanism.
+datasets: [other685]
+signal:
+  fields: [diff_current_vs_hist_pe_ratio, diff_current_vs_hist_price_ratio_earnings]
+template:
+  - "-group_rank(ts_rank(ts_backfill({signal}, 21), {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN provenance: read from the DESCRIPTIONS, not from a prior. diff_current_vs_hist_pe_ratio =
+  "Current P/E minus the median historical P/E (positive means above history)";
+  diff_current_vs_hist_price_ratio_earnings = "Current P/E minus the median historical forward
+  12-month P/E". A higher value is a more expensive multiple relative to the firm's own anchor, so
+  the bet is short it: sign -1, the template leads with '-'. forge/labels.py independently gives
+  sign '-' with sign_source=description for both, so description and label agree here.
+  LABEL SLIPS recorded, not used: labels puts diff_current_vs_hist_pe_ratio in domain "news"
+  because the DOMAIN_RULES pattern `story` matches the substring inside "hi-story" in
+  "above history"; the field is a valuation deviation. labels also puts
+  diff_current_vs_hist_price_ratio_earnings at time="annual" because CADENCE_WORDS matches
+  "12-month" in the field NAME's description, while the catalogue reports coverage 0.9961 at
+  USA/d1, i.e. it is refreshed like a daily field. The template carries ts_backfill anyway, which
+  is required if the "annual" label is right and costs nothing if it is wrong.
+  EXISTENCE (hard gate 7, re-derived 2026-09-08 against fetched/rc/fields/USA_TOP3000_d1.jsonl):
+  diff_current_vs_hist_pe_ratio — MATRIX, delay 1, coverage 0.9961, dataset other685, userCount 5,
+  alphaCount 6; diff_current_vs_hist_price_ratio_earnings — MATRIX, delay 1, coverage 0.9961,
+  dataset other685, userCount 1, alphaCount 2. Catalogue category is "Other" (subcategory "AI/ML
+  Data"), which is why `category: Other` — forge.factory._usable requires the field's own
+  catalogue category to equal the cell's. CROWDING: alphaCount 6 and 2, far under the standard's
+  ~115 fresh-leg preference; no field here is a >=750-alphaCount field.
+  CONSTRUCTION HAZARD, stated not solved: a P/E level explodes and flips sign as forecast EPS
+  approaches zero, so the raw deviation is meaningless for near-loss-making names. The single
+  template's ts_rank (of the deviation within the firm's OWN history, then group_rank across peers)
+  removes the MAGNITUDE explosion - a firm's own percentile does not care about the level - but NOT
+  the sign inversion: once forecast EPS is negative the deviation sits at the firm's within-firm
+  minimum, so a loss-maker ranks as cheapest-versus-own-anchor. The template does not screen on the
+  sign of forecast EPS; no field in other685 states it.
+  TEMPLATE REMOVED 2026-09-09 (Verifier FIX): a second template
+  `-group_rank(ts_backfill({signal}, {w}), {group})` was dropped. It fed the raw, unbounded P/E
+  deviation bare to a normalizer, which hypothesis_standard Dim 5 forbids (a price LEVEL is not fed
+  bare to a normalizer) and whose cross-section this file already described as dominated by
+  high-multiple and near-zero-EPS names. Its SHARE of rendered composite rows, re-derived here over
+  12 seeds of forge.compose.expand on both USA/d1 cells (per_leg=4, 192 rows each): 25%-100%, median
+  50% - the share is a draw of forge.compose._leg_candidates, not a fixed property, so the Verifier's
+  single-draw "29 of 60 (48%)" is one sample from that spread and is not restated as a constant. The
+  remaining template still gives 12 distinct leg formulas (2 fields x w[126,252] x group[subindustry,
+  industry,sector]), above forge.compose's per_leg=4.
+  CONFOUND, stated before any result: current-P/E-minus-own-median rises with price and falls with
+  forecast earnings over the same window, so this leg is mechanically correlated with 12-month
+  price momentum ORTHOGONALISED BY estimate revisions. Its short side overlaps the recent-winner
+  set. Any comparison against a momentum or a plain cross-sectional value book must be pooled
+  within that overlap before it has a verdict.
+  NOTHING HERE HAS BEEN MEASURED. No sim, no Sharpe, no journal row: this file is EX-ANTE only, and
+  the size and even the existence of the effect on USA/d1 2014-2023 is UNKNOWN.
+  PYRAMID: the "Other" cell read 3 alphas / 0 still needed on 2026-09-08 (state/pyramid_cell_counts.json
+  via 02_dataset_map), so the argument for this leg is death-stage 3 and 4 of 03_design (correlation
+  with the pre-existing book, mechanism collapse), not a cell unlock.

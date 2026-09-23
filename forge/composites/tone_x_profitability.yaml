@@ -1,0 +1,19 @@
+id: tone_x_profitability
+title: Positive call tone from firms that are actually profitable
+legs: [earnings_call_language_quality, profitability_classic_ratios]
+families: [tone, profitability]
+combiners: [multiply, gate]
+mechanism: >
+  Managers' net tone on the earnings call predicts drift, but tone is cheap: unprofitable firms
+  talk up their prospects too. Conditioning the tone rank on the profitability rank keeps the
+  calls where optimism is backed by results, and investors who read the numbers but not the
+  call, or who discount all management talk equally, are slow to price it.
+counterparty: "Analysts who anchor on the reported numbers and retail investors who skip the call"
+source: "EX-ANTE — Price, Doran, Peterson & Bliss 2012 (call tone and drift); Loughran & McDonald 2011; Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with quarterly calls and moderate coverage"
+weakens_when: "a sector-wide shock makes tone uninformative"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

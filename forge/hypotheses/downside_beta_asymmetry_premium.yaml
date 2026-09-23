@@ -1,0 +1,112 @@
+id: downside_beta_asymmetry_premium
+family: downside_risk
+category: Model
+title: Market sensitivity that shows up only when the market falls, net of the stock's ordinary beta
+mechanism: >
+  Two of this dataset's fields measure how a stock behaves specifically in bad states: the down-market
+  beta is the CAPM beta re-estimated on the days the market sat below its 252-day average, and the
+  lower tail dependence is the probability the stock and the index take an extreme negative move
+  together, from a rotated Gumbel copula. A third field, the classic full-sample CAPM beta, measures
+  ordinary market sensitivity in every state. The leg ranks the bad-state measure and the full-sample
+  beta inside the same peer group and takes the difference, so what is left is the ASYMMETRY: how much
+  more of the market a name takes on the way down than its everyday beta would imply. Force: risk
+  premium. An investor who dislikes losses more than they like equal-sized gains will pay up for the
+  name that decouples in a decline and demand extra return from the name that does not, so the
+  asymmetric name is priced to return more. Long the largest positive asymmetry. The subtraction is
+  not decoration: both cited papers report the premium only after regular beta is controlled for, and
+  without the control this leg would be a long-high-beta book, which is the opposite side of the
+  leverage-constraint literature the library already trades in range_volatility_arbitrage_cost.
+counterparty: >
+  Drawdown-constrained institutional holders — pension funds managed to a funded ratio, insurers under
+  solvency capital charges, and volatility-target and risk-parity funds whose mandate cuts exposure on
+  a decline — which must underweight names that fall hardest with the index and therefore accept a
+  lower expected return on the names that hold up; the constraint is written into a mandate, so it
+  does not learn.
+sign: 1
+source: >
+  EX-ANTE — Ang, Chen & Xing, "Downside Risk", NBER w11824. FETCHED
+  https://www.nber.org/papers/w11824 HTTP 200 (2026-09-09, curl -o /dev/null -w %{http_code}).
+  Verbatim from that abstract: "We show that the cross-section of stock returns reflects a premium for
+  downside risk. Specifically, stocks that covary strongly with the market when the market declines
+  have high average returns. We estimate that the downside risk premium is approximately 6% per annum.
+  The reward for bearing downside risk is not simply compensation for regular market beta, nor is it
+  explained by coskewness or liquidity risk, or size, book-to-market, and momentum characteristics."
+  That last sentence is what licenses the beta subtraction in the template. SECOND CITATION, for the
+  tail-dependence field specifically — Chabi-Yo, Ruenzi & Weigert 2018, Journal of Financial and
+  Quantitative Analysis, "Crash Sensitivity and the Cross Section of Expected Stock Returns". FETCHED
+  https://api.crossref.org/works/10.1017/s0022109018000121 HTTP 200 (2026-09-09; the publisher page
+  was not used). Verbatim from the abstract in that record: "We capture the crash sensitivity of
+  stocks by their lower-tail dependence (LTD) with the market based on copulas. We find that stocks
+  with strong LTD have higher average future returns than stocks with weak LTD. This effect cannot be
+  explained by traditional risk factors and is different from the impact of beta, downside beta,
+  coskewness, cokurtosis, and Kelly and Jiang's (2014) tail risk beta." The field description names
+  exactly that construct ("Lower tail dependence between the stock and market ... calculated using a
+  rotated Gumbel copula"), and that sentence again says regular beta must be held apart.
+datasets: [forward_beta_risk]
+signal:
+  fields: [downside_market_beta, downside_tail_dependence, downside_market_beta_fast_d1, downside_tail_dependence_fast_d1]
+signal2:
+  fields: [forward_looking_beta, forward_looking_beta, forward_looking_beta_fast_d1, forward_looking_beta_fast_d1]
+template:
+  - "group_rank(ts_mean(group_rank({signal}, {group}) - group_rank({signal2}, {group}), {w}), {group})"
+  - "group_rank(group_rank(ts_mean({signal}, {w}), {group}) - group_rank(ts_mean({signal2}, {w}), {group}), {group})"
+params:
+  w: [5, 22, 66]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE, and where it disagrees with the label prior. forge/labels.py gives
+  downside_market_beta and forward_looking_beta sign "unstated" (kinds coefficient and return, domain
+  risk-factor), and gives downside_tail_dependence sign "-" with sign_source "description". The
+  descriptions themselves state NO return direction — all three define an estimator (a conditional
+  beta, a full-sample beta, a copula tail probability) and stop there — so the "-" on
+  downside_tail_dependence is a word-polarity slip on "negative"/"downside" in its text, not a stated
+  direction. Per the task rule the description wins over the label prior, and because the description
+  gives no direction the +1 comes from the two fetched abstracts above. Stated plainly: this leg's
+  sign CONTRADICTS the label on downside_tail_dependence, deliberately.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1 TOP3000, dataset forward_beta_risk,
+  category "Model / Estimates Models", pyramidMultiplier 1.4, all MATRIX): downside_market_beta
+  coverage 0.8000 dateCoverage 0.9507 userCount 0 alphaCount 0; downside_tail_dependence 0.8018 /
+  0.9507 / 0 / 0; downside_market_beta_fast_d1 0.7998 / 1.0 / 0 / 0; downside_tail_dependence_fast_d1
+  0.8015 / 1.0 / 0 / 0; forward_looking_beta 0.8002 / 0.9507 / 0 / 0; forward_looking_beta_fast_d1
+  0.8001 / 1.0 / 0 / 0. Coverage is 0.80, above the 0.5 line, so no density operator (typed.py H4);
+  time is daily, so no ts_backfill. signal2 pairs index-by-index and keeps the vintage matched:
+  the two "_fast_d1" bad-state fields are differenced against forward_looking_beta_fast_d1, the two
+  standard fields against forward_looking_beta. TOP3000 is the only USA/d1 catalogue file on disk, so
+  the leg is written for that universe.
+  WHY THE DIFFERENCE IS TAKEN IN RANK SPACE, not in levels. forge.typed refuses
+  "downside_market_beta - forward_looking_beta" under H1: the labels put the first in unit "unitless"
+  and the second in unit "return" (a label artefact — both are betas), and H1 forbids a subtraction
+  across units. Ranking each within the peer group first makes both operands scores, and the judge
+  passes: T.judge(..., structural=True) returns ok=True, hard=[] for both templates at 5 operators
+  each (MAX_OPS 62, so a two-leg composite stays well inside the cap). What the rank difference does
+  NOT do is remove the beta level exactly the way a regression would; how much unconditional-beta
+  exposure survives it is MECHANISM UNKNOWN here and is a correlation measurement, not a claim.
+  H5 NOTE, stated rather than hidden. The full (non-structural) judge refuses these formulas with
+  "H5 ... has no stated sign but stands in a directional role", because the label file has no sign for
+  a beta. The pre-sim gate in forge/runner.py runs judge(structural=True), which applies only H1, H2,
+  H4-vector and H4-density, so this leg is not refused at sim time. The H5 flag is nonetheless real
+  and is exactly the condition the task's step 2 addresses: the sign comes from the fetched papers.
+  VECTOR TWINS AVOIDED. Every field here has a "_2" twin in the same dataset that is typed VECTOR
+  (downside_market_beta_2, downside_tail_dependence_2, forward_looking_beta_2, ...). None is used; a
+  VECTOR field would have to pass through vec_* (H4) and none of the templates does.
+  HISTORY CHECK, run not assumed. "downside_market_beta", "downside_tail_dependence" and
+  "forward_looking_beta" appear 0 times in state/layered/runs/forge.jsonl (28,220 rows, re-grepped
+  read-only on the VPS 2026-09-09) and are absent from state/banned_fields.json (2 entries) and
+  state/climb/spent_fields.json (75 entries). They do
+  appear in state/field_roles.json, which is a 20,307-entry role catalogue and not a ledger, so that
+  hit carries no meaning. The dataset id forward_beta_risk appears in
+  state/usa_top1000_d1_datasets.json as a catalogue row only.
+  OVERLAP TO WATCH, not a claim. range_volatility_arbitrage_cost is short high total range volatility
+  on a leverage-constraint argument; this leg is long an asymmetry after the beta level is ranked out.
+  Whether the two books end up correlated is a measurement. If the measured correlation is high, this
+  hypothesis has not added a distinct mechanism and should be dropped rather than re-argued.
+  ESTIMATION CAVEAT, EX-ANTE. The down-market beta is estimated only on days the market sat below its
+  252-day average. In a trailing year with very few such days the estimate is thin and the difference
+  from the full-sample beta is estimation noise rather than asymmetry; the leg has no way to see that
+  from the field alone, so a rank-space difference plus the ts_mean window is the whole of the defence.

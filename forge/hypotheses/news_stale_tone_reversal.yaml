@@ -1,0 +1,102 @@
+id: news_stale_tone_reversal
+family: stale_news
+category: News
+title: The tone of re-published (stale) news moves the price without new information, and the move reverses within a week
+mechanism: >
+  FORCE: behavioural mispricing, sustained by limits to arbitrage. Every item in this archive
+  carries a novelty index (1 = a first/new story; >1 = a repeat or update linked to a story already
+  published in the previous 24 hours) and a trinary sentiment (1 positive, 0 neutral, -1 negative).
+  A stock-day whose items are mostly repeats has received tone without information: the content
+  was already public when the first story ran. Tetlock measured what the market does with that:
+  prices respond less to stale news, but the return on the day stale news is published negatively
+  predicts the return over the following week, individual investors trade more aggressively on
+  stale news, and the reversal is larger where individual trading is above average. The leg keeps
+  each stock-day's mean tone (standardised across names that day, which preserves its sign and
+  order) ONLY when the day's mean novelty index shows repeats, sums it over the past few days, and
+  is SHORT the names whose stale coverage has been most positive (long the most negative). Days whose items are all new contribute zero: fresh-news tone is the drift construct
+  the library already holds five legs of, and it is deliberately left out of this one. This is the
+  opposite sign to every tone leg in the library, and it is the opposite sign because it is a
+  different quantity - tone conditioned on the absence of new information.
+counterparty: >
+  Individual investors who trade a re-published story as if it were new. They persist because the
+  bias is in reading, not in mandate - a reader cannot cheaply tell a rewrite from a first report -
+  and because the reversal is concentrated in names with heavy individual trading and thin
+  arbitrage capital, where a one-week mispricing is not worth an institution's inventory risk.
+sign: -1
+source: "EX-ANTE — Tetlock 2011, Review of Financial Studies 24(5), 'All the News That's Fit to Reprint: Do Investors React to Stale Information?', DOI 10.1093/rfs/hhq141. FETCHED https://api.openalex.org/works/W3125011952 HTTP 200 (2026-09-09; the OUP publisher page was not fetched and is not the source of this text). Verbatim from that abstract (re-derived from the raw abstract_inverted_index with curl, not from a summariser): 'I find that firms' stock returns respond less to stale news. Even so, a firm's return on the day of stale news negatively predicts its return in the following week. Individual investors trade more aggressively on news when news is stale. The subsequent return reversal is significantly larger in stocks with above-average individual investor trading activity. These results are consistent with the idea that individual investors overreact to stale information, leading to temporary movements in firms' stock prices.'"
+datasets: [news104]
+signal:
+  fields: [nws104_sentiment, nws104_1_sentiment]
+  vector: vec_avg
+  density: zero
+signal2:
+  fields: [nws104_novelty, nws104_1_novelty]
+template: "-group_rank(ts_sum(if_else(greater({signal2}, {k}), zscore({signal}), 0), {w}), {group})"
+params:
+  k: [1, 1.5]
+  w: [3, 5]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN, AND WHERE IT DISAGREES WITH THE LABEL. fetched/rc/field_labels.jsonl gives nws104_sentiment
+  and nws104_1_sentiment sign '+' with sign_source 'description'. The descriptions ('Trinary
+  sentiment classification for the news item: 1 = positive, 0 = neutral, -1 = negative' and 'Reveals
+  in a trinary score the highest probable state of sentiment found in the news item, 1 = positive,
+  0 = neutral, and -1 = negative') state the POLARITY CODING of the score and no return direction;
+  the '+' is the tone-drift prior (Tetlock 2007) that forge/labels.py attaches to any sentiment
+  field. This leg is not that construct: it is tone restricted to stock-days with repeated stories,
+  and the documented return direction for that quantity is negative (Tetlock 2011, quoted above).
+  So the leg's -1 follows the description plus the cited paper and knowingly disagrees with the
+  label's prior. Consequence for the type judge (forge/typed.py): in full mode the judge reads the
+  sentiment field as '+' and the leading '-' makes H6 report orientation -1; the live pre-sim
+  gate runs structural=True, which does not apply H5/H6. The same full-mode H6 situation is
+  already on file for news_downgrade_recommendation_topic.
+  A CORRECTION MADE WHILE WRITING THIS FILE. The first draft put the raw daily tone (a level in
+  [-1, 1]) in the if_else then-branch. forge.typed.judge REFUSED that rendering in structural
+  mode - 'H3 if_else then-branch is not bounded (score / zscore / constant)' - because the H3
+  branch check inside if_else is applied in structural mode too, whatever the module docstring's
+  'H1 / H2 / H4 only' summary says; the live gate would therefore never have simulated the leg.
+  The then-branch is now zscore({signal}), a cross-sectional standardisation of the day's tone
+  that keeps its sign and order and is 'bounded' under H3. Verified 2026-09-09 by rendering both
+  field pairs at k = 1 and 1.5 with forge.factory.render and running judge(structural=True):
+  ok on every rendering; full mode reports only the expected H6 orientation.
+  NOVELTY IS A CONDITION, NOT A BET. nws104_novelty is labelled kind 'flag' (sign-free) and
+  nws104_1_novelty kind 'level' sign 'unstated'; both stand only inside greater(), a condition
+  role (typed.py H5). Description: 'Indicator of story novelty: 1 = first/new story, >1 = repeat
+  or update linked to previous stories in last 24 hours'. The day's vec_avg of it is >= 1; the
+  threshold k = 1 fires when any item that day is a repeat, k = 1.5 when repeats dominate.
+  CONSTRUCT CORRESPONDENCE, STATED NOT ASSUMED. Tetlock's staleness is the textual similarity of a
+  story to the previous ten stories about the firm; the vendor's novelty index links an item to a
+  story within the previous 24 hours. The vendor field is a coarser and shorter-horizon proxy for
+  the paper's construct, and an 'update' linked to an earlier story can carry genuinely new
+  numbers (an earnings follow-up). Whether the proxy carries the paper's effect is what the
+  simulation tests. MECHANISM OF THE PROXY: UNKNOWN.
+  HORIZON. The paper's reversal is over the following week: w is 3 or 5 trading days and the
+  decay grid is short (4, 8). A 3-5 day event window with decay 4 can turn over fast; the ladder
+  bar drops from 2.37 to 2.02 only under turnover 0.30 (diagnosis_ladder.md section 1), so the
+  turnover this leg produces is a measurement the harness must read, not a number claimed here.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, dataset news104, category News, delay 1, all
+  VECTOR): nws104_sentiment coverage 0.9748 (dateCreated 2025-11-01, userCount 18, alphaCount 24);
+  nws104_1_sentiment coverage 0.9823 (2024-10-01, userCount 1, alphaCount 2); nws104_novelty
+  coverage 0.9748 (userCount 10, alphaCount 14); nws104_1_novelty coverage 1.0 (userCount 1,
+  alphaCount 1). The two generations are paired 1:1 (new with new, _1_ with _1_). Dataset
+  userCount 93 / alphaCount 244 (02_dataset_map, tier U). All dense, so no density operator is
+  REQUIRED by H4; density 'zero' is declared because a stock-day without items is 'no news', and
+  it is applied by the factory to both signal and signal2, so a no-news day gives novelty 0 (the
+  condition is false) and contributes zero to the window sum. VECTOR fields are read only through
+  vec_avg (H4); the event cadence needs no ts_backfill; nothing is divided or added across
+  fields, so no unit is crossed (H1); ts_sum is not a change operator (H2).
+  HISTORY, CHECKED NOT ASSUMED (hard gate 8). Local forge journal state/layered/runs/forge.jsonl
+  (25,035 rows, pulled 2026-09-09 14:18): 0 rows mention nws104 or news104. VPS journal read over
+  ssh -n on 2026-09-09 (25,400 rows): 0 and 0. state/resim_targets.json holds 2 old climb-era
+  ensemble formulas that use nws104_1_prob_neg (vec_max) and nws104_1_headlineonly (vec_stddev) as
+  one weighted term among six - different fields, different construct, no collision.
+  state/banned_fields.json and state/climb/spent_fields.json do not mention nws104.
+  WHAT THIS LEG DOES NOT CLAIM. It does not claim fresh-news tone drifts (that is the other five
+  legs' claim, not re-tested here) and it does not claim the proxy reproduces the paper's effect
+  size. The one thing it claims is the direction: tone delivered without new information reverses.

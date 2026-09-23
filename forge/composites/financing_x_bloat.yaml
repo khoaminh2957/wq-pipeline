@@ -1,0 +1,19 @@
+id: financing_x_bloat
+title: Equity issuance funding a bloated balance sheet
+legs: [equity_issuance_dilution, net_operating_assets_bloat]
+families: [financing, investment]
+combiners: [multiply]
+mechanism: >
+  Firms that issue equity and pile up net operating assets are financing bloat with overvalued
+  stock: managers sell shares when the price is high and spend the proceeds on assets that will
+  not earn. Both ranks are inverted so that the product is high for firms that neither dilute
+  nor bloat, and the investors who buy the issues and extrapolate the growth pay the reversal.
+counterparty: "Investors who buy secondary offerings and growth funds that extrapolate asset expansion"
+source: "EX-ANTE — Pontiff & Woodgate 2008; Hirshleifer, Hou, Teoh & Zhang 2004; Bradshaw, Richardson & Sloan 2006"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: "small caps with frequent capital raises"
+weakens_when: "issuance windows open for everyone at once (2020-2021)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

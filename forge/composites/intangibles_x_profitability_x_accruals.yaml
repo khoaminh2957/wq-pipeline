@@ -1,0 +1,20 @@
+id: intangibles_x_profitability_x_accruals
+title: Productive intangibles, profitable, and cash-backed (three-leg Piotroski)
+legs: [rd_intensity_premium, profitability_classic_ratios, accruals_cashflow_classic]
+families: [intangibles, profitability, accruals]
+combiners: [multiply]
+mechanism: >
+  The two-leg product of R&D intensity and profitability was the strongest cell measured (GLB
+  Fundamental, median Sharpe 0.89); a third leg asks whether those profits are cash-backed, so
+  the product is high only for firms whose research is productive, whose profits are real and
+  whose earnings are not accrual-inflated. Book-value investors avoid the first, headline-chasers
+  ignore the third; both sides keep the underpricing alive.
+counterparty: "Book-value investors and index funds that screen on unadjusted book ratios, and earnings-chasing retail buyers who ignore accruals"
+source: "EX-ANTE — Chan, Lakonishok & Sougiannis 2001; Novy-Marx 2013; Sloan 1996; Piotroski 2000 (combining profitability and accrual signals)"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: "technology and healthcare names with steady R&D and full cash-flow statements"
+weakens_when: "rates rise sharply and long-duration cash flows are discounted (2022)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

@@ -1,0 +1,26 @@
+id: news_ravenpack_composite_tone
+family: tone_composite
+category: News
+title: RavenPack composite sentiment score (0-100) predicts short-horizon drift
+mechanism: >
+  The mean composite sentiment score summarises the tone of an entity's news flow on a 0-100
+  scale (50 neutral; higher = more positive, per the field description). Positive tone diffuses
+  slowly into prices, so the most positively covered names drift. Long the highest composite tone.
+counterparty: "Slow-diffusion investors; retail holders who react to headlines with a lag"
+sign: 1
+source: "EX-ANTE — Tetlock 2007 JF; Tetlock, Saar-Tsechansky & Macskassy 2008 JF"
+datasets: [news46]
+signal:
+  fields: [mws46_ravenpack_mean_ssc, mws46_ravenpack_mean_ssc_fast_d1]
+  density: backfill
+  density_window: 5     # a 0-100 score: a day without news is 'no change', not the most negative value (Verifier)
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

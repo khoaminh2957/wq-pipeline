@@ -1,0 +1,27 @@
+id: news_fear_uncertainty_contrarian
+family: tone
+category: News
+title: Rising fear and uncertainty in coverage is overreaction; buy it
+mechanism: >
+  Story-level fear, uncertainty and volatility scores measure emotional rather than directional
+  tone. A rise in emotional tone pushes prices down beyond what the facts justify and the move
+  reverts within a week or two. Long the names whose emotional tone rose the most.
+counterparty: Investors who sell into fearful coverage.
+sign: 1
+source: "EX-ANTE — Tetlock 2007 (media pessimism predicts downward pressure followed by reversion); Loughran & McDonald 2011 (uncertainty word lists)"
+datasets: [news73]
+signal:
+  fields: [nws73_globalsent_fearscore, nws73_globalsent_uncertaintyscore, nws73_globalsent_finvolatilescore]
+  vector: vec_avg
+  density: backfill
+  density_window: 20
+template: "group_rank(ts_delta({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

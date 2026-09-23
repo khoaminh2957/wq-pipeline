@@ -1,0 +1,26 @@
+id: analyst_forecast_dispersion
+family: revisions
+category: Analyst
+title: Dispersion in analyst forecasts predicts low returns
+mechanism: >
+  When analysts disagree, short-sale constraints let the optimists set the price; the stock is
+  overvalued and earns low returns. Short the names with the highest dispersion (standard
+  deviation over the absolute mean) of long-term EPS and target-price estimates.
+counterparty: Optimists who set prices when pessimists cannot short.
+sign: -1
+source: "EX-ANTE — Diether, Malloy & Scherbina 2002 (differences of opinion and the cross-section of returns); Miller 1977"
+datasets: [analyst_consensus]
+signal:
+  fields: [stddev_estimate_eps_longterm, stddev_estimate_targetprice_annual12_tribes]
+signal2:
+  fields: [mean_estimate_eps_longterm, mean_estimate_targetprice_annual12_tribes]
+template: "-group_rank(ts_backfill({signal} / abs({signal2}), {w}), {group})"
+params:
+  w: [21, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

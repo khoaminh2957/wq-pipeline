@@ -1,0 +1,31 @@
+id: roic_trend_prosperity_drift
+family: profitability
+category: Fundamental
+title: Sustained high ROIC predicts post-earnings drift
+mechanism: >
+  High Return on Invested Capital signals a durable competitive advantage that is slow to be
+  fully arbitrated into the price because institutional mandates often focus on top-line growth
+  or analyst consensus revisions rather than capital efficiency metrics. Consequently, firms with
+  persistently high ROIC experience a slow positive drift as the market gradually recognizes the
+  superior quality of earnings and lower cost of capital.
+counterparty: mandate-driven institutions that underweight capital efficiency in screening
+sign: 1
+source: "EX-ANTE — Novy-Marx 2013, gross profitability predicts returns better than book-to-market"
+datasets: [fundamental94]
+signal:
+  fields: [fnd94_rt_roic]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_backfill(ts_mean({signal}, {w})), {group})"
+params:
+  w: [20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  fnd94_rt_roic is quarterly, so ts_backfill is required by the cadence rule; high ROIC is a
+  fundamental strength that should be positive for returns.

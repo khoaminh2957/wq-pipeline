@@ -1,0 +1,27 @@
+id: credit_language_safety
+family: credit_language
+category: Model
+title: Credit-safety language ranks (text-mined filings) predict returns through distress risk
+mechanism: >
+  Ranks built from the language of filings about balance-sheet structure, legal obligations and
+  profitability measure how safe the company's credit reads (the field descriptions state that a
+  higher rank indicates safer credit). Distressed firms earn anomalously LOW returns, so safer
+  credit language predicts higher returns. Long the safest credit language.
+counterparty: "Yield-seeking retail holders of distressed equity; institutions that extrapolate recoveries"
+sign: 1
+source: "EX-ANTE — Campbell, Hilscher & Szilagyi 2008 JF (distressed stocks earn anomalously low returns); Dichev 1998 JF (bankruptcy risk and returns)"
+datasets: [model37]
+signal:
+  fields: [balance_sheet_language_score, legal_obligation_language_score, profitability_language_score]
+template:
+  - "group_rank(ts_mean({signal}, {w}), {group})"
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [20, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

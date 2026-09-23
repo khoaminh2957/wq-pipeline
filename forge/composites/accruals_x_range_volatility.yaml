@@ -1,0 +1,54 @@
+id: accruals_x_range_volatility
+title: "Accrual overpricing where the arbitrage holding cost is highest"
+arm: new
+legs: [usa_accruals_cashflow, range_volatility_arbitrage_cost]
+families: [accruals, volatility]
+combiners: [multiply]
+mechanism: >
+  The two legs answer different questions and neither answers both. The accrual leg says where an
+  accounting overpricing EXISTS: earnings not backed by operating cash flow are taken at face value
+  by holders who read reported EPS, so the firm is bid above what its cash generation supports. The
+  range leg says whether that overpricing SURVIVES: a stock's own daily range is the holding cost
+  an arbitrageur pays to carry the offsetting position, and because selling short faces greater
+  risk and more impediments than buying, the mispricings that persist are the overpriced ones in
+  the widest-range names. An accrual-heavy firm that is cheap to arbitrage gets corrected and pays
+  nothing; a wide-range firm whose earnings are already cash-backed has no mispricing to correct.
+  Only the conjunction selects firms where the overpricing exists AND nobody will remove it, and
+  the product's short leg — highest accruals and widest range — is the corner where both bind.
+counterparty: "Earnings-fixated retail holders and index funds that price reported earnings as if they were cash-backed, and the hedge-fund arbitrage capital that will not carry the offsetting short in the widest-range names because the holding cost and short-sale impediments exceed the expected correction"
+source: >
+  EX-ANTE — Stambaugh, Yu & Yuan, NBER w18560 (WebFetch 2026-09-08, HTTP 200,
+  https://www.nber.org/papers/w18560): "Short selling, as compared to purchasing, faces greater
+  risks and other potential impediments. This arbitrage asymmetry explains the negative relation
+  between idiosyncratic volatility (IVOL) and average return. The IVOL effect is negative among
+  overpriced stocks but positive among underpriced stocks, with mispricing determined by combining
+  11 return anomalies." Volatility leg: Ang, Hodrick, Xing & Zhang NBER w10852 (HTTP 200) and
+  Frazzini & Pedersen NBER w16601 (HTTP 200). The accrual leg carries its own EX-ANTE source
+  (forge/hypotheses/usa_accruals_cashflow.yaml). NOT USED, per harness5 Q14: Mashruwala, Rajgopal
+  & Shevlin 2006 JAE and Pontiff 2006 JAE state this interaction on accruals directly, but their
+  abstracts could not be fetched (Elsevier elides them; OpenAlex and Semantic Scholar both return
+  a null abstract for the DOIs), so they are dropped rather than cited.
+regimes:
+  value_winter_2014_2020: "+"
+  momentum_crash_2016: "-"
+  covid_2020: "-"
+  rate_shock_2022: "+"
+strongest_in: >
+  The short half — firms with the highest accruals and the widest normalized range, among small and
+  mid caps where the holding cost is large relative to the expected correction — and in calm,
+  low-dispersion stretches when the mandate-driven reach for volatility is unopposed.
+weakens_when: >
+  Pre-registered flips, not caveats. (1) The long half is the weak half: w18560 states the IVOL
+  effect is POSITIVE among underpriced stocks, so among low-accrual names the range leg should
+  work against the composite and the long side is carried by the leverage-constraint premium
+  alone. (2) Junk rallies (Feb-Mar 2016, Apr-Aug 2020) lift exactly the high-range, high-accrual
+  short book; that is why two regimes above are "-". (3) w16601: "When funding constraints tighten,
+  betas are compressed towards one, and the return of the BAB factor is low" — the March 2020
+  tightening hits the volatility leg at its source. (4) Among the largest, most liquid names the
+  arbitrage cost is small, so the conditioning adds little there and the composite reduces toward
+  the accrual leg alone — which is also the robust-universe risk, since the robust universe is the
+  liquid half.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08

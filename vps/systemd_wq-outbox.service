@@ -1,0 +1,16 @@
+[Unit]
+Description=wq outbox — THE only process in the tree that posts to Discord
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+ExecStart=/opt/wq/venv/bin/python /opt/wq/tools/sender.py --serve
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

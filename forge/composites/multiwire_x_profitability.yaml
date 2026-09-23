@@ -1,0 +1,17 @@
+id: multiwire_x_profitability
+title: "Multi-wire headline tone on profitable firms"
+arm: new
+legs: [news_multiwire_headline_tone, usa_profitability_ratios]
+families: [tone_multiwire, profitability]
+combiners: [multiply, gate]
+mechanism: >
+  Positive news that confirms a profitable business diffuses slowly into prices because slow readers and growth-chasing investors under-weight profits; tone scored consistently across several wires and models measures that news with less single-source noise, and multiplying its rank by the profitability rank keeps the confirming cases and drops tone on unprofitable names. VECTOR stream, averaged per day.
+counterparty: "Growth investors who pay for stories and ignore profits; slow-diffusion holders"
+source: "EX-ANTE — Tetlock 2007 JF; Novy-Marx 2013 JFE"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "mid and large caps with regular coverage"
+weakens_when: "earnings seasons"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

@@ -1,0 +1,106 @@
+id: interimsuccession_x_accruals
+title: The accruals say maybe; the empty chair says someone already decided
+arm: new
+legs: [interim_officer_succession, usa_accruals_cashflow]
+families: [governance_turnover, accruals]
+combiners: [multiply]
+mechanism: >
+  The accrual leg reads the accounting from outside the firm: net income that operating cash has
+  not delivered, scaled by assets. That ranking cannot tell an aggressive accrual from a benign
+  one — a firm growing its receivables and inventory prints the same number as a firm managing
+  earnings — so the accrual short side holds both kinds of name and pays for the mistake. The
+  interim leg reads the same accounting from inside, through a channel with nothing to do with the
+  cash-flow statement: a director or officer left the seat before the board had a successor for
+  it. Fahlenbrach, Low & Stulz measure that surprise departures are followed by earnings
+  restatements, shareholder litigation and worse stock performance, and their director-death
+  instrument says the anticipation of the bad outcome produced the departure rather than the other
+  way round — the person who left was acting on something already inside the firm. The conjunction
+  therefore keeps, on the short side, the accrual-heavy names where someone with board-room access
+  independently acted on what the accruals only hint at, and drops the accrual-heavy names where
+  nobody inside is leaving; on the long side it keeps cash-backed earnings at firms whose
+  management team is intact. This is not two bearish signals added together: one is a published
+  statement of accounts and the other is a revealed decision by a person who read the ledgers
+  before the accounts were published, and the product is the cross-section screened by the second.
+counterparty: "Index funds and other mandate-bound passive holders that hold through an item 5.02 filing because the index does, and the earnings-chasing retail investors and sell-side analysts who price reported EPS without decomposing it into cash and accruals or reading the governance filings"
+source: >
+  EX-ANTE — Fahlenbrach, Low & Stulz 2017, Review of Financial Studies 30(7), "Do Independent
+  Director Departures Predict Future Bad Events?". FETCHED
+  https://api.openalex.org/works/W3121481843 HTTP 200 (2026-09-09, curl and WebFetch; the publisher
+  page https://doi.org/10.1093/rfs/hhx009 was NOT the source of this text). Verbatim from that
+  abstract, and this is the conjunction's own evidence rather than either leg's: "Following
+  surprise independent director departures, affected firms have worse stock and operating
+  performance, are more likely to restate earnings, face shareholder litigation, suffer from an
+  extreme negative return event, and make worse mergers and acquisitions." and "Our evidence is
+  more consistent with the latter." — the departure anticipates the accounting failure, which is
+  what makes it a screen on the accrual ranking rather than a second copy of it.
+  The interim leg's definition is grounded by Ballinger & Marcel 2009, Strategic Management
+  Journal 31(3), FETCHED https://api.openalex.org/works/W2073519042 HTTP 200 (2026-09-09):
+  "We define an interim CEO succession as a case where the title of chief executive officer is
+  vacated by the incumbent and the board of directors has not announced a permanent successor".
+  The accrual leg is grounded by Sloan 1996 and Hribar & Collins 2002, carried by
+  usa_accruals_cashflow's own source line and NOT re-fetched here.
+  NO PAPER STUDIES THE CONJUNCTION ITSELF. No fetched work conditions the accrual anomaly on
+  executive or director departures; the restatement sentence above is the link, and it is a link
+  between departures and accounting failure, not a measured interaction with the accrual ranking.
+  That gap is the reason this composite is a hypothesis and not a finding.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "small and mid caps with one reportable segment, thin analyst coverage and a clean quarterly cash-flow statement: an interim designation is then a large share of everything the market learns about the firm's governance that quarter, and there is a real accrual number to rank it against"
+weakens_when: "mega-caps with a deep bench, where an interim title is a routine hand-off between two named executives rather than a surprise; the year of a merger integration, when interim officers are a scheduled artefact of combining two management teams; and the quarter in which the restatement is announced alongside the departure, where the price has already moved and there is nothing left to drift"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction and not copied from another file. Per
+  diagnosis_ladder.md section 3b these maps were MEASURED not to predict the ladder ('0' composites
+  cleared the 2022-2024 window as often as '+' composites), so they are the hypothesis standard's
+  EX-ANTE reasoning only and must not be used to rank composites.
+  value_winter_2014_2020 '0': the two sides pull against each other. The long side — cash-backed
+  earnings, intact management — is the quality side that led those years, but the short side is
+  accrual-heavy names with churning management, and that set contains the speculative growth names
+  that rallied through the same period. No net direction is argued.
+  momentum_crash_2016 '-': the early-2016 reversal rewarded low-quality, high-accrual, distressed
+  names, which is exactly the short side, and the governance leg only updates on a filing so it
+  cannot step out of the way.
+  covid_2020 '0': departures in 2020 were frequently pandemic-driven rather than accounting-driven,
+  so the interim leg's information content falls, while the accrual rank describes pre-COVID
+  quarters; the conjunction degrades toward noise in both directions rather than losing in one.
+  rate_shock_2022 '+': 2022 repriced long-duration, cash-burning names; the short side is
+  accrual-heavy names with unstable management, which is that side, and the long side's earnings
+  are cash today rather than cash promised.
+  COMBINER. Both legs are bearish (sign -1), so [multiply] only — the gate branch inverts a bearish
+  leg (Verifier note carried on newsneg_x_short and transcriptneg_x_revision, measured 2026-09-08).
+  forge/compose.py renders multiply((1 - group_rank(interim leg)), (1 - group_rank(accrual leg)));
+  both operands are group_rank scores in [0, 1] so the product is bounded (H3) and higher = long
+  (H6). Checked 2026-09-09 with typed.judge structural=True on the rendered USA/d1 formula: ok, no
+  hard failure. The full judge reports H4 on income / cashflow_op / assets — a pre-existing
+  property of usa_accruals_cashflow's own template, present on every composite that carries it, not
+  introduced here.
+  PARTNER CHOICE, POST-HOC allocation knowledge used only to choose the partner and for nothing
+  else. On rows with Sharpe >= 1.3, composites carrying usa_accruals_cashflow cleared the 2022-2024
+  ladder window at 0.40 (n 184), behind sentiment_weekly_continuation 0.42 and level with
+  insider_significant_buying_drift 0.40. Accruals was chosen over sentiment because the fetched
+  abstract names the accounting outcome directly (restatements), which no fetched evidence supplies
+  for a tone leg, and over the insider leg because that pairing would put two readings of insiders
+  in one book and because insider_x_accruals already exists. short_volume_ratio_informed,
+  news_ravenpack_composite_tone and short_interest_surprise were excluded by the round's standing
+  instruction. Whether the 0.40 rate transfers to a composite whose other leg is new is the
+  measurement, not a prediction.
+  DISTINCTNESS, checked not assumed. No composite in forge/composites/ or forge/composites/staged/
+  carries a governance or executive-turnover leg; re-derived 2026-09-09 over families: in both
+  directories: 16 existing composites carry the accruals family, across 13 distinct partner
+  families (credit_language, distress, filing_revision, insider, intangibles, investment,
+  predicted_surprise, profitability, short, tax_expense, tone, tone_pr, volatility).
+  governance_turnover is in none of them, so the pair (governance_turnover, accruals) is new. The
+  nearest neighbour is filingchange_x_accruals, staged this same round, whose new leg is also
+  SEC-filing-derived; the two books' correlation is a measurement, not a claim. fundamental14
+  appears in no composite outside staged/, and the one staged composite on it
+  (auditfee_x_profitability) uses a different construct (the fnd14_* annual fee table,
+  dateCoverage 0.5559) and a different partner.
+  THE OVERLAP THAT IS REAL, named rather than hidden. forge/labels.py types
+  interim_position_flag's domain as 'insider-flow', the same string the Form-4 legs carry, because
+  the domain regex matched "officer|director". By the typed-domain label alone this pair reads as
+  (insider-flow, accruals), which is insider_x_accruals's pair. The underlying acts differ — an
+  8-K item 5.02 governance filing versus an insider's own purchase — but whether the resulting
+  books differ is a correlation measurement against insider_x_accruals and the live book, not a
+  claim made here. A high reading means no distinct mechanism was added.

@@ -1,0 +1,26 @@
+id: analyst_estimate_revision_drift
+family: revisions
+category: Analyst
+title: Upward estimate revisions drift for months
+mechanism: >
+  Analysts revise slowly and the market underreacts to each revision, so recent upward
+  revisions in consensus EBITDA/EPS estimates predict further returns. Long the names with the
+  largest recent revision (one-month change, revision magnitude, trend slope).
+counterparty: Investors who wait for the next reported number.
+sign: 1
+source: "EX-ANTE — Chan, Jegadeesh & Lakonishok 1996 (revisions momentum); Gleason & Lee 2003 (analyst forecast revisions and price discovery)"
+datasets: [analyst_factor_signals]
+signal:
+  pattern: "_estimate_change_1m$|_estimate_revision_magnitude$|_estimate_trend_slope1$"
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

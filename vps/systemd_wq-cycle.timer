@@ -1,0 +1,8 @@
+[Unit]
+Description=Run the analysis cycle every 2 hours
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=2h
+Persistent=true
+[Install]
+WantedBy=timers.target

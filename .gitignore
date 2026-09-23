@@ -1,0 +1,18 @@
+# STATE IS NOT CODE. The loop's journal, ledgers, cookie jar and PnL cache live only on the machine
+# that produced them: they differ between hosts by design, the journal alone is 110 MB, and the
+# cookie jar is a credential. tools/deploy.py ships this repo's code and never touches any of it.
+state/
+fetched/rc/fields/
+fetched/rc/field_labels.jsonl
+fetched/alphas_all.jsonl
+fetched/fields_*.jsonl
+*.pkl
+.env
+
+# build artefacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.deploy_stage/
+.DS_Store

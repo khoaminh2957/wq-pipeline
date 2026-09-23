@@ -1,0 +1,20 @@
+id: usa_insider_x_profitability_x_accruals
+title: Insiders buying a profitable, cash-backed business (USA Insiders cell)
+legs: [insider_significant_buying_drift, usa_profitability_ratios, usa_accruals_cashflow]
+families: [insider, profitability, accruals]
+combiners: [multiply]
+mechanism: >
+  Insider purchases predict returns because insiders act on information; the drift is strongest
+  when the business they buy is profitable and its earnings are cash-backed, because then the
+  purchase is not a bet on a turnaround but on a mispriced going concern. The product of the three
+  ranks keeps those firms, and outside shareholders who neither read insider filings nor check the
+  cash backing of earnings supply the drift.
+counterparty: "Outside shareholders and index funds that do not read insider filings, and earnings-chasing retail buyers"
+source: "EX-ANTE — Lakonishok & Lee 2001; Cohen, Malloy & Pomorski 2012; Beneish & Vargus 2002 (insider trading and accrual quality); Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "small and mid caps with concentrated insider ownership"
+weakens_when: "insider sales are dominated by scheduled option exercises"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

@@ -1,0 +1,26 @@
+id: chn_operating_efficiency
+family: profitability
+category: Fundamental
+title: Rising inventory and receivables turnover mark improving operations
+mechanism: >
+  Turnover of inventories and receivables measures how efficiently a firm converts working
+  capital into sales; investors underreact to improvements in it. Long the names with the
+  highest turnover ratios.
+counterparty: Investors who react to earnings but not to their operating drivers.
+sign: 1
+source: "EX-ANTE — Soliman 2008 (DuPont analysis: asset turnover changes predict returns); Lev & Thiagarajan 1993 (fundamental signals: inventory and receivables)"
+datasets: [fundamental5]
+signal:
+  fields: [fnd5_36_af_sb, fnd5_46_af_sb]
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

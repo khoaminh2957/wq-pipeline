@@ -1,0 +1,20 @@
+id: short_x_sentiment
+title: Heavy short selling confirmed by negative news tone
+legs: [short_volume_ratio_informed, sentiment_weekly_continuation]
+families: [short, tone]
+combiners: [multiply, gate]
+mechanism: >
+  Short sellers are informed on average, and negative firm-specific news tone predicts low
+  returns; when both point the same way the short position reflects information rather than
+  hedging or index arbitrage. Requiring the high-short-volume rank and the low-sentiment rank
+  together removes technical shorting, and the retail and index holders who ignore both keep
+  buying the names.
+counterparty: "Retail holders and index funds that neither track short volume nor read the news flow"
+source: "EX-ANTE — Boehmer, Jones & Zhang 2008 (informed short selling); Heston & Sinha 2017 (weekly news sentiment); Tetlock, Saar-Tsechansky & Macskassy 2008"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: "mid caps with liquid borrow and active news coverage"
+weakens_when: "a short squeeze regime punishes crowded shorts (2021)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08

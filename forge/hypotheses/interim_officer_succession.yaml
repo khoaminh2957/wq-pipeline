@@ -1,0 +1,147 @@
+id: interim_officer_succession
+family: governance_turnover
+category: Fundamental
+title: The seat was vacated before anyone was ready to fill it
+mechanism: >
+  An 8-K item 5.02 records a change in a director or officer's status. Most of those changes are
+  orderly: a named successor, a stated effective date, a hand-off. A change designated "interim"
+  or "acting" is the exception, and the designation itself carries the information — Ballinger &
+  Marcel define an interim succession as one where the incumbent has vacated the office and the
+  board "has not announced a permanent successor", so the board is filling a seat it did not plan
+  to fill. Fahlenbrach, Low & Stulz measure what follows surprise departures from the board and
+  find worse stock and operating performance, more earnings restatements and shareholder
+  litigation, and negative announcement returns, and their director-death instrument says the
+  causation runs from the anticipated bad outcome to the departure rather than the reverse: the
+  person leaving was reacting to something already inside the firm. Force: behavioural
+  mispricing under limited attention. The disclosure is a governance filing with no number in it,
+  it arrives outside the earnings calendar, and the holders who cannot act on it — index and other
+  mandate-bound funds — do not sell, so the price moves on announcement (Fahlenbrach et al. measure
+  that it does) and then keeps moving as the operating consequence arrives. Short the names
+  carrying the most interim designations in the trailing window.
+counterparty: "Index funds and other mandate-bound passive holders that keep the name through an item 5.02 filing because the index does, and the retail shareholders and sell-side analysts who follow the earnings calendar rather than the governance filings"
+sign: -1
+source: >
+  EX-ANTE — Fahlenbrach, Low & Stulz 2017, Review of Financial Studies 30(7), "Do Independent
+  Director Departures Predict Future Bad Events?". FETCHED https://api.openalex.org/works/W3121481843
+  HTTP 200 (2026-09-09, curl; the same URL also read through WebFetch, HTTP 200; the publisher page
+  https://doi.org/10.1093/rfs/hhx009 was NOT the source of this text). Verbatim from that abstract:
+  "Following surprise independent director departures, affected firms have worse stock and operating
+  performance, are more likely to restate earnings, face shareholder litigation, suffer from an
+  extreme negative return event, and make worse mergers and acquisitions." and "The announcement
+  returns to surprise director departures are negative, suggesting that the market infers bad news
+  from surprise departures." and "Our evidence is more consistent with the latter." — the latter
+  being anticipation of the bad outcome rather than causation by the departure.
+  The field-to-construct mapping is grounded by Ballinger & Marcel 2009, Strategic Management
+  Journal 31(3), "The use of an interim CEO during succession episodes and firm performance".
+  FETCHED https://api.openalex.org/works/W2073519042 HTTP 200 (2026-09-09, curl and WebFetch; the
+  publisher page https://doi.org/10.1002/smj.808 was NOT the source). Verbatim: "We define an
+  interim CEO succession as a case where the title of chief executive officer is vacated by the
+  incumbent and the board of directors has not announced a permanent successor, but instead
+  designates a particular individual as 'interim CEO,' or 'acting CEO,' or 'CEO until a permanent
+  successor is named.'" and "they are associated with lower performance during the period in which
+  the interim serves."
+  CORRESPONDENCE, stated rather than assumed. Neither paper studies this field. Ballinger & Marcel
+  study interim CEOs and give the definition the field's description matches word for word
+  ("designated as interim (temporary or provisional)"), but their outcome is firm performance, not
+  stock returns. Fahlenbrach, Low & Stulz give the stock-return direction and the accounting
+  consequence, but their population is surprise departures of independent directors, which is a
+  neighbouring population, not this one: the field covers "a director or officer position change".
+  The leg therefore takes its DEFINITION from Ballinger & Marcel and its SIGN from Fahlenbrach,
+  Low & Stulz, and neither transfer is measured here.
+datasets: [fundamental14]
+signal:
+  fields: [interim_position_flag]
+  vector: vec_sum
+  density: zero
+template:
+  - "-group_rank(ts_sum(ts_backfill({signal}, 22), {w}), {group})"
+  - "-group_rank(ts_delta(ts_backfill({signal}, 22), {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives interim_position_flag sign 'unstated' (sign_source
+  'unstated', domain insider-flow from the regex 'insider|officer|director', kind flag, unit bool).
+  The sign here is read from the description — "Indicates whether a director or officer position
+  change is designated as interim (temporary or provisional)" — plus the two abstracts above.
+  There is no label prior to disagree with; the label is absent, not opposed.
+  THE COMPETING DIRECTION, named because it is real. Denis & Denis 1995 and the forced-turnover
+  literature find that dismissing a bad manager is met with POSITIVE announcement returns and
+  improved operating performance — the "new broom". That evidence is about the board's decision to
+  remove someone; Fahlenbrach, Low & Stulz's is about a departure the board did not choose. Both
+  mechanisms can be present in this field, which does not separate them (change_action_type does;
+  forge/labels.py kinds it 'return' (unit return, sign 'unstated', reducers
+  vec_avg/vec_max/vec_min), NOT a code, and judged 2026-09-09 its only hard failure in a
+  directional role is H5 'vec_avg(change_action_type) has no stated sign in a directional role' —
+  H2 does not fire). Neither paper is refetched here and Denis & Denis is named as background, not
+  as evidence. If the measured Sharpe is materially positive on the UNINVERTED signal, that
+  refutes the sign chosen here and the leg should be dropped rather than re-argued.
+  FIELD (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1, dataset fundamental14 "Audit
+  Analytics Directors Data", category Fundamental / Fundamental Models, pyramidMultiplier 1.1):
+  interim_position_flag, type VECTOR, coverage 0.3967, dateCoverage 0.9507, userCount 0,
+  alphaCount 0. The label file's dataset attribution agrees with the catalogue.
+  WHY ONE FIELD AND NOT TWO TO FOUR. Only one field in this dataset marks the change as UNPLANNED
+  and also admits the reducer that turns a per-record flag into a firm-level count. The second
+  candidate, unspecified_effective_date_flag (same coverage 0.3967, description "Indicates that the
+  effective date related to the position change or event is not specified in the reporting"), is
+  REFUSED by typed.py H4: its labelled reducers are vec_avg/vec_max/vec_min, and judged 2026-09-09
+  the formula returns "H4 vec_sum is not a meaningful reducer for unspecified_effective_date_flag".
+  The role flags (chief_executive_officer_flag, chief_financial_officer_flag,
+  chief_operating_officer_flag, chief_role_indicator) do admit vec_sum but count position changes
+  of EITHER direction — an appointment and a resignation produce the same record — so their sign is
+  the contested one above and they are not a second reading of this construct. They were left out
+  rather than added for grid width.
+  TYPE RULES (forge/typed.py, judged 2026-09-09 with region USA/d1). VECTOR -> vec_sum, which the
+  label lists among the field's reducers (vec_sum/vec_avg/vec_count) and which maps a per-record
+  0/1 flag to kind 'count'; vec_sum is also the only one of the three that clears H5, because H5
+  exempts 'count' from the sign-free-role refusal while vec_avg returns a 'ratio' and is refused.
+  Coverage 0.3967 < 0.5 -> density 'zero', rendered add(x, 0, filter=true): a day with no item 5.02
+  record is a day with no interim designation, which is zero, not missing. Labelled time
+  'quarterly' -> ts_backfill sits inside both templates (H4). NOTE HONESTLY: after the zero-fill
+  nothing is NaN, so that ts_backfill is a no-op; it is there because the rule asks for it, not
+  because it changes the series. Both rendered templates pass typed.judge structural=True (the
+  pre-sim gate). The full judge refuses on H6 only ("orientation is unknown"), because a count
+  carries sign 0 through the tree; that is the label gap named above, not a second defect.
+  POINT IN TIME, an assumption and not a measurement. The construct requires the record to be
+  stamped on the 8-K FILING date. This same dataset carries unspecified_effective_date_flag
+  ('Indicates that the effective date related to the position change or event is not specified in
+  the reporting'), which is direct evidence that a record's effective date can differ from its
+  filing date. Which of the two the platform stamps is not established from any file here.
+  MECHANISM: UNKNOWN. The check is the canary's PnL start and the leg's behaviour around known
+  item 5.02 dates; if the platform stamps effective dates the leg is look-ahead-contaminated and
+  must be dropped, not re-argued.
+  TWO TEMPLATES, TWO READINGS OF THE VECTOR. It is not established from any file here whether the
+  vector holds the records filed on that day (a flow) or the firm's accumulated record list (a
+  stock). MECHANISM: UNKNOWN. ts_sum is the flow reading (interim designations in the trailing
+  window) and also reads sensibly under the stock reading (a firm that has accumulated more of
+  them); ts_delta is the stock reading (designations ADDED over the window) and is noise under the
+  flow reading. Both are simulated and the measurement decides; neither is claimed here.
+  CADENCE AND BOOK SHAPE, pre-registered expectations, not findings. An interim designation is
+  rare, so most names score zero and tie at one group_rank value; the book is a small short basket
+  against a wide flat long side, and turnover should be low — which matters because the ladder's
+  2.02 bar applies below turnover 0.30 (diagnosis_ladder.md section 1). Whether the tie mass makes
+  the leg unusable alone is the measurement; the composite exists partly because a dense partner
+  breaks the ties.
+  HISTORY CHECK, run not assumed (2026-09-09). interim_position_flag appears in NO
+  state/banned_fields.json and NO state/climb/spent_fields.json entry. It appears in 4 rows of
+  state/resim_results.jsonl, all climb-era ensembles where it is a 0.45-weight term behind a
+  -rank(close/open) price carrier under vec_count or vec_range (Sharpe 0.53 / 0.81 / 0.67); those
+  rows measure the carrier, not this construct, and are not evidence for or against it. The forge
+  journal state/layered/runs/forge.jsonl has 0 rows on any fundamental14 field.
+  DATE COVERAGE. dateCoverage 0.9507, the same as insider_agg_matrix and news_sentiment_transfer
+  and unlike the fnd14_* subgroup of this dataset (0.5559). The 5-year LOW_SHARPE window and the
+  2022-2024 ladder window should both be covered; the canary's PnL start date is the check.
+  OVERLAP TO WATCH, not a claim. The label domain is 'insider-flow', the same domain string the
+  Form-4 insider legs carry, because the domain regex matched "officer|director". The acts are
+  different (an 8-K governance filing versus an insider's own purchase) but the measured
+  correlation with insider_significant_buying_drift and insider_buy_sell_ratio decides whether
+  this is a distinct mechanism; a high reading means it is not, and the leg should be dropped.
+  README RULE. Khoa 2026-09-04: VECTOR legs live in later/ until the dense ones are validated
+  live. This file is staged and invisible to the loader; whether a VECTOR leg is admitted is his
+  tick, not this file's claim.

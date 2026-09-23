@@ -1,0 +1,647 @@
+{
+ "source": "GET /users/self/alphas (status ACTIVE) + GET /users/self/activities/pyramid-alphas",
+ "fetched": "2026-08-12",
+ "note": "READ-ONLY capture. Ground truth for tools/cell_map.py.",
+ "usa_d1_counter": {
+  "Price Volume": 40,
+  "Fundamental": 3,
+  "Social Media": 0,
+  "News": 2,
+  "Option": 3,
+  "Model": 19,
+  "Analyst": 3,
+  "Other": 3,
+  "Insiders": 2,
+  "Earnings": 3,
+  "Risk": 3,
+  "Sentiment": 1,
+  "Short Interest": 0,
+  "Institutions": 3,
+  "Macro": 3,
+  "Imbalance": 0
+ },
+ "alphas": [
+  {
+   "id": "0mM8r3L2",
+   "date": "2026-07-23",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(returns), multiply(rank(divide(volume, adv20)), 0.6), multiply(rank(predicted_surprise_pct_fy1_earnings_2), 0.6), multiply(rank(predicted_surprise_fy1_earnings), 0.55), multiply(rank(predicted_surprise_fy1_earnings_3), 0.5), multiply(rank(ts_delta(recommendation_mean_change_7d, 10)), 0.45), multiply(rank(ts_delta(recommendation_mean_change_7d_21, 10)), 0.4), multiply(rank(ts_delta(change_mean_recommendation_14d, 10)), 0.4), multiply(-rank(ts_av_diff(analyst_upward_revision_count_fq1_earnings_14d_2, 5)), 0.4), filter=true), 20)), 2.5)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "1YppwgwX",
+   "date": "2026-08-10",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(multiply(rank(ts_backfill(mean_sharpe_all, 20)), rank(ts_backfill(buy_to_sell_amount_ratio_qtr, 20))), 0.9), multiply(rank(divide(ts_backfill(vec_avg(txn_return_mean_checkpoint), 20), sqrt(ts_backfill(vec_avg(txn_return_variance_checkpoint), 20)))), 0.75), multiply(subtract(rank(ts_backfill(weighted_sharpe_all, 20)), rank(ts_backfill(mean_sharpe_all, 20))), 0.6), multiply(multiply(rank(ts_backfill(weighted_sharpe_all, 20)), rank(ts_backfill(buy_to_total_amount_ratio_1yr, 20))), 0.45), filter=true), 5)), 1.0)",
+   "cells": [
+    "Insiders",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "1Yppwox6",
+   "date": "2026-08-10",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(subtract(rank(ts_backfill(insd3_xzhou_insider_acquire_raw, 20)), rank(ts_backfill(insd3_xzhou_insider_disposal_raw, 20))), 0.9), multiply(rank(ts_delta(subtract(ts_backfill(insd3_xzhou_insider_acquire_raw, 20), ts_backfill(insd3_xzhou_insider_disposal_raw, 20)), 20)), 0.75), multiply(rank(divide(ts_backfill(insd3_xzhou_insider_acquire_raw, 20), add(ts_backfill(insd3_xzhou_insider_acquire_raw, 20), ts_backfill(insd3_xzhou_insider_disposal_raw, 20), filter=true))), 0.6), multiply(rank(ts_delta(ts_backfill(insd3_dlh_qca, 20), 60)), 0.45), filter=true), 5)), 1.0)",
+   "cells": [
+    "Insiders",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "1YzM37km",
+   "date": "2026-08-02",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(vec_avg(security_transaction_usd_value), 10)), 0.55), multiply(rank(ts_av_diff(vec_avg(transaction_value_distribution_score_active), 5)), 0.5), multiply(rank(ts_av_diff(vec_avg(top_weighted_account_number_active), 20)), 0.45), multiply(-rank(ts_delta(vec_avg(transaction_account_total), 5)), 0.4), multiply(-rank(vec_avg(transaction_account_total_active)), 0.35), multiply(rank(ts_av_diff(vec_avg(boundary_transaction_usd_value_active), 10)), 0.3), multiply(-rank(ts_delta(vec_avg(holder_account_total), 10)), 0.25), filter=true), 20)), 3.5)",
+   "cells": [
+    "Institutions",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "3qeOEbOO",
+   "date": "2026-08-03",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(industry_banking_flag), 0.55), multiply(rank(ts_delta(rsk62_retseries_factor_1_100_val19, 60)), 0.5), multiply(-rank(ts_av_diff(rsk62_beta_5_100_miscellaneousmanufactur, 5)), 0.45), multiply(rank(rsk62_beta_factor_5_100_qe2d), 0.4), multiply(rank(rsk62_risk_backfill_logadv20), 0.35), multiply(rank(rsk62_factor_1_100_val89), 0.3), multiply(-rank(aluminum_steel_producers_score), 0.25), multiply(rank(personal_products_exposure_score), 0.2), multiply(rank(rsk62_beta_industry_constr_1_100_electronics), 0.2), filter=true), 32)), 3.0)",
+   "cells": [
+    "Price Volume",
+    "Risk"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "58kPM155",
+   "date": "2026-08-02",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(-rank(ts_delta(vec_avg(assets_other_quarter), 20)), 0.55), multiply(-rank(ts_av_diff(vec_avg(income_tax_provision_quarterly), 5)), 0.5), multiply(-rank(ts_delta(vec_avg(invested_capital_quarterly), 20)), 0.45), multiply(rank(ts_delta(fnd7_ointfund_qektsc, 60)), 0.4), multiply(rank(ts_delta(vec_avg(deferred_income_tax_credit_quarterly_2), 20)), 0.35), multiply(rank(ts_delta(fnd7_ointfund_qxspvd, 10)), 0.3), multiply(rank(ts_av_diff(fnd7_ointfund_qrtld, 5)), 0.25), multiply(rank(ts_av_diff(vec_avg(accounts_other_current), 20)), 0.2), multiply(rank(ts_delta(vec_avg(total_taxes_quarterly_rolling), 5)), 0.2), filter=true), 32)), 3.5)",
+   "cells": [
+    "Fundamental",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "58pRRaY5",
+   "date": "2026-08-05",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(ts_delta(close, 1)), multiply(-rank(divide(close, ts_delay(close, 1))), 0.6), multiply(rank(ts_zscore(opt6_vimta4m, 120)), 0.55), multiply(rank(group_zscore(pcr_vol_10, subindustry)), 0.5), multiply(rank(ts_zscore(pcr_vol_60, 250)), 0.45), multiply(-rank(group_zscore(historical_volatility_10, industry)), 0.4), multiply(multiply(sign(opt6_vired), 0.5), 0.35), multiply(ts_rank(implied_volatility_mean_360, 60), 0.3), multiply(ts_rank(call_breakeven_10, 60), 0.25), filter=true), 10))",
+   "cells": [
+    "Option",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "78nM2Wg5",
+   "date": "2026-07-29",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(global_relative_default_percentile, 60)), 0.55), multiply(rank(ts_av_diff(star_ccr_country_rank, 20)), 0.4), filter=true), 32)",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "88QMjWYq",
+   "date": "2026-07-17",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "multiply(rank(-fy2_eps_estimate_dispersion), rank(-mdl177_pricemomemtummodel_indrelrtn5d_), filter=true)",
+   "cells": [
+    "Model"
+   ],
+   "effective": 1
+  },
+  {
+   "id": "9q7JLQLe",
+   "date": "2026-07-23",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "add(multiply(zscore(multiply(multiply(rank(ts_backfill(oth143_buy_tier1_concentration, 5)), rank(ts_delta(ts_backfill(oth143_sell_gbda_vwap, 5), 1))), -1)), 0.2), multiply(zscore(multiply(multiply(rank(ts_backfill(fnd65_us5000_cusip_rba, 5)), rank(ts_delta(ts_backfill(fnd65_us5000_cusip_vesspem21f_cf, 5), 1))), -1)), 0.3), multiply(zscore(multiply(rank(ts_backfill(mdl230_us5000_cusip_curindocfta_, 5)), rank(ts_delta(ts_backfill(mdl230_us5000_cusip_skew90cortn, 5), 1)))), 0.3), multiply(zscore(multiply(rank(ts_backfill(mdl264_hilomid_l1, 5)), rank(ts_delta(ts_backfill(mdl264_1l_m3r_1yf_spe_se, 5), 1)))), 0.2), filter=true)\n",
+   "cells": [
+    "Model",
+    "Other"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "E5GGlLgJ",
+   "date": "2026-08-10",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(subtract(rank(ts_backfill(snt1_d1_nettargetpercent, 20)), rank(ts_backfill(snt1_d1_netrecpercent, 20))), 0.9), multiply(rank(ts_delta(ts_backfill(snt1_d1_nettargetpercent, 20), 22)), 0.7), multiply(-rank(ts_backfill(snt1_d1_downtargetpercent, 20)), 0.5), filter=true), 5)), 1.0)",
+   "cells": [
+    "Price Volume",
+    "Sentiment"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "E5eMnEWL",
+   "date": "2026-07-31",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(vec_avg(event_sentiment_score), 10)), 0.55), multiply(rank(ts_delta(vec_avg(equity_sentiment_score), 10)), 0.5), multiply(rank(ts_delta(mean_entity_relevance_score, 20)), 0.45), multiply(-rank(ts_delta(mean_corporate_action_sentiment, 10)), 0.4), multiply(rank(ts_av_diff(vec_avg(corporate_action_sentiment), 20)), 0.35), multiply(-rank(vec_avg(earnings_evaluation_sentiment)), 0.3), multiply(rank(ts_delta(mean_event_sentiment_score, 5)), 0.25), multiply(-rank(ts_av_diff(vec_avg(story_event_record_count), 10)), 0.2), filter=true), 20)), 2.5)",
+   "cells": [
+    "News",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "E5ePM3bm",
+   "date": "2026-08-01",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(fnd94_rt_asset_turn_q), 0.55), multiply(-rank(vec_avg(fnd14_2_mtt_vqe_hsc_hsc_nhc_hsc_stl)), 0.5), multiply(rank(ts_delta(vec_avg(fnd14_bus_zip), 10)), 0.45), multiply(rank(ts_delta(fnd94_rt_mkt_val_gr, 20)), 0.4), multiply(rank(ts_delta(fnd94_bs_assets_oth_tot_q, 10)), 0.35), filter=true), 16)), 2.5)",
+   "cells": [
+    "Fundamental",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "E5ejp6JL",
+   "date": "2026-08-04",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(mean_event_sentiment_score, 20)), 0.55), multiply(rank(vec_avg(equity_sentiment_score)), 0.5), multiply(rank(ts_av_diff(vec_avg(editorial_commentary_sentiment_2), 5)), 0.45), multiply(-rank(ts_delta(mean_corporate_action_sentiment, 10)), 0.4), multiply(-rank(ts_delta(vec_avg(global_event_novelty_score_2), 20)), 0.35), multiply(rank(vec_avg(nws18_bee_fast_d1)), 0.3), filter=true), 50)), 2.5)",
+   "cells": [
+    "News",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "KPE7nLX8",
+   "date": "2026-07-25",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "trade_when(greater(divide(subtract(high, low), close), ts_mean(divide(subtract(high, low), close), 60)), ts_decay_linear(rank(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(vec_avg(mdl354_group_pt1item)/ts_mean(vec_avg(mdl354_group_pt1item), 20)), 0.6), multiply(rank(vec_avg(mdl354_sector_pt2ebitda_sur)), 0.55), multiply(rank(ts_delta(vec_avg(mdl354_group_pt1es_ebitda_fy1_r3m), 10)), 0.5), multiply(-rank(ts_av_diff(vec_avg(mdl354_group_pt12yf_dlyspe), 5)), 0.45), multiply(rank(vec_avg(mdl354_sector_pt1cfoyld)/ts_mean(vec_avg(mdl354_sector_pt1cfoyld), 20)), 0.4), multiply(rank(vec_avg(mdl354_sector_pt2oeps_sur)), 0.4), multiply(rank(ts_delta(vec_avg(mdl354_group_pt1es_ebitda_ntm_r1m), 10)), 0.4), filter=true)), 16), -1)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "KPEMA3Lg",
+   "date": "2026-08-01",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(anl4_fs_guidances_advanced_af_nd_soe_maxguidance), 0.55), multiply(-rank(ts_av_diff(vec_avg(anl69_best_ebit_numest), 20)), 0.5), multiply(rank(ts_delta(anl69_roel_best_eeps_nxt_yr, 20)), 0.45), multiply(rank(ts_delta(vec_avg(anl69_best_eps_stddev), 5)), 0.4), multiply(rank(vec_avg(anl69_best_net_gaap_median)), 0.35), filter=true), 20)), 3.5)",
+   "cells": [
+    "Analyst",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "LLdXl1Ev",
+   "date": "2026-07-22",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "multiply(rank(-mdl177_pricemomemtummodel_indrelrtn5d_), rank(add(ts_zscore(mdl177_5shortsentimentfactor_act_util,252),ts_zscore(other_current_liabilities_3,252))), filter=true)\n",
+   "cells": [
+    "Fundamental",
+    "Model"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "MPGPakqo",
+   "date": "2026-08-03",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(oth551_mwi_2r), 0.55), multiply(-rank(ts_zscore(oth551_beta_vwo, 250)), 0.5), multiply(rank(oth551_beta_qqq), 0.45), multiply(-group_rank(oth551_beta_mtum, industry), 0.4), multiply(-group_rank(oth551_beta_spy, industry), 0.35), filter=true), 10))",
+   "cells": [
+    "Macro",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "MPLZ2jd9",
+   "date": "2026-07-29",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(-rank(ts_av_diff(annual_default_probability_percent, 60)), 0.5), multiply(rank(star_ccr_sector_rank), 0.45), filter=true), 20)",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "MPLkl7mk",
+   "date": "2026-07-23",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "add(multiply(zscore(multiply(multiply(rank(ts_backfill(mdl10_1000_call_put_ratio, 5)), rank(ts_delta(ts_backfill(mdl10_1130_rsi_f, 5), 1))), -1)), 0.3), multiply(zscore(multiply(multiply(rank(ts_backfill(vix_adjusted_return, 5)), rank(ts_delta(ts_backfill(barra_ustm0_top3000_specific_return, 5), 1))), -1)), 0.2), multiply(zscore(multiply(rank(ts_backfill(nws97_5neg_mean, 5)), rank(ts_delta(ts_backfill(nws97dts_gen, 5), 1)))), 0.25), multiply(zscore(multiply(rank(ts_backfill(star_v14_sr_industr_rank, 5)), rank(ts_delta(ts_backfill(default_risk_sector_percentile_2, 5), 1)))), 0.25), filter=true)\n",
+   "cells": [
+    "Model",
+    "News",
+    "Price Volume"
+   ],
+   "effective": 0
+  },
+  {
+   "id": "MPQJ8Qnz",
+   "date": "2026-07-17",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "multiply(rank(-mdl177_pricemomemtummodel_indrelrtn5d_), rank(ts_zscore(mdl77_liquidityriskfactor_milliq, 252)), filter=true)",
+   "cells": [
+    "Model"
+   ],
+   "effective": 1
+  },
+  {
+   "id": "N1RELn6L",
+   "date": "2026-08-01",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(-rank(ts_av_diff(prob_quantile_2_bucket_0_50day_return, 10)), 0.55), multiply(-rank(prob_quantile_5_bucket_0_20day_return), 0.5), multiply(-rank(ts_delta(prob_quantile_4_bucket_3_5day_return, 20)), 0.45), multiply(-rank(ts_av_diff(prob_quantile_4_bucket_2_5day_return, 10)), 0.4), multiply(rank(quantile_5_assignment_50day_return), 0.35), filter=true), 20)), 3.5)",
+   "cells": [
+    "Earnings",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "N1boVwj7",
+   "date": "2026-08-05",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(group_rank(call_breakeven_180, industry), 0.55), multiply(ts_rank(pcr_vol_120, 120), 0.5), multiply(-ts_rank(pcr_oi_270, 250), 0.45), multiply(-ts_rank(opt6_etfsloperatioavg1y, 60), 0.4), multiply(-ts_rank(implied_volatility_mean_skew_30, 250), 0.35), multiply(rank(group_zscore(opt6_mktcap, industry)), 0.3), filter=true), 20))",
+   "cells": [
+    "Option",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "QP99gYLM",
+   "date": "2026-07-24",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(long_term_change_net_operating_assets1, 10)), 0.6), multiply(rank(ts_delta(long_term_change_operating_liability_leverage, 10)), 0.55), multiply(rank(ts_delta(long_term_change_shares_outstanding, 10)), 0.5), multiply(-rank(ts_av_diff(long_term_alert_rank_3, 5)), 0.45), multiply(-rank(ts_av_diff(long_term_altman_z_score, 5)), 0.4), multiply(-rank(ts_av_diff(long_term_altman_z_score_2, 5)), 0.4), multiply(rank(long_term_change_shares_outstanding/ts_mean(long_term_change_shares_outstanding, 20)), 0.4), filter=true), 16)), 2.0)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "QP9Rx8XG",
+   "date": "2026-08-02",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(vec_avg(transaction_value_distribution_score_active)), 0.55), multiply(rank(vec_avg(top_weighted_transaction_number_active)), 0.5), multiply(rank(ts_delta(vec_avg(top_weighted_account_number), 60)), 0.45), multiply(-rank(ts_delta(vec_avg(boundary_transaction_usd_value_active), 20)), 0.4), multiply(rank(ts_delta(vec_avg(security_transaction_usd_value_active), 10)), 0.35), multiply(rank(vec_avg(holding_value_distribution_score)), 0.3), multiply(rank(ts_delta(vec_avg(top_weighted_account_number_active), 5)), 0.25), multiply(rank(ts_delta(vec_avg(transaction_account_total_active), 5)), 0.2), multiply(-rank(ts_delta(vec_avg(transaction_value_distribution_score), 10)), 0.2), filter=true), 50)), 3.5)",
+   "cells": [
+    "Institutions",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "QPGPne9W",
+   "date": "2026-08-04",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(group_rank(oth551_aev_2r, sector), 0.55), multiply(rank(group_zscore(oth551_beta_vea, subindustry)), 0.5), multiply(rank(oth551_owv_2r), 0.45), multiply(-group_rank(oth551_vmsu_2r, industry), 0.4), multiply(group_rank(oth551_qqq_2r, industry), 0.35), multiply(-ts_rank(oth551_beta_vwo, 250), 0.3), multiply(-group_rank(oth551_r2_spy, industry), 0.25), filter=true), 10))",
+   "cells": [
+    "Macro",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "RR1kqeY1",
+   "date": "2026-07-22",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "multiply(rank(tcm_20r5_d1_label), rank(ts_delta(tcm_3r5_d1_label, 1)))\n",
+   "cells": [
+    "Model"
+   ],
+   "effective": 1
+  },
+  {
+   "id": "RRm3qpXz",
+   "date": "2026-08-04",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(-rank(neutral_sentiment_minimum_5), 0.55), multiply(rank(group_zscore(change_average, sector)), 0.5), multiply(ts_rank(median_neutral_sentiment_score_1, 120), 0.45), multiply(ts_rank(vec_avg(negative_word_count_inferess), 120), 0.4), multiply(multiply(sign(neutral_sentiment_stddev_3), 0.5), 0.35), multiply(ts_rank(negative_percent_change_sqrt_weighted_squared_sum_20d, 60), 0.3), multiply(rank(neutral_sentiment_maximum), 0.25), filter=true), 10))",
+   "cells": [
+    "Other",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "WjV0r6bj",
+   "date": "2026-07-30",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(vec_avg(mdl237_raw_w1g_tni_p_su_fte), 60)), 0.45), multiply(rank(ts_delta(vec_avg(mdl237_raw_etf_us_lev_d3m), 10)), 0.4), multiply(rank(vec_avg(mdl237_raw_etf_us_p_pop_g12m)), 0.4), filter=true), 20)",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "WjV2KJ5k",
+   "date": "2026-07-31",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(vec_avg(large_trade_count_50bps_active)), 0.55), multiply(-rank(ts_av_diff(vec_avg(transaction_account_total), 10)), 0.5), multiply(rank(vec_avg(large_trade_count_50bps)), 0.45), multiply(rank(ts_av_diff(vec_avg(transaction_value_distribution_score), 5)), 0.4), multiply(rank(ts_av_diff(vec_avg(security_transaction_usd_value_active), 10)), 0.35), filter=true), 20)), 3.0)",
+   "cells": [
+    "Institutions",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "WjVR5kgj",
+   "date": "2026-07-31",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(vec_avg(buzz_intensity_score_9), 60)), 0.55), multiply(-rank(ts_av_diff(vec_avg(analyst_sentiment_score_13), 5)), 0.5), multiply(rank(analyst_sentiment_trend_2), 0.45), multiply(rank(ts_delta(vec_avg(balance_sheet_trend_metric_51), 20)), 0.4), multiply(-rank(asset_impairment_risk_score_2), 0.35), multiply(rank(ts_delta(business_model_opacity_score_2, 5)), 0.3), multiply(rank(ts_delta(analyst_forecast_change_metric1, 60)), 0.25), multiply(rank(ts_av_diff(vec_avg(analyst_opinion_metric_2), 10)), 0.2), multiply(rank(analyst_forecast_accuracy), 0.2), filter=true), 16)), 2.5)",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "Xg8OZYQ1",
+   "date": "2026-08-05",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(opt40_call_gamma_122days, 10)), 0.55), multiply(-rank(opt40_02vh), 0.5), multiply(rank(ts_av_diff(opt3_volputitm, 10)), 0.45), multiply(rank(opt40_put_premium_182days), 0.4), filter=true), 20)), 2.5)",
+   "cells": [
+    "Option",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "Xg8oQJRl",
+   "date": "2026-07-25",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(vec_avg(nws18_bam)), 0.6), multiply(rank(vec_avg(nws18_qep)), 0.55), multiply(rank(vec_avg(nws18_ssc)), 0.5), multiply(rank(ts_delta(vec_avg(nws18_ghc_lna), 10)), 0.45), multiply(-rank(ts_av_diff(vec_avg(nws18_qep), 5)), 0.4), multiply(-rank(ts_av_diff(vec_avg(nws18_event_relevance), 5)), 0.4), multiply(rank(ts_delta(arm_global_rank_score, 10)), 0.45), multiply(rank(ts_delta(arm_global_rank_score_2, 10)), 0.4), multiply(rank(ts_delta(arm_global_rank_score_3, 10)), 0.4), multiply(rank(ts_delta(arm_preferred_earnings_component_score, 10)), 0.4), filter=true), 50)), 3.5)\n",
+   "cells": [
+    "Model",
+    "News",
+    "Price Volume"
+   ],
+   "effective": 0
+  },
+  {
+   "id": "bldn0Gnq",
+   "date": "2026-07-30",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(mdl113_future_juice_40_days_erlangertrendpredict_model_mada, 10)), 0.5), multiply(-rank(mdl113_future_juice_10_days_erlangerdeltapredict_model_predict), 0.35), multiply(rank(mdl113_seasonality_erlangertrendpredict_model_mada), 0.35), filter=true), 32)",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "e7xG3nrM",
+   "date": "2026-07-29",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "ts_decay_linear(rank(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(insurance_reserves_growth, 10)), 0.6), multiply(-rank(ts_av_diff(cost_of_goods_sold_value, 5)), 0.55), multiply(rank(sales_per_employee/ts_mean(sales_per_employee, 20)), 0.5), multiply(rank(ts_delta(loans_annual_growth, 10)), 0.45), multiply(-rank(ts_av_diff(current_assets_turnover_days, 5)), 0.4), multiply(rank(sales_per_employee_annual/ts_mean(sales_per_employee_annual, 20)), 0.4), multiply(rank(ts_delta(loans_growth_rate, 10)), 0.4), filter=true)), 16)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "gJ86n6Ve",
+   "date": "2026-08-04",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(multiply(sign(average_positive_sentiment_score_3), 0.5), 0.55), multiply(group_rank(negative_percent_change_average_20d, sector), 0.5), multiply(-rank(minimum_neutral_sentiment_score_1), 0.45), multiply(multiply(sign(positive_change_simple_sum), 0.5), 0.4), multiply(-rank(ts_mean(neutral_sentiment_median, 10)), 0.35), multiply(rank(positive_change_weighted_sum), 0.3), multiply(group_rank(percent_change_count, sector), 0.25), filter=true), 10))",
+   "cells": [
+    "Other",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "gJ9d0YXJ",
+   "date": "2026-07-29",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(star_ccr_global_rank, 5)), 0.55), multiply(rank(ts_delta(star_ccr_industry_rank, 60)), 0.55), filter=true), 16)",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "gJ9mPgGl",
+   "date": "2026-07-23",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "add(multiply(zscore(multiply(rank(ts_backfill(mdl165_dl8ibesnuggetschiwumodel2_14v, 5)), rank(ts_delta(ts_backfill(mdl165_dl8ibesnuggetschiwumodel2_22v, 5), 1)))), 0.3), multiply(zscore(multiply(rank(ts_backfill(mdl262_fcf_ttm_predict, 5)), rank(ts_delta(ts_backfill(mdl262_deltapredictfcf_ttm_predict, 5), 1)))), 0.3), multiply(zscore(multiply(multiply(rank(ts_backfill(momentum2_ask_price_first_half_volume, 5)), rank(ts_delta(ts_backfill(momentum2_last_trade_price_daily, 5), 1))), -1)), 0.4), filter=true)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "j2r0G2aj",
+   "date": "2026-07-24",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(predicted_surprise_pct_fy1_earnings_4), 0.6), multiply(rank(predicted_surprise_pct_fy2_earnings_2), 0.55), multiply(rank(predicted_surprise_fy2_earnings), 0.5), multiply(rank(ts_delta(analyst_revisions_score_21, 10)), 0.45), multiply(rank(ts_delta(analyst_revisions_score_21_2, 10)), 0.4), multiply(rank(ts_delta(arm_country_rank_score_2, 10)), 0.4), multiply(-rank(ts_av_diff(analyst_upward_revision_count_fq1_earnings_30d, 5)), 0.4), filter=true), 16)), 2.5)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "kqZpOOJK",
+   "date": "2026-08-02",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(vec_avg(ern6_dividend_status), 10)), 0.55), multiply(rank(prob_quantile_2_bucket_1_5day_volatility), 0.5), multiply(-rank(ts_delta(prob_quantile_5_bucket_4_5day_volatility, 5)), 0.45), multiply(rank(prob_quantile_4_bucket_1_5day_return), 0.4), multiply(rank(ts_av_diff(prob_quantile_5_bucket_2_5day_volatility, 5)), 0.35), filter=true), 50)), 3.5)",
+   "cells": [
+    "Earnings",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "kqZwEbrO",
+   "date": "2026-08-01",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(oth551_beta_usmv, 10)), 0.55), multiply(rank(ts_delta(oth551_beta_vea, 20)), 0.5), multiply(rank(oth551_qqq_2r), 0.45), multiply(-rank(ts_av_diff(oth551_beta_spy, 10)), 0.4), multiply(-rank(ts_av_diff(oth551_r2_spy, 20)), 0.35), multiply(rank(ts_av_diff(oth551_owv_2r, 10)), 0.3), multiply(-rank(oth551_beta_vwo), 0.25), filter=true), 20)), 3.5)",
+   "cells": [
+    "Macro",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "np8z3eME",
+   "date": "2026-07-22",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP1000",
+   "code": "multiply(rank(-winsorize(mdl177_pricemomemtummodel_indrelrtn5d_, std=4)), rank(add(ts_zscore(confidence_bucket0_timeseries_event_5d,252),ts_zscore(mdl177_2_managementqualityfactor_roe,252))), filter=true)\n",
+   "cells": [
+    "Model"
+   ],
+   "effective": 1
+  },
+  {
+   "id": "omgZNz2E",
+   "date": "2026-07-30",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(multiply(-rank(divide(close, open)), 1.0), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(vec_avg(anl69_dps_new_market_status)), 0.6), multiply(-rank(anl4_fs_guidances_basic_af_nd_cfps_maxguidance), 0.55), multiply(rank(anl69_dps_new_best_cur_fiscal_year_period), 0.5), multiply(rank(anl4_fs_guidances_basic_qf_nd_cfps_minguidance), 0.45), multiply(-rank(vec_avg(anl69_eps_gaap_hi_best_fperiod_override)), 0.4), multiply(rank(ts_av_diff(vec_avg(anl69_best_sales_hi), 10)), 0.35), multiply(rank(anl69_net_best_eeps_cur_yr), 0.3), multiply(rank(anl69_eps_gaap_hi_best_cur_fiscal_year_period), 0.25), filter=true), 32)), 3.5)",
+   "cells": [
+    "Analyst",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "omgxPArm",
+   "date": "2026-08-03",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(ts_backfill(long_term_price_reversal_factor, 5), 10)), 0.55), multiply(rank(ts_delta(ts_backfill(industry_environmental_services_flag, 5), 5)), 0.5), multiply(rank(ts_backfill(rsk62_beta_1_100_nipe, 5)), 0.45), multiply(rank(ts_av_diff(ts_backfill(rsk62_beta_industry_constr_5_100_telecommunications, 5), 5)), 0.4), multiply(-rank(ts_av_diff(ts_backfill(rsk62_industry_1_100_val33, 5), 20)), 0.35), multiply(-rank(ts_delta(ts_backfill(chemicals_sector_score, 5), 5)), 0.3), multiply(rank(ts_delta(ts_backfill(rsk62_industry_1_100_val98, 5), 10)), 0.25), filter=true), 20))",
+   "cells": [
+    "Price Volume",
+    "Risk"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "rKPqeRVa",
+   "date": "2026-08-03",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(industry_distribution_services_flag, 10)), 0.55), multiply(rank(rsk62_beta_industry_constr_5_100_insurance), 0.5), multiply(rank(rsk62_beta_factor_1_100_logadv20), 0.45), multiply(-rank(industry_textiles_flag), 0.4), filter=true), 20)), 2.5)",
+   "cells": [
+    "Price Volume",
+    "Risk"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "xAd5Zjmq",
+   "date": "2026-07-30",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(-rank(ts_delta(anl4_fs_guidances_advanced_qf_nd_ptpr_minguidance, 60)), 0.55), multiply(rank(ts_delta(vec_avg(anl69_best_aeps_lst_qtr), 10)), 0.5), multiply(rank(vec_avg(anl69_ebit_latest_ann_dt_qtrly)), 0.45), multiply(rank(vec_avg(anl69_eps_best_eps_gaap)), 0.4), multiply(rank(ts_delta(vec_avg(anl69_best_roe_4wk_dn), 5)), 0.35), multiply(rank(anl69_ycnrc_dvd), 0.3), multiply(-rank(ts_delta(vec_avg(anl69_cest_best_fiscal_period_dt), 20)), 0.25), filter=true), 20)), 3.5)",
+   "cells": [
+    "Analyst",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "zqRE752d",
+   "date": "2026-07-31",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_av_diff(rolling_250day_return, 10)), 0.55), multiply(rank(prob_quantile_2_bucket_1_5day_return), 0.5), multiply(-rank(ts_delta(prob_quantile_4_bucket_0_5day_return, 60)), 0.45), multiply(rank(ts_av_diff(prob_quantile_3_bucket_2_5day_return, 5)), 0.4), multiply(rank(ts_delta(prob_quantile_3_bucket_2_50day_return, 60)), 0.35), multiply(rank(ts_av_diff(prob_quantile_3_bucket_1_5day_volatility, 20)), 0.3), multiply(rank(ts_delta(prob_quantile_4_bucket_1_10day_return, 5)), 0.25), multiply(rank(prob_quantile_4_bucket_2_50day_return), 0.2), multiply(rank(prob_quantile_3_bucket_1_20day_return), 0.2), filter=true), 20)), 2.5)",
+   "cells": [
+    "Earnings",
+    "Price Volume"
+   ],
+   "effective": 2
+  },
+  {
+   "id": "zqRN8LGE",
+   "date": "2026-07-25",
+   "region": "USA",
+   "delay": 1,
+   "universe": "TOP3000",
+   "code": "trade_when(greater(divide(subtract(high, low), close), ts_mean(divide(subtract(high, low), close), 60)), signed_power(zscore(ts_decay_linear(add(-rank(divide(close, open)), multiply(-rank(divide(close, vwap)), 0.6), multiply(rank(ts_delta(vec_avg(mdl237_raw_etf_us_a_lev_d12m), 10)), 0.6), multiply(-rank(ts_av_diff(vec_avg(mdl237_raw_etf_us_a_lev), 5)), 0.55), multiply(rank(vec_avg(mdl237_raw_etf_us_a_pop)/ts_mean(vec_avg(mdl237_raw_etf_us_a_pop), 20)), 0.5), multiply(rank(ts_delta(vec_avg(mdl237_raw_etf_us_a_lev_d1m), 10)), 0.45), multiply(-rank(ts_av_diff(vec_avg(mdl237_raw_etf_us_a_lev_d12m), 5)), 0.4), multiply(rank(vec_avg(mdl237_raw_etf_us_a_pop_d12m)/ts_mean(vec_avg(mdl237_raw_etf_us_a_pop_d12m), 20)), 0.4), multiply(rank(ts_delta(vec_avg(mdl237_raw_etf_us_a_lev_d1w), 10)), 0.4), filter=true), 16)), 2.0), -1)\n",
+   "cells": [
+    "Model",
+    "Price Volume"
+   ],
+   "effective": 2
+  }
+ ]
+}

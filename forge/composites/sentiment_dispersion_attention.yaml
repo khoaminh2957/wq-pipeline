@@ -1,0 +1,27 @@
+id: sentiment_dispersion_attention
+title: Negative sentiment dispersion and abnormal coverage predict reversal
+arm: new
+legs: [sentiment_dispersion_confidence, sentiment_abnormal_coverage_reversal]
+families: [dispersion, attention]
+combiners: [multiply]
+mechanism: >
+  The conjunction identifies firms where ambiguous negative sentiment coexists with
+  abnormal article volume. High sentiment dispersion prevents full pricing of bad news
+  due to lack of consensus, while abnormal coverage marks attention peaks that reverse as
+  retail investors overreact to volume spikes. The combination amplifies the mispricing
+  because attention peaks distract from the underlying ambiguity in sentiment scores.
+counterparty: retail investors who overreact to news volume and fail to resolve ambiguous sentiment
+source: "EX-ANTE — Barber & Odean 2008, retail attention predicts reversal; Tetlock 2007, media dispersion predicts downward pressure"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small-cap stocks with high news volume and ambiguous sentiment
+weakens_when: low news volume and high institutional ownership
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  In value winters, the combination of high dispersion and abnormal coverage leads to
+  strong underperformance as retail investors overreact. During momentum crashes, the
+  effect is neutral as momentum dominates. In COVID-2020, the combination predicts strong
+  underperformance due to heightened uncertainty and attention spikes. In rate shocks, the
+  effect weakens as macro factors dominate stock selection.

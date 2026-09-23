@@ -1,0 +1,7 @@
+[Unit]
+Description=wq dead-man switch — fires when the NOTIFIER itself stops delivering
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+ExecStart=/opt/wq/venv/bin/python /opt/wq/tools/deadman.py --quiet

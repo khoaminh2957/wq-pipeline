@@ -1,0 +1,19 @@
+[Unit]
+Description=wq harvest — sweeps journals for parent handles and collects simulations already finished
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+ExecStart=/bin/bash /opt/wq/harvest_loop.sh
+# It was a bare while-true with PPID 1, started by hand, running production code out of /tmp, and
+# when it died on 2026-08-16 at 21:38 nothing noticed for an hour. A supervised unit fixes both:
+# it comes back, and a failure is a fact systemd holds rather than an absence nobody reads.
+Restart=always
+RestartSec=60
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

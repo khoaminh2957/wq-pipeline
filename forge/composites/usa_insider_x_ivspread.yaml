@@ -1,0 +1,20 @@
+id: usa_insider_x_ivspread
+title: Insiders buying where the option market is bullish (USA Insiders cell)
+legs: [insider_significant_buying_drift, option_call_put_iv_spread]
+families: [insider, options]
+combiners: [multiply, gate]
+mechanism: >
+  Insider purchases and a call-over-put implied-volatility premium are two informed crowds
+  reading the same firm from different information: filings and the option book. When both
+  point up the drift is strongest, because each crowd's trade is a costly commitment rather than
+  an opinion. The product of the two ranks keeps those firms; outside shareholders who read
+  neither insider filings nor the option surface supply the drift.
+counterparty: "Outside shareholders and index funds that read neither insider filings nor the option surface"
+source: "EX-ANTE — Lakonishok & Lee 2001 (insider purchases); Cremers & Weinbaum 2010 (call-put IV spread predicts returns); Pan & Poteshman 2006"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "0"}
+strongest_in: "mid caps with listed options and concentrated insider ownership"
+weakens_when: "option volume is dominated by index hedging (2020 Q1)"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.15

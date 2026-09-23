@@ -1,0 +1,28 @@
+id: natr_momentum_debt_coverage
+title: Volatility reversal enhanced by fundamental safety
+arm: new
+legs: [tcm_ta50_d1_natr_momentum, usa_debt_service_coverage]
+families: [momentum, coverage]
+combiners: [multiply]
+mechanism: >
+  The conjunction isolates stocks where high volatility is likely driven by noise rather than
+  fundamental distress, and the balance sheet can service debt. High NATR signals retail
+  overreaction or liquidity shocks, while strong debt-service coverage ensures the firm is not
+  in a solvency crisis. The product amplifies the reversal signal only when the firm is
+  fundamentally safe, filtering out cases where volatility reflects genuine credit risk or
+  default probability.
+counterparty: retail investors overreacting to volatility while institutions hold safe balance sheets
+source: "EX-ANTE — Lakonishok 1992, fundamental safety predicts returns; DeMiguel 2007, volatility predicts reversal"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: high-attention small caps with strong cash flow
+weakens_when: debt coverage is low or volatility is driven by earnings surprises
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter_2014_2020: + because retail overreaction is pronounced in value traps, and debt
+  coverage provides a safety net. momentum_crash_2016: 0 because volatility is driven by systematic
+  risk, not idiosyncratic noise. covid_2020: + because retail participation spiked, increasing
+  overreaction. rate_shock_2022: - because volatility is driven by macro rates, not idiosyncratic
+  sentiment, so the reversal effect is weak.

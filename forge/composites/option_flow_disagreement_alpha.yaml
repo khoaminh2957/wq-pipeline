@@ -1,0 +1,19 @@
+id: option_flow_disagreement_alpha
+title: Professional option flow imbalance and news sentiment disagreement
+arm: new
+legs: [pro_customer_vol_imbalance_noto, news_tone_disagreement_trna]
+families: [option_flow, disagreement]
+combiners: [multiply]
+mechanism: >
+  The conjunction of professional option flow imbalance and news sentiment disagreement predicts returns because high disagreement in news tone indicates unresolved information uncertainty, while professional option flow provides a directional signal from informed traders. When professionals are net bullish in options while news tone is highly dispersed, it suggests that informed agents are leveraging the uncertainty to their advantage, and the underlying equity will drift as the market resolves the disagreement in the direction indicated by the informed flow. The multiplication captures the interaction where informed trading is most predictive when public information is ambiguous.
+counterparty: retail investors who react to news headlines without monitoring options flow
+source: "EX-ANTE — Tetlock 2007, sentiment disagreement and informed trading both predict equity returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: large-cap stocks with high news coverage and active options markets
+weakens_when: low options liquidity or during periods of extreme macro uncertainty
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter_2014_2020: "+" because both signals work in quiet markets where informed trading is less noisy; momentum_crash_2016: "0" because crashes disrupt normal information diffusion and overwhelm idiosyncratic signals; covid_2020: "+" because the shock created large information asymmetries and high news disagreement that informed traders exploited; rate_shock_2022: "-" because macro rate shocks dominate idiosyncratic information and overwhelm the signal.

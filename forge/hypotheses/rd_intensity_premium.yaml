@@ -1,0 +1,27 @@
+id: rd_intensity_premium
+family: intangibles
+category: Fundamental
+title: R&D intensity earns a premium the book misses
+mechanism: >
+  R&D is expensed, so R&D-intensive firms look expensive on book measures and are underpriced;
+  the premium accrues over years. Long the names with the highest R&D relative to sales or
+  assets.
+counterparty: Investors who value firms on unadjusted book figures.
+sign: 1
+source: "EX-ANTE — Chan, Lakonishok & Sougiannis 2001 (the stock market valuation of R&D expenditures); Lev & Sougiannis 1996"
+datasets: [fundamental7, fundamental6]
+signal:
+  fields: [fnd7_ointfund_qdrx, fnd6_newa2_xrd]
+signal2:
+  fields: [fnd7_ointfund_qta, fnd6_newa2_revt]
+template:
+  - "group_rank(ts_backfill({signal} / {signal2}, {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

@@ -1,0 +1,17 @@
+id: prtone_x_accruals
+title: "Press-release tone credible only with low accruals"
+arm: new
+legs: [news_pr_event_tone, usa_accruals_cashflow]
+families: [tone_pr, accruals]
+combiners: [multiply, gate]
+mechanism: >
+  A positive press release is informative when the firm's earnings are backed by cash (low accruals) and cheap talk when they are not; investors under-react to credible announcements and over-react to incredible ones. Multiplying the PR-tone rank by the low-accruals rank keeps the credible positive announcements.
+counterparty: "Retail investors who take announcements at face value; analysts who revise slowly"
+source: "EX-ANTE — Sloan 1996 TAR (accruals); Bernard & Thomas 1989 JAR (post-announcement drift)"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "firms with frequent corporate announcements"
+weakens_when: "periods of accounting rule changes"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

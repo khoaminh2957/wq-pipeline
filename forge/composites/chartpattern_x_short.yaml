@@ -1,0 +1,48 @@
+id: chartpattern_x_short
+title: "Bullish consolidation where the seller is not an informed short"
+arm: new
+legs: [chart_continuation_pattern_net, short_volume_ratio_informed]
+families: [chart_pattern, short]
+combiners: [multiply]
+mechanism: >
+  A tight consolidation after an advance is a standoff: demand keeps arriving and meets a supply
+  large enough to hold the price flat. The pattern-similarity leg measures that the standoff is
+  happening and is silent on who is supplying, and two suppliers imply opposite futures. If the
+  seller is an individual investor closing an unrealised capital gain, the supply is uninformed and
+  finite, and the advance resumes once the overhang clears. If the seller is a short seller building
+  a position into the strength, the supply is informed and the standoff resolves downward instead.
+  The daily short-sale share of volume is a direct measurement of which of the two is on the offer,
+  taken over the same days the consolidation is forming, so the product is high only where the shape
+  says "an advance is pausing" AND the flow says "no informed seller is on the other side of it".
+  Neither leg names the counterparty on its own; the conjunction is what names it, and that is the
+  reason the pair should predict where either leg alone should not. REGIME REASONING, not copied:
+  value_winter_2014_2020 "+" because quiet trends give orderly consolidations and uninformed
+  profit-taking clears slowly; momentum_crash_2016 "-" because a momentum crash IS the event in
+  which a pause after an advance resolves down, inverting the leg's premise; covid_2020 "-" because
+  the range explosion destroys the tight-consolidation template and short volume becomes hedging and
+  market-making rather than information, so both legs lose their meaning at once; rate_shock_2022
+  "0" because the mechanism is symmetric long/short and 2022 offered both clean sustained trends and
+  violent bear-market rallies that break continuation shapes, with no reason stated in advance to
+  expect one to dominate.
+counterparty: "Individual investors realising a capital gain into the consolidation - the marginal seller precisely where the short seller is absent."
+source: >
+  EX-ANTE - Grinblatt & Han, NBER w8734 (https://www.nber.org/papers/w8734, fetched 2026-09-08,
+  HTTP 200), verbatim: "stocks with large aggregate unrealized capital gains tend to have higher
+  expected returns than stocks with large aggregate unrealized capital losses". Boehmer, Jones &
+  Zhang 2008, Journal of Finance, via Crossref DOI 10.1111/j.1540-6261.2008.01324.x
+  (https://api.crossref.org/works/10.1111/j.1540-6261.2008.01324.x, fetched 2026-09-08, HTTP 200),
+  verbatim: "Heavily shorted stocks underperform lightly shorted stocks by a risk-adjusted average
+  of 1.16% over the following 20 trading days (15.6% annualized)."
+  combiners is [multiply] only: the short leg is bearish and forge.compose's gate branch leaves a
+  bearish leg unreversed, so a gate would invert the composite's orientation.
+regimes:
+  value_winter_2014_2020: "+"
+  momentum_crash_2016: "-"
+  covid_2020: "-"
+  rate_shock_2022: "0"
+strongest_in: "Liquid names with an active lending market, where the short-sale share of volume is measured on real informed flow rather than on a handful of market-maker prints, and where consolidations after an advance stay tight enough for the template to match."
+weakens_when: "Volatility events destroy the consolidation shape and turn short volume into hedging, so both legs fail together rather than independently. The open risk is that the bullish leg is nothing but trailing momentum re-encoded, which would place it close to the production book: the prod-correlation read, not the Sharpe, is the measurement that decides this composite."
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8, 16]
+  truncation: 0.08

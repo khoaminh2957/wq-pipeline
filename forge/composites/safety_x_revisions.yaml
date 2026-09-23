@@ -1,0 +1,19 @@
+id: safety_x_revisions
+title: Safe balance sheets with improving estimates
+legs: [smartratios_credit_safety, analyst_estimate_revision_drift]
+families: [distress, revisions]
+combiners: [multiply, gate]
+mechanism: >
+  Distressed firms earn low returns and their estimate revisions are mostly downward noise;
+  among safe firms an upward revision is informative and drifts. Conditioning the revision rank
+  on the credit-safety rank removes the distressed tail where revisions mean little and keeps
+  the safe names whose improving outlook institutions have not yet priced.
+counterparty: "Institutions that underreact to revisions and lottery-seeking retail holders of distressed equity"
+source: "EX-ANTE — Campbell, Hilscher & Szilagyi 2008 (distress risk); Gleason & Lee 2003 (revision drift); Asness, Frazzini & Pedersen 2019 (safety)"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "names with a credit score but few covering analysts"
+weakens_when: "credit spreads compress and distressed equity rallies"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

@@ -1,0 +1,27 @@
+id: trend_disagreement_confluence
+title: Trend persistence amplified by news disagreement
+arm: new
+legs: [trend_momentum_consistency, ai_news_score_disagreement]
+families: [trend, disagreement]
+combiners: [multiply]
+mechanism: >
+  This conjunction isolates stocks where a consistent price trend exists alongside high dispersion in news sentiment
+  scores. The trend leg identifies the directional pressure, while the disagreement leg flags that the market has
+  not yet reached a consensus on the news interpretation. When a clear price trend persists despite diverging
+  news narratives, it suggests that the price action is driven by fundamental flows or informed trading rather than
+  transient sentiment spikes. This lack of consensus resolution creates a slow-burn drift as the market gradually
+  aligns its interpretation with the observed price path, leading to continued returns.
+counterparty: sell-side analysts and retail investors who react to headline noise
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: high-attention tech and consumer discretionary sectors
+weakens_when: macro shocks dominate all idiosyncratic news signals
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter_2014_2020: + because steady trends with noisy news allowed for gradual price discovery.
+  momentum_crash_2016: 0 because the sharp reversal overwhelmed the disagreement signal.
+  covid_2020: + because high news disagreement during recovery periods marked stocks that would drift as clarity emerged.
+  rate_shock_2022: - because rising rates suppressed valuation expansion regardless of news resolution.

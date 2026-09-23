@@ -1,0 +1,6 @@
+[Unit]
+Description=Compute pipeline health to state/notify/health_report.json (does not post)
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+ExecStart=/opt/wq/venv/bin/python /opt/wq/tools/health_report.py

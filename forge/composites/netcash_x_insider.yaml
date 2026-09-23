@@ -1,0 +1,76 @@
+id: netcash_x_insider
+title: Cash-rich balance sheets where the insiders are buying
+arm: new
+legs: [net_cash_to_market_equity, insider_significant_buying_drift]
+families: [balance_sheet_cash, insider]
+combiners: [multiply]   # Verifier 2026-09-09: the gate branch compiles to an insider-half indicator book the library already runs (audit_staged.md)
+mechanism: >
+  Net cash is a claim on liquid assets, but what an outside shareholder collects from it depends on
+  whether the board returns the cash or spends it, and the outsider cannot see which. Jensen 1986
+  puts the agency conflict exactly there - "These conflicts are especially severe in firms with
+  large free cash flows-more cash than profitable investment opportunities" - and Simutin 2010
+  measured the symptom: high-excess-cash firms invest considerably more later without stronger later
+  profitability. An officer of the firm can see the deployment plan, and an officer who expects the
+  cash to fund empire-building does not buy the stock with his own money, so accumulated insider
+  purchases separate the two states that the balance sheet alone cannot. The conjunction therefore
+  keeps the cash-rich firms where the agency discount does not apply, and it is that subset, not
+  cash-rich firms in general, that collects the premium. Neither leg says this alone: the cash leg is
+  a claim about compensated aggregate-shock exposure, the insider leg is a claim about private
+  information, and the composite is a claim about when the first is collected rather than dissipated.
+counterparty: >
+  Outside institutional shareholders and index funds, which hold every cash-rich firm at the same
+  discount because they cannot observe whether the board will return the cash or burn it, and
+  drawdown-constrained pension funds and insurers that avoid high-cash names outright.
+source: >
+  EX-ANTE - Jensen 1986, American Economic Review 76(2), "Agency Costs of Free Cash Flow, Corporate
+  Finance, and Takeovers", fetched https://api.openalex.org/works/W3121131820 (HTTP 200), verbatim:
+  "These conflicts are especially severe in firms with large free cash flows-more cash than
+  profitable investment opportunities." Cash leg: Penman, Richardson & Tuna 2007 JAR, fetched
+  https://api.openalex.org/works/doi:10.1111/j.1475-679x.2007.00240.x (HTTP 200); Simutin 2010
+  Financial Management, fetched https://api.openalex.org/works/doi:10.1111/j.1755-053x.2010.01109.x
+  (HTTP 200), verbatim: "high excess cash companies invest considerably more in the future than do
+  their low peers, but do not experience stronger future profitability". Insider leg: Lakonishok &
+  Lee 2001; Jeng, Metrick & Zeckhauser 2003, as carried by insider_significant_buying_drift.
+regimes:
+  value_winter_2014_2020: "0"
+  momentum_crash_2016: "0"
+  covid_2020: "-"
+  rate_shock_2022: "+"
+strongest_in: >
+  Mid-caps whose net cash is large relative to market equity and where the board actually has
+  discretion over it, outside the regulated industries (banks, insurers, utilities) in which cash is
+  a required buffer rather than a choice, and in names with discretionary rather than plan-scheduled
+  insider purchases.
+weakens_when: >
+  Market drawdowns, when the aggregate-shock exposure the cash leg is paid for actually arrives
+  (Simutin: high-cash firms have higher market betas and lower returns in downturns) - this is why
+  covid_2020 is signed "-"; and in firms whose insider purchases are routine 10b5-1 plan buys, where
+  the insider leg carries no deployment information and the conjunction degenerates to the cash leg.
+notes: >
+  REGIME SIGNS, REASONED FOR THIS MECHANISM (not copied from another composite).
+  value_winter_2014_2020 "0": net cash over market equity is a balance-sheet quantity divided by
+  price, so it inherits some value-factor loading and the value winter works against it; but the
+  names carrying large net cash in that window were cash-heavy technology and biotech rather than
+  cheap operating businesses, which works for it. Two forces point opposite ways and neither is
+  measured here, so the honest entry is 0, not "+".
+  momentum_crash_2016 "0": neither leg is a price-trend leg - the cash leg is a slow balance-sheet
+  level, the insider leg an accumulation over 20-120 days of filings - so there is no reason to
+  expect a loading on the momentum factor's reversal in either direction.
+  covid_2020 "-": the cash leg's stated force is compensated aggregate-shock exposure. A regime that
+  IS the aggregate shock is the regime in which that exposure pays negatively; Simutin measured the
+  same thing directly (lower returns in market downturns). Signing this "+" would be signing the
+  premium and its risk both as gains.
+  rate_shock_2022 "+": rising rates pay a yield on held cash and reprice the debt that a net-cash
+  firm does not carry, so both halves of net-cash-minus-debt move the same way. The insider leg is
+  neutral to the rate path.
+  DUPLICATION CHECK. The insider composites already in forge/composites are insider_x_accruals,
+  usa_insider_x_ivspread, usa_insider_x_profitability_x_accruals and usa_insider_x_short_x_profitability;
+  none pairs insider flow with a balance-sheet cash leg, and no existing leg carries net cash.
+  UNKNOWN. Whether the agency channel Jensen names is what makes the conjunction work, rather than
+  the insider leg simply adding an independent forecast, is NOT established - no experiment here
+  distinguishes them. The A/B this composite belongs to measures whether the conjunction predicts,
+  not why.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

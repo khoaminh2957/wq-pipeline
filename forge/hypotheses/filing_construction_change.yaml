@@ -1,0 +1,139 @@
+id: filing_construction_change
+family: filing_revision
+category: Other
+title: The firm rewrote the size and structure of its own mandatory filing
+mechanism: >
+  A 10-K or 10-Q is re-filed on a fixed calendar and most of it is copied forward from the previous
+  one, so the document's size and its inventory of parts are a firm-level constant until somebody
+  decides to change them. When a firm adds notes to the Notes to Consolidated Financial Statements,
+  adds or drops regulatory items and sub-sections, or materially lengthens the document, that is a
+  deliberate act taken by people who know what made it necessary, and Cohen, Malloy and Nguyen
+  report that firms which change their reports subsequently underperform while firms that leave
+  them alone earn positive abnormal returns, with no price reaction at the filing date. Reading
+  this year's filing against last year's is a costly diff that no market participant is paid to
+  perform, so the change sits unpriced until the reason for it surfaces later as news, an earnings
+  miss or a failure. This leg measures the size of the year-over-year change in the document's
+  construction - total words (Loughran & McDonald 2014 propose 10-K FILE SIZE, not word count, as
+  the readability proxy - and its stated advantage, that it 'does not require document parsing',
+  does not carry over to a word count; the two are related, not the same construct), the count of
+  notes to the consolidated financial statements, the count of regulatory items, the count of
+  sub-sections - relative to that document's own prior
+  level, and shorts the biggest rewriters. Force claimed: behavioural mispricing through inattention
+  to a costly-to-process document, which is the paper's own stated reading of its result; a
+  risk-premium reading is not excluded by anything measured here.
+counterparty: "Fundamental and quantitative investors who read each filing on its own terms - screening the numbers, and at most this filing's tone - together with index-tracking and passive holders who carry a name straight through a filing nobody diffs against the previous one; the diff is unpaid work, and the cited paper reports no price reaction on the filing date."
+sign: -1
+source: >
+  EX-ANTE - Cohen, Malloy & Nguyen, "Lazy Prices" (working-paper record; published Journal of
+  Finance 2020, 75(3)). FETCHED https://api.crossref.org/works/10.2139/ssrn.1658471 HTTP 200
+  (2026-09-09). Verbatim from that record's abstract: 'Changes to the language and construction of
+  financial reports also have strong implications for firms' future returns: a portfolio that
+  shorts "changers" and buys "non-changers" earns up to 188 basis points in monthly alphas (over
+  22% per year) in the future.' and 'meanwhile firms that do not make changes experience positive
+  abnormal returns.' and 'we find no announcement effect associated with these changes--with
+  returns only accruing when the information is later revealed through news, events, or
+  earnings--suggesting that investors are inattentive to these simple changes across the universe
+  of public firms.' The use of document SIZE as one of the four construction measures is grounded
+  by Loughran & McDonald 2014, Journal of Finance, "Measuring Readability in Financial
+  Disclosures", FETCHED https://api.crossref.org/works/10.1111/jofi.12162 HTTP 200 (2026-09-09),
+  verbatim: 'We report that 10-K document file size provides a simple readability proxy that
+  outperforms the Fog Index, does not require document parsing, facilitates replication, and is
+  correlated with alternative readability constructs.'
+datasets: [filing_sentiment]
+signal:
+  fields: [total_word_quantity_2, financial_note_quantity_2, subsection_quantity_2, regulatory_item_quantity_2]
+  vector: vec_sum
+  density: backfill
+  density_window: 90
+template:
+  - "-group_rank(abs(ts_delta({signal}, {w})) / (ts_delay({signal}, {w}) + 1), {group})"
+  - "-group_rank(abs(ts_delta(ts_mean({signal}, 63), {w})) / (ts_delay(ts_mean({signal}, 63), {w}) + 1), {group})"
+params:
+  w: [250, 500]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives all four fields sign 'unstated' (sign_source 'unstated'), and
+  the platform descriptions state no direction either - they are pure counts ("The number of words
+  in the section", "Number of individual notes in the Notes to Consolidated Financial Statements
+  section", "Number of sub-sections in the section", "Number of items across all parts of the
+  filing"). So there is no label-versus-description disagreement to resolve: neither carries a sign.
+  The leg's direction does not come from the field at all; it comes from the CHANGE construct plus
+  the cited result that changers underperform non-changers. Each field therefore enters only inside
+  abs(ts_delta(...)), which is exactly the sign-free role typed.py H5 permits for an unstated-sign
+  field.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, region USA delay 1, dataset filing_sentiment,
+  category Other / subcategory Event Data, all four type VECTOR, dateCoverage 0.9507, dateUpdated
+  2026-03-01, pyramidMultiplier 1.5): total_word_quantity_2 coverage 0.7266 userCount 0
+  alphaCount 0; financial_note_quantity_2 0.7266 / 0 / 0; subsection_quantity_2 0.7266 / 3 / 3;
+  regulatory_item_quantity_2 0.7266 / 5 / 5. VECTOR, so every field is read through vec_sum
+  (typed.py H4); vec_sum is the reducer the labels list first for vec_role 'event-count'.
+  VECTOR AXIS - an ASSUMPTION, named here rather than left implicit. The labels permit vec_sum,
+  vec_count and vec_max for vec_role 'event-count', and neither the field descriptions nor
+  forge/labels.py says which one recovers the filing-level count. For regulatory_item_quantity_2,
+  whose description is already filing-level ('Number of items across all parts of the filing'),
+  vec_sum and vec_max are different quantities. vec_sum is pinned because the labels list it first,
+  not because anything on file establishes it as the right axis; widening to [vec_sum, vec_max]
+  would measure this instead, and the choice to leave it pinned is a grid-cost decision.
+  DENSITY. Coverage 0.7266 is 'medium', so H4 does not require a density operator. `density:
+  backfill` (90 trading days) is added anyway for two stated reasons: a filing stands as the firm's
+  current disclosure until the next one supersedes it, which is what backfill encodes; and
+  ts_delta over a 250-day lag returns NaN whenever either endpoint is missing, which on a 27%-empty
+  series would empty the book. 90 trading days is a little over the quarterly mandatory cadence, so
+  a late filer is still covered.
+  WHY ONLY THE '_2' VARIANTS. The dataset carries the same names with no suffix (coverage 0.5443)
+  and three OTHER '_2' fields at coverage 0.0256 (dead). Only one field in the dataset carries a
+  '_3' suffix (aggregate_sentiment_score_3); none of the four fields used here has a '_3' variant. The
+  platform descriptions do not say what the suffix means; major_section_quantity_2 is described as
+  a count of parts "in the parsed 8-K filing", which hints the suffix selects a filing form, but no
+  other '_2' description says so. MEANING OF THE SUFFIX: UNKNOWN. Note the hint is weak:
+  major_section_quantity_2 sits at coverage 0.0256, i.e. in the dead tier this same paragraph
+  excludes, so it is not evidence about the 0.7266 tier the leg actually uses. All four fields used
+  here are the 0.7266-coverage '_2' variants so that one lag compares one family of rows against
+  itself; whether
+  that family is a single filing form is not established, and nothing here assumes it.
+  KNOWN ARTIFACT, not hidden. On a single daily backfilled series a fixed lag can straddle different
+  document types (a 10-K differenced against a 10-Q, or against an 8-K: the dataset record's own
+  description says it covers 'annual, quarterly, and event-driven reports', and no field in it
+  identifies the form), which registers as a large "change" that is a document-type artefact rather
+  than an active rewrite. Two things are done about it and
+  neither is a fix: w is 250 or 500 trading days, whole years, so the comparison is like-for-like
+  under an annual filing cycle; and the second template averages the document over a quarter
+  (ts_mean 63) before differencing, so the reading does not depend on which filing happens to be
+  current on the day. Shorter lags (63, 125) were deliberately NOT put in the grid because they
+  compare unlike documents.
+  PROXY LIMITATION - the thing most likely to make this leg fail, stated first rather than found
+  later. The cited paper measures textual similarity between consecutive filings. This leg measures
+  only changes that alter document SIZE or the COUNT of notes, items and sub-sections: a rewrite
+  that keeps the length and the structure is invisible here, and a length change caused by an
+  acquisition, a divestiture or a new segment is counted as a rewrite when it is not one. Whether
+  this coarse proxy carries the paper's effect is a measurement, not a claim made here.
+  DIVIDE GUARD. The denominator is ts_delay(signal, w) + 1 rather than ts_delay(signal, w): a firm
+  can have zero notes or zero items in a period, and an unguarded divide would send that name to
+  +inf and straight to the top of group_rank. Adding the unit-free constant 1 is negligible against
+  a word count and meaningful against a note count; it is a guard, not a model.
+  HISTORY CHECK, run not assumed. None of the four ids appears in state/banned_fields.json (2 keys)
+  or state/climb/spent_fields.json (75 entries). grep over state/layered/runs/forge.jsonl returns 0
+  matches for any of the four ids and 0 for the string filing_sentiment, so no forge formula has
+  used this dataset. No existing leg in forge/hypotheses/ and no leg staged by another round-2
+  researcher in forge/hypotheses/staged/ uses filing_sentiment or measures document structure.
+  FORCE, alternatives listed rather than ranked. Inattention is the paper's own reading ('investors
+  are inattentive to these simple changes'). A risk reading - the rewrite reveals a hazard that
+  carries a premium - is not excluded by anything measured here, and neither is a mechanical one
+  (document growth tracks corporate actions that carry their own return effect). MECHANISM among
+  these: UNKNOWN. The leg is written on the force the paper states, and nothing in this file
+  claims to have distinguished them.
+  POST-PUBLICATION DECAY. Lazy Prices was published (JF 2020, 75(3)) on a 1995-2014 sample; the
+  binding window here is 2022-2024, entirely outside that sample and after publication. The reason
+  the decay is not assumed to bind is on-platform crowding, not novelty of the idea: the four fields
+  carry alphaCount 0/0/3/5 and userCount 0/0/3/5, and the dataset is used by no other leg in
+  forge/hypotheses/. Whether the effect survived is a measurement, not a claim.
+  TURNOVER (POST-HOC, allocation only, not a reason the leg predicts returns). The construct only
+  moves when a filing lands, so its turnover should be low. docs/harness5/round_2/diagnosis_ladder.md
+  section 1 records that every all-binding USA/d1 passer carried turnover 0.06-0.30, the band in
+  which the ladder bar reads 2.02 rather than 2.37. That is an observation about the journal.

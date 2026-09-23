@@ -1,0 +1,24 @@
+id: short_interest_surprise
+family: short
+category: Short Interest
+title: Short interest above its forecast predicts low returns
+mechanism: >
+  Short interest that comes in above what its own history predicted is new bearish information
+  from informed short sellers. Short the names with the largest positive short-interest surprise
+  over the window.
+counterparty: Holders who ignore short-interest releases.
+sign: -1
+source: "EX-ANTE — Asquith, Pathak & Ritter 2005 (high short interest predicts low returns); Rapach, Ringgenberg & Zhou 2016 (short interest is a strong return predictor)"
+datasets: [short_interest_pred]
+signal:
+  fields: [short_interest_surprise_ratio, short_interest_surprise_value, short_interest_surprise_amount]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

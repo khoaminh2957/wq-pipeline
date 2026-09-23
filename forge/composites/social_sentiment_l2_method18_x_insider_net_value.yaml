@@ -1,0 +1,26 @@
+id: social_sentiment_l2_method18_x_insider_net_value
+title: Social sentiment drift amplified by insider conviction
+arm: new
+legs: [social_sentiment_l2_method18, insider_net_value_eur]
+families: [social_sentiment, insider]
+combiners: [multiply]
+mechanism: >
+  Social sentiment provides the volume of retail attention, while insider buying provides the
+  quality filter of informed demand; when retail chatter is positive AND insiders are buying, the
+  signal indicates that the attention is being validated by insiders, leading to a stronger drift
+  than sentiment alone.
+counterparty: retail investors who follow insiders but react to sentiment with a lag
+source: "EX-ANTE — Sias et al. 2006, insider trading and price impact"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small-cap stocks with high social media activity
+weakens_when: market volatility is extremely high and liquidity dries up
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  In the 2014-2020 value winter, retail attention was high and insider signals were strong,
+  supporting the positive sign. During the 2016 momentum crash, both signals likely reversed or
+  became noisy, resulting in a neutral effect. In the 2020 pandemic, retail buying and social
+  sentiment were extremely high, amplifying the effect. In the 2022 rate shock, high interest
+  rates reduced the appeal of speculative retail stocks, weakening the effect.

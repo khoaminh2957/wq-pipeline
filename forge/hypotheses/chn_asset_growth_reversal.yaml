@@ -1,0 +1,26 @@
+id: chn_asset_growth_reversal
+family: investment
+category: Fundamental
+title: Fast asset, investment and inventory growth reverses
+mechanism: >
+  Firms that grow fixed assets, investment assets and inventories fastest over-invest and
+  disappoint; the asset-growth effect is among the strongest fundamental anomalies. Short the
+  names with the highest growth rates.
+counterparty: Investors who extrapolate expansion into returns.
+sign: -1
+source: "EX-ANTE — Cooper, Gulen & Schill 2008 (asset growth and the cross-section of returns); Titman, Wei & Xie 2004 (capital investment); Thomas & Zhang 2002 (inventory changes)"
+datasets: [fundamental5]
+signal:
+  fields: [fnd5_4_af_sb, fnd5_3_af_sb, fnd5_2_af_sb]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

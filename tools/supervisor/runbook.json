@@ -1,0 +1,81 @@
+{
+  "_doc": [
+    "Alert code -> action. The LOCAL MODEL NEVER WRITES A COMMAND: it reads the snapshot and picks",
+    "a code, and only codes present here can execute. Everything else escalates.",
+    "",
+    "Two rules are load-bearing, both learned the hard way in this pipeline:",
+    " 1. NOTHING IRREVERSIBLE. No submit, no state deletion. A stale cached quota of 2/4 (real",
+    "    value 4/4) nearly authorised a POST into an exhausted quota, and a 403 there is permanent.",
+    " 2. NEVER RESTART BLIND. watchdog.py restarted a dead driver with its ORIGINAL argv and ran the",
+    "    wrong pool for 25 minutes while the correct driver sat blocked on the lock. A restart must",
+    "    re-derive its own arguments, which is why restart_driver calls a script rather than",
+    "    replaying a command line."
+  ],
+  "actions": {
+    "clear_lock": {
+      "cmd": [
+        "python3",
+        "tools/supervisor/act_clear_lock.py"
+      ],
+      "why": "resim.lock exists with no live holder; the next round would wait 30min for nothing"
+    },
+    "restart_driver": {
+      "cmd": [
+        "python3",
+        "tools/supervisor/act_restart_driver.py"
+      ],
+      "why": "driver gone or journal stale; re-derives pool and hours instead of replaying argv"
+    },
+    "kill_extra_drivers": {
+      "cmd": [
+        "python3",
+        "tools/supervisor/act_kill_extra.py"
+      ],
+      "why": "two drivers contend for one sim lock; the older one is the stale resurrection"
+    },
+    "ensure_harvester": {
+      "cmd": [
+        "python3",
+        "tools/harvest_pnl.py",
+        "--limit",
+        "400"
+      ],
+      "why": "screen the un-measured backlog from PnL curves. NOT harvest_corr.py: the platform never queues correlation work for old alphas (/check returns in 1s still showing SELF_CORRELATION PENDING), so that tool ran 36 minutes, added one record and 429'd the account. PnL curves DO compute on demand and give sharpe, the 2-year ladder and self-correlation -- three of the four hard gates."
+    },
+    "refresh_quota": {
+      "cmd": [
+        "python3",
+        "tools/supervisor/act_refresh.py",
+        "--quota"
+      ],
+      "why": "quota reading too old to act on"
+    },
+    "refresh_cells": {
+      "cmd": [
+        "python3",
+        "tools/supervisor/act_refresh.py",
+        "--cells"
+      ],
+      "why": "pyramid cell counts stale"
+    },
+    "escalate": {
+      "cmd": null,
+      "why": "needs judgement \u2014 hand to the expensive supervisor with the snapshot attached"
+    }
+  },
+  "map": {
+    "MULTIPLE_DRIVERS": "kill_extra_drivers",
+    "DRIVER_GONE": "restart_driver",
+    "JOURNAL_STALE": "restart_driver",
+    "PARK_QUEUE_DEEP": "ensure_harvester",
+    "QUOTA_UNKNOWN": "refresh_quota",
+    "CELL_COUNTS_STALE": "refresh_cells",
+    "QUOTA_OPEN": "escalate",
+    "NO_CLEAN_DESPITE_PASSERS": "escalate",
+    "ORPHAN_LOCK_HELD": "clear_lock"
+  },
+  "_escalate_notes": {
+    "QUOTA_OPEN": "Spending a submit slot needs the family matrix and the cell plan. Four slots inside one signal family unlock nothing, and a submit is irreversible.",
+    "NO_CLEAN_DESPITE_PASSERS": "This has had three different root causes already (measure budget too short, park queue stranded, circuit breaker skipping the trigger request). It is not a runbook case."
+  }
+}

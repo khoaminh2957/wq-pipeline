@@ -1,0 +1,25 @@
+id: earnings_date_delay_bad_news
+family: timing
+category: Earnings
+title: Delayed earnings dates carry bad news
+mechanism: >
+  Firms that push their earnings announcement later than their own history projects are more
+  often preparing bad news. The scheduling change is public weeks before the report. Short the
+  names whose confirmed date moved latest relative to expectation.
+counterparty: Holders who do not track scheduling changes.
+sign: -1
+source: "EX-ANTE — Chambers & Penman 1984; Bagnoli, Kross & Watts 2002 (late announcers report worse news)"
+datasets: [earnings5]
+signal:
+  fields: [ern5_total_days_changed, earnings_date_deviation_score]
+  vector: vec_avg
+template: "-group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [21, 42]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

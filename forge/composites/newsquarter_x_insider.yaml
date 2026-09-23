@@ -1,0 +1,108 @@
+id: newsquarter_x_insider
+title: A quarter of public news, kept only where the insider is funding it rather than exiting it
+arm: new
+legs: [news_quarter_event_polarity, insider_significant_buying_drift]
+families: [news_flow_quarter, insider]
+combiners: [multiply]
+mechanism: >
+  The news leg is a claim that the price has not finished absorbing a quarter of already-published
+  information, and Heston & Sinha place most of that unabsorbed response at the NEXT earnings
+  announcement. That is a claim about the future which exactly one group can price in real time: the
+  insiders, who trade ahead of the same announcement knowing how persistent the earnings behind the
+  news actually are. Choi, Faurel & Hillegeist measure what insider trading does to that drift, and
+  the result is not "insiders confirm the news" — the drift is LOWER when insiders traded first, and
+  the reduction is driven by CONTRADICTORY trades, net buys before bad news and net sells before
+  good news. Read as a screen rather than as a second opinion, that says which quadrant of the news
+  drift survives: where the insider contradicts the accumulated news the price has already been
+  corrected and there is little drift left to collect, and where the insider is buying into a
+  quarter of positive news, or sitting out a quarter of negative news, the correction the paper
+  documents has not been supplied. The product keeps that quadrant and throws away the corrected
+  one. Its short side is the mirror: a quarter of mostly negative events at a firm whose insiders
+  are not buying, i.e. the bad-news drift with no contradictory trade to shorten it. This is a claim
+  about the CONJUNCTION, not about either leg: the news leg alone cannot tell a drift that will
+  persist from one that insiders have already arbitraged, and the insider leg alone does not know
+  what the public has been told.
+counterparty: "Individual investors who ride losses and delay realising them, so a firm's accumulated bad news reaches the tape weeks late (Frazzini 2006), and the retail and index buyers on the other side of insider sales into a quarter of good news"
+source: >-
+  EX-ANTE — the conjunction's own evidence is Choi, Faurel & Hillegeist 2023, Journal of Accounting
+  and Public Policy 42, 107117, "Insider trading, future earnings, and post-earnings announcement
+  drift". FETCHED https://api.crossref.org/works/10.2139/ssrn.4507071 HTTP 200 (2026-09-09, curl on
+  the raw JSON and WebFetch on the same URL with a mailto parameter; the Elsevier record
+  https://api.crossref.org/works/10.1016/j.jaccpubpol.2023.107117 also returns HTTP 200 but carries
+  no abstract, and the publisher page was not fetched). Verbatim from that abstract: "As predicted,
+  PEAD is significantly lower when earnings announcements are preceded by insider trading. The
+  reduction in PEAD is driven by contradictory insider trades (i.e., net buys before large negative
+  earnings news or net sells before large positive earnings news) and is more pronounced in the
+  presence of more sophisticated market participants." and "Consistent with investors extracting and
+  trading on insiders' private information, pre-announcement insider trading is associated with
+  smaller market reactions to future earnings news in each of the four subsequent quarters."
+  The bridge from a news aggregate to that paper's event is Heston & Sinha, FEDS 2016-048, FETCHED
+  https://api.crossref.org/works/10.17016/feds.2016.048 HTTP 200 (2026-09-09, curl and WebFetch),
+  verbatim: "Weekly news, however, predicts stock returns for one quarter." and "Much of the delayed
+  response to news occurs around the subsequent earnings announcement." Frazzini 2006, Journal of
+  Finance 61(4), FETCHED https://api.crossref.org/works/10.1111/j.1540-6261.2006.00896.x HTTP 200,
+  supplies the counterparty, verbatim: "the tendency of investors to ride losses and realize gains,
+  induces "underreaction" to news, leading to return predictability". The insider leg's own grounding
+  (Lakonishok & Lee 2001; Jeng, Metrick & Zeckhauser 2003; Cohen, Malloy & Pomorski 2012) is carried
+  by insider_significant_buying_drift's source line and is NOT re-fetched here.
+  WHAT IS ARGUED VERSUS WHAT IS FETCHED, stated so it cannot be mistaken later: no paper on file
+  tests this conjunction. Choi et al. condition on quarterly EARNINGS news measured from the
+  announcement; this composite conditions on a 91-day aggregate of vendor-classified NEWS events.
+  The chain that joins them — Heston & Sinha placing the delayed news response at the subsequent
+  earnings announcement, which is the event Choi et al. study — is an EX-ANTE argument across two
+  fetched papers, not a measured result. If the news aggregate and the earnings surprise turn out to
+  be different quantities at the announcement, the conjunction is wrong and no amount of the two
+  papers rescues it.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "-"}
+strongest_in: "mid caps with a steady but unsaturated news flow - enough non-neutral events over 91 days that the positive-event ratio is a ratio and not a coin flip, few enough covering analysts that an insider is still the best-informed party on the persistence of the news, and open-market insider purchases rather than routine scheduled sales"
+weakens_when: "the quarter's news is one story reprinted, so the 91-day ratio describes a single event and not a quarter of them; and when insider activity is dominated by scheduled 10b5-1 option-exercise sales, so the second leg ranks on the vesting calendar rather than on a view - in both cases a leg keeps ranking names while having stopped measuring what it names"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for THIS conjunction and for nothing else. They are the hypothesis
+  standard's EX-ANTE reasoning only: diagnosis_ladder.md §3b measured that the regime maps carry no
+  information about the ladder ('+' composites clear the 2022-2024 window as often as '0' ones), so
+  they must not be used to rank composites, this one included.
+  value_winter_2014_2020 "0": the two legs pull opposite ways in that regime rather than together.
+  A continuation bet on accumulated good news was aligned with a growth-led tape; insider purchases
+  are a contrarian signal that fires after price falls, which was the losing side of the same decade.
+  A product needs both ranks high, so the net is not signed in advance and a plus would be a guess.
+  momentum_crash_2016 "-": the news leg is a continuation bet and the early-2016 reversal rewarded
+  the names with the worst preceding news; the product cannot be long a name its news leg has ranked
+  at the bottom, so the rebound happens in the part of the cross-section the composite is short.
+  covid_2020 "0": in Q1-Q2 2020 the 91-day aggregate was dominated by pandemic coverage common to a
+  whole sector, and industry neutralization removes most of what is common; insider buying spiked
+  market-wide in March 2020, flattening the second leg's cross-section too. Both legs degrade toward
+  noise rather than losing money in one direction.
+  rate_shock_2022 "-": the insider leg is a "buy the drawdown" signal and 2022 was a persistent
+  de-rating in which buying each drawdown lost repeatedly; the news half resolves at the next
+  earnings announcement and carries little duration, so it neither rescues nor worsens that.
+  COMBINER. Both legs are bullish (sign +1), so the gate branch's inversion of a bearish leg is not
+  at issue here; [multiply] is used per the standing preference (POST-HOC: multiply rows at the bar
+  reach fitness 1.0 at 130/355 versus 6/184 for gate). The economics also want a product rather than
+  a gate: the mechanism is about a QUADRANT (both legs high, or both low), which is what a product of
+  two group ranks expresses and what a one-sided gate does not.
+  DISTINCTNESS, checked not assumed. No composite in forge/composites/ pairs a NEWS leg with the
+  insider leg (grepped: the five live composites in forge/composites/ that carry this leg pair it
+  with net cash, IV spread (x2), short flow and profitability/accruals). Every other partner in the
+  round's preferred list would have
+  duplicated a live domain pair: news x accruals is prtone_x_accruals, news x profitability is
+  headline_x_profitability / multiwire_x_profitability / tone_x_profitability, news x IV spread is
+  usa_sentiment_x_ivspread and ai_disagreement_x_putpremium, news x short flow is ravenpack_x_short
+  and newsneg_x_short, and sentiment_weekly_continuation is the same domain as the new leg. Insider
+  was the only preferred partner left. FLAGGED for the allocator, not resolved here: SEVEN other
+  composites staged this round pair with insider_significant_buying_drift (corpaction, earningsnews,
+  mnascale, newsimpact, sidemention, spin, stalenews), so this is the eighth — counted 2026-09-09
+  20:52 local while other researchers were still staging, so eight is a floor, not a final number — and seven of the eight
+  put a News-category leg on that same partner (every one but spin_x_insider, whose leg is category
+  Other), with earningsnews_x_insider doing so from the same dataset (news48); whether that is a
+  portfolio problem is the allocator's call and this file does not settle it.
+  WHAT WOULD KILL THIS. news48 and news46 are the same vendor, and news_ravenpack_composite_tone
+  (news46 mean SSC) is the leg that never once cleared the 2022-2024 ladder window in 124 composite
+  rows (diagnosis_ladder.md §3a, 0.00 y2pass). MECHANISM for that zero: UNKNOWN, and the candidates
+  on file include the vendor's data changing in that window - which, if true, would apply to this
+  leg as well. This composite is therefore a test of whether the SLOW aggregate behaves like the
+  vendor's daily tone or not; if it inherits the zero, the vendor is the answer and further news48
+  constructions should stop rather than be re-argued.

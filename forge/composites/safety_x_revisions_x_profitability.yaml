@@ -1,0 +1,20 @@
+id: safety_x_revisions_x_profitability
+title: Safe, improving and profitable (three-leg analyst composite)
+legs: [smartratios_credit_safety, analyst_estimate_revision_drift, profitability_classic_ratios]
+families: [distress, revisions, profitability]
+combiners: [multiply]
+mechanism: >
+  Safety times revisions was the second-best analyst cell measured (GLB Analyst, max 0.91); adding
+  profitability asks whether the improving outlook rests on a business that already earns, which
+  removes the safe-but-stagnant names where an upward revision is noise. Institutions that
+  rebalance on quarterly consensus prints and lottery-seeking holders of low-quality names supply
+  the drift.
+counterparty: "Institutions and pension funds that rebalance on quarterly consensus prints, and lottery-seeking retail holders of low-quality names"
+source: "EX-ANTE — Campbell, Hilscher & Szilagyi 2008; Gleason & Lee 2003; Novy-Marx 2013; Asness, Frazzini & Pedersen 2019"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "names with a credit score, moderate coverage and full financials"
+weakens_when: "credit spreads compress and low-quality names rally (2020 Q2-Q4)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

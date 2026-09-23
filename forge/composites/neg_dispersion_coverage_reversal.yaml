@@ -1,0 +1,22 @@
+id: neg_dispersion_coverage_reversal
+title: Negative news dispersion and attention peak reversal
+arm: new
+legs: [snt22_neg_dispersion_reversal, sentiment_abnormal_coverage_reversal]
+families: [disagreement, attention]
+combiners: [multiply]
+mechanism: >
+  The conjunction identifies stocks where public sentiment is highly fragmented and negative, coinciding with a spike in article volume. This suggests a noisy information environment where retail attention amplifies the dispersion of negative headlines, causing an initial overreaction. As the attention spike fades and the noise dissipates, the price reverts to its fundamental value, creating a predictable reversal.
+counterparty: retail investors who amplify noise through high-volume attention and fail to distinguish signal from dispersion
+source: "EX-ANTE — Da et al. 2011, unusual trading volume predicts short-term reversals"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small caps with high retail participation
+weakens_when: insider trading is restricted or during broad market crashes where all stocks fall
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter_2014_2020: + because value stocks often have higher noise and dispersion, making the attention signal more distinct.
+  momentum_crash_2016: 0 because momentum crashes are driven by systematic risk, not idiosyncratic news dispersion.
+  covid_2020: + because high uncertainty led to extreme sentiment dispersion and attention spikes, creating strong reversal opportunities.
+  rate_shock_2022: - because rising rates caused broad-based de-rating, overriding idiosyncratic attention and dispersion signals.

@@ -1,0 +1,27 @@
+id: option_call_put_iv_spread
+family: options
+category: Option
+title: Call-minus-put implied volatility spread predicts returns
+mechanism: >
+  When at-the-money calls trade at a higher implied volatility than at-the-money puts, option
+  traders are paying up for upside; the deviation from put-call parity is informed and the stock
+  subsequently outperforms. Long the names with the highest call-minus-put implied volatility
+  spread over the window.
+counterparty: Equity investors who do not read the option market.
+sign: 1
+source: "EX-ANTE — Cremers & Weinbaum 2010 (deviations from put-call parity predict stock returns); Bali & Hovakimian 2009"
+datasets: [option8, option3]
+signal:
+  fields: [implied_volatility_call_30, implied_volatility_call_60, opt3_volcallatm]
+signal2:
+  fields: [implied_volatility_put_30, implied_volatility_put_60, opt3_volputatm]
+template: "group_rank(ts_mean({signal} - {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

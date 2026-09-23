@@ -1,0 +1,28 @@
+id: institutions_breadth_change
+family: ownership
+category: Institutions
+title: Rising breadth of institutional ownership predicts returns
+mechanism: >
+  When more funds hold a stock, short-sale constraints bind less and pessimistic views are
+  already in the price; rising breadth predicts positive returns, falling breadth negative. Long
+  the names whose holder count rose the most over the window.
+counterparty: Investors who miss the information in ownership breadth.
+sign: 1
+source: "EX-ANTE — Chen, Hong & Stein 2002 (changes in breadth of ownership predict returns)"
+notes: "Vector layout of holder_account_total is undocumented; vec_max avoids double counting if the vector repeats the count. Coverage is checked in the canary."
+datasets: [fund_holdings_panel]
+signal:
+  fields: [holder_account_total, holder_account_total_active]
+  vector: vec_max
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_delta({signal}, {w}), {group})"
+params:
+  w: [20, 60]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

@@ -1,0 +1,20 @@
+id: usa_shortsurprise_x_profitability
+title: Short-interest surprise against profitability (USA Short Interest cell)
+legs: [short_interest_surprise, usa_profitability_ratios]
+families: [short, profitability]
+combiners: [multiply, gate]
+mechanism: >
+  A short-interest reading above its forecast is new bearish information; it matters most when
+  the firm is also unprofitable, because then the short sellers and the fundamentals point the
+  same way, whereas a surprise in a profitable firm is more often hedging. The product of the
+  low-surprise rank and the profitability rank keeps the firms both crowds endorse, and holders
+  who ignore short-interest releases pay on the other end.
+counterparty: "Retail holders who ignore short-interest releases and growth investors who pay for unprofitable growth"
+source: "EX-ANTE — Asquith, Pathak & Ritter 2005; Rapach, Ringgenberg & Zhou 2016; Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with active short interest"
+weakens_when: "a short squeeze regime punishes crowded shorts (2021)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08

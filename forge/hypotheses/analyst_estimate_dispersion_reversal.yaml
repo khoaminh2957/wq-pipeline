@@ -1,0 +1,30 @@
+id: analyst_estimate_dispersion_reversal
+family: dispersion
+category: Analyst
+title: Cross-analyst estimate dispersion predicts short-horizon reversal
+mechanism: >
+  The dispersion of analyst estimates around the consensus reflects genuine disagreement about future cash flows, not just noise.
+  When analysts disagree widely, the stock price is a compromise that fails to reflect the private information held by any single
+  analyst. As subsequent earnings or macro data resolve this uncertainty, the price must adjust towards the realized outcome,
+  creating a predictable drift away from the initial compromised price.
+counterparty: passive index funds and momentum traders who ignore dispersion
+sign: -1
+source: "EX-ANTE — Wermers 2004, analyst disagreement predicts stock returns"
+datasets: [analyst7]
+signal:
+  fields: [est_q_opr_mean_4wks_ago, est_q_opr_high_4wks_ago, est_q_opr_low_4wks_ago]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [5, 20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  Using the range (high - low) as a proxy for dispersion. High dispersion indicates uncertainty that will be resolved, leading to
+  reversal as the market corrects the mispricing caused by the compromise price.

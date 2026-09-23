@@ -1,0 +1,60 @@
+id: option_realized_implied_vol_spread
+family: vol_risk_premium
+category: Option
+title: Realized-minus-implied volatility spread predicts low returns
+mechanism: >
+  Implied volatility is the price at which option dealers sell volatility insurance on a name;
+  trailing realized volatility is what the stock actually delivered. The cross-sectional gap
+  realized-minus-implied is therefore the size (and sign) of the volatility premium the dealer is
+  charging on that name: where realized has run ABOVE implied, the dealer is charging little or
+  nothing for risk the stock is already delivering. Bali & Hovakimian (2009) measure this spread on
+  individual US stocks and report a NEGATIVE cross-sectional relation to subsequent returns, which
+  they label a proxy for volatility risk. Short the names with the highest realized-minus-implied
+  spread at a matched horizon, within the industry peer group. The channel behind their sign is the
+  paper's own interpretation and is not established here; the DIRECTION is what this leg takes from
+  it. MECHANISM: UNKNOWN beyond that.
+counterparty: "Option dealers and market makers who write at-the-money volatility below what the stock is realizing, and the equity holders who carry the difference"
+sign: -1
+source: "EX-ANTE — Bali & Hovakimian 2009, 'Volatility Spreads and Expected Stock Returns', Management Science 55(11) 1797-1812, doi 10.1287/mnsc.1090.1063; abstract fetched https://econpapers.repec.org/RePEc:inm:ormnsc:v:55:y:2009:i:11:p:1797-1812 (HTTP 200), verbatim: 'Portfolio level analyses and firm-level cross-sectional regressions indicate a negative and significant relation between expected returns and the realized-implied volatility spread that can be viewed as a proxy for volatility risk.'"
+datasets: [option40]
+signal:
+  fields: [opt40_02vh, opt40_06vh]
+signal2:
+  fields: [opt40_ivmean20, opt40_ivmean60]
+template: "-group_rank(ts_mean({signal} - {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN FROM THE PAPER, NOT FROM THE LABEL PRIOR. forge/labels.py leaves every field used here at
+  sign 'unstated' (option40 has only 6 signed fields out of 208 on USA/d1, and those 6 are gamma /
+  delta fields the labeller signed through a 'valuation' domain slip). The -1 here is Bali &
+  Hovakimian's measured cross-sectional sign, read from the fetched abstract; the naive prior
+  ('realized above implied means the option market is cheap, so buy') is the OPPOSITE and is wrong.
+  FIELD CHOICE. 20-day and 60-day matched horizons: opt40_02vh / opt40_06vh are annualized
+  close-to-close realized volatility over approximately 20 / 60 calendar days; opt40_ivmean20 /
+  opt40_ivmean60 are the average of the at-the-money call and put implied volatilities at the 20 /
+  60 day expiration (OptionMetrics IvyDB standardized surface). All four are MATRIX at USA/d1,
+  coverage 0.984, so no density operator is needed; all four carry unit 'unitless' and time 'daily'
+  in the labels, so the raw subtraction passes H1 and needs no ts_backfill.
+  WHY NOT 30/90. The same construct at 30d/90d (opt40_03vh vs opt40_ivmean30, opt40_09vh vs
+  opt40_ivmean90) is REFUSED by the typed judge: the labeller read the phrase 'annualized %' in
+  those descriptions and assigned unit 'ratio' and time 'annual' to the realized-vol side while the
+  implied side stayed 'unitless', producing "H1 subtract across units ['ratio', 'unitless']". That
+  is a label slip, not a data difference; the 20/60 pairs are used because their labels are
+  internally consistent, and this is disclosed rather than worked around.
+  TYPED-GATE STATUS (re-derived 2026-09-08). forge.typed.judge(structural=True) — the gate
+  forge/runner.py:158 actually applies — returns ok=True, hard=[] for every rendered formula. The
+  full judge additionally reports H5 (unstated-sign field in a directional role) for both fields;
+  the already-shipped option_volatility_smirk leg fails the full judge in exactly the same way and
+  passes structurally, so this leg is no more exposed than the library it joins.
+  DISTINCTNESS. No existing leg touches realized volatility. option_call_put_iv_spread is call IV
+  minus put IV, option_volatility_smirk is OTM put IV minus ATM call IV, option_put_call_demand is
+  open-interest/volume, option_customer_orderflow_informed is order flow. This is the only leg that
+  compares the risk-neutral surface with the physical one, and the only one on option40.

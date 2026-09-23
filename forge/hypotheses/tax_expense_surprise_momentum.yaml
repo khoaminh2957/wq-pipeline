@@ -1,0 +1,97 @@
+id: tax_expense_surprise_momentum
+family: tax_expense
+category: Fundamental
+title: The tax line rose before the earnings line, and the tax line cannot be managed upward
+mechanism: >
+  Income tax expense is computed on taxable income under rules that give management little room
+  to inflate it: the accruals that raise book income (revenue recognised early, costs
+  capitalised, reserves released) mostly do not raise the tax bill, so a rise in the quarterly tax
+  provision against the same quarter a year earlier is a rise in the part of profit the firm had
+  to pay tax on. Thomas & Zhang 2011 find that this seasonally differenced quarterly tax expense
+  carries information about core profitability incremental to reported earnings, that it predicts
+  the next quarters' changes in earnings and in tax expense, and that prices reflect it with a
+  delay. Force: behavioural mispricing (limited attention to a line below pre-tax income that
+  earnings previews, screens and consensus EPS treat as a rate assumption rather than as
+  information), persistent because the sell-side's forecast object is EPS and the tax provision is
+  plugged from an assumed effective rate, not read as a measure of taxed profit. Long the names
+  whose quarterly tax provision rose the most against the same quarter a year earlier, scaled by
+  total assets, within subindustry.
+counterparty: "Sell-side analysts and earnings-focused retail and institutional investors who forecast and trade pre-tax and bottom-line EPS and plug the tax provision from an assumed effective rate, rather than reading it as a measure of the profit the firm actually paid tax on"
+sign: 1
+source: "EX-ANTE — Thomas & Zhang 2011, Journal of Accounting Research 49(3), 'Tax Expense Momentum'. FETCHED https://api.openalex.org/works?search=tax%20expense%20momentum%20Thomas%20Zhang&filter=publication_year:2011 HTTP 200 (2026-09-09; work https://openalex.org/W2323670465, doi 10.1111/j.1475-679x.2011.00409.x; the abstract was reconstructed verbatim from OpenAlex's abstract_inverted_index and the publisher page was NOT fetched). Verbatim from that abstract: 'We investigate the joint hypothesis that (1) tax expense contains information about core profitability that is incremental to reported earnings and (2) that information is reflected in stock prices with a delay.' and 'We find that seasonally differenced quarterly tax expense, our proxy for tax expense surprise, is related positively to future returns.' and 'This anomaly is separate from previously documented pricing anomalies based on financial and tax variables.' The paper's construct IS the seasonal (same fiscal quarter, prior year) difference of quarterly tax expense, which template 1 reproduces with ts_delta over 252 trading days on the backfilled quarterly provision; the deflator the paper uses is not on the fetched page, so scaling by total assets is this leg's own choice (a currency change needs a currency scale; assets are the balance-sheet scale the accruals leg already uses), not the paper's."
+datasets: [fundamental13]
+signal:
+  fields: [fnd13_ttax]
+signal2:
+  fields: [fnd13_rkdbalancesheetq_atot]
+template:
+  - "group_rank(ts_delta(ts_backfill({signal}, {w}), 252) / abs(ts_backfill({signal2}, {w})), {group})"
+  - "group_rank(ts_mean(ts_delta(ts_backfill({signal}, {w}), 252) / abs(ts_backfill({signal2}, {w})), 126), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives fnd13_ttax sign 'unstated' (domain fundamental-other, kind
+  level, unit currency). The sign here is read from the description ('Provision for Income
+  Taxes' - a provision is an expense, larger when more tax is owed) together with Thomas & Zhang
+  2011's direction (a positive seasonal difference is related positively to future returns).
+  There is no label prior to disagree with; the label is absent, not opposed. The catalogue's
+  dataset attribution (fundamental13) agrees with the label file for both fields.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1, dataset fundamental13
+  'Comprehensive Fundamentals Dataset', both MATRIX, dateCoverage 1.0): fnd13_ttax 'Provision for
+  Income Taxes' coverage 0.889, userCount 116, alphaCount 530; fnd13_rkdbalancesheetq_atot 'Total
+  Assets' coverage 0.973, userCount 144, alphaCount 590. Both labelled quarterly, so ts_backfill
+  sits under every operator (typed.py H4); coverage >= 0.5, so no density operator. The scale is
+  a denominator, which typed.py treats as a scale, not a leg (its unstated sign is allowed there).
+  TYPE RULES, checked not assumed (typed.judge on USA/d1, 2026-09-09). Both rendered templates
+  pass structural=True with no hard failure (currency / currency -> ratio, H1 ok; ts_delta on a
+  level, H2 ok). The full judge refuses on H5 only - the field has no label sign - which is the
+  label gap named above, the same gap the staged audit_fee_escalation leg documents. Operator
+  count 6 (template 1) and 7 (template 2) against MAX_OPS 62.
+  CONSTRUCT. Template 1 is the paper's seasonal difference of quarterly tax expense, one value
+  per quarter held until the next report. Template 2 averages the last two quarterly surprises
+  (126 trading days) - the 'momentum' in the paper's title is that the surprise predicts the next
+  quarter's tax expense change, so a two-quarter average is the same construct read with less
+  single-quarter noise; whether it helps is a measurement. Neither template uses the other tax
+  fields: fnd13_ntiv 'Inc Tax Ex Impact of Sp Items' (coverage 0.888, labelled unitless so it
+  cannot be scaled by assets under H1) would be the cleaner numerator if the label were fixed;
+  fnd13_tdbs 'Deferred Income Tax' (coverage 0.526) is a different construct (book-tax
+  difference, Hanlon 2005) already carried by deferred_tax_earnings_quality on fundamental93;
+  fnd13_pxtl 'Income Taxes Payable' (coverage 0.397) is a balance, not the expense.
+  CADENCE. The provision is reported once a quarter, so the leg is a step function that moves at
+  most four times a year per name; turnover comes from the partner leg, not from this one.
+  ATTENUATION, pre-registered. The seasonal difference reads profit only when tax law and the
+  firm's tax status are unchanged between the two quarters compared. It does not in: the four
+  quarters of differences that span the December 2017 TCJA rate cut and the one-time
+  deferred-tax remeasurements and deemed-repatriation charges (fiscal 2018 against fiscal 2017);
+  2020 quarters affected by CARES Act loss carrybacks; loss-making firms, where the provision is
+  near zero or a valuation-allowance release records a tax BENEFIT that looks like a falling
+  provision while it signals expected future taxable income (the opposite reading); and
+  multinationals whose provision moves with geographic mix. group_rank within subindustry removes
+  the common component of a law change but not firm-specific one-offs. Strongest where the tax
+  line is the only new information: mid caps with positive pre-tax income in both quarters and a
+  single tax jurisdiction.
+  ALPHACOUNT, stated not argued away. fnd13_ttax carries alphaCount 530 (userCount 116), above
+  the standard's ~200 preference for a directional root and below its 750 hard line. For scale,
+  the Compustat fields of the current library's accruals and profitability legs carry 15,084 to
+  169,009 (income, cashflow_op, assets, fundamental6). Whether 530 alphas on a raw quarterly
+  provision level crowd THIS construct (a seasonal difference scaled by assets) is unknown; the
+  platform's prod-correlation read is the measurement.
+  HISTORY CHECK, run not assumed (2026-09-09). Neither field appears in any state/*targets*.json,
+  state/banned_fields.json or state/climb/spent_fields.json. The VPS climb journal
+  (/opt/wq/state/layered/runs/climb.jsonl, 63 MB, read over ssh) has 0 rows on fnd13_ttax and 0
+  on fnd13_rkdbalancesheetq_atot (10 rows on other fnd13_ fields); the forge journal has 0 rows
+  on any fnd13_ field. fundamental13 appears in no hypothesis and no composite.
+  OVERLAP TO WATCH, not a claim. A rising provision co-moves with rising pre-tax income, so the
+  leg may correlate with the profitability legs (usa_profitability_ratios, operating_margin_change)
+  and with an earnings-surprise construct. Thomas & Zhang report the effect as incremental to
+  earnings surprise and to tax-variable anomalies, but that is their sample, not this book;
+  MECHANISM UNKNOWN for how much of this leg is pre-tax profit growth. If the measured
+  correlation with a profitability leg is high, this leg has not added a distinct mechanism and
+  should be dropped rather than re-argued.

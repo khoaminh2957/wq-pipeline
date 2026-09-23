@@ -1,0 +1,126 @@
+id: news_corporate_action_tone
+family: corporate_action_tone
+category: News
+title: The tone of a firm's own corporate-action announcements is a costly managerial signal that is priced late
+mechanism: >
+  The vendor's BCA classifier scores every press release it identifies as a corporate-action report
+  - dividend initiations, increases, cuts and omissions, buyback authorisations, splits, issuance -
+  as -1 (negative), 0 (neutral) or +1 (positive), and this leg sums the stock's signed
+  corporate-action tone over the past one to six months, a day without such a release counting
+  zero. A corporate action is a decision that costs the firm cash or dilutes its owners, so its
+  direction is a signal from the people who see the books: a manager initiates or raises a payout,
+  or authorises a buyback, when he expects the cash to be there, and omits or cuts when he does not.
+  Michaely, Thaler and Womack measured that the market does not finish pricing this at the
+  announcement: in the year after a dividend initiation or omission, prices continue to drift in
+  the announcement's direction, a drift distinct from and larger than the post-earnings drift.
+  Force: behavioural mispricing - under-reaction to a costly managerial signal - sustained by
+  limits to arbitrage, because the drift is slow, one-directional per firm and a one-year carry in
+  the smaller names where it is largest is expensive inventory for an institution. Long the names
+  whose recent corporate-action releases have been most positive within the peer group, short the
+  most negative.
+counterparty: "Shareholders who sell into the firm's buyback or hold through a dividend cut without updating their estimate of the firm's cash generation; index funds and quant managers whose payout input is the trailing yield or the last dividend paid, not the announcement that changed it"
+sign: 1
+source: "EX-ANTE — Michaely, Thaler & Womack 1995, Journal of Finance, 'Price Reactions to Dividend Initiations and Omissions: Overreaction or Drift?', DOI 10.1111/j.1540-6261.1995.tb04796.x. FETCHED https://api.openalex.org/works/W3125902854 HTTP 200 (2026-09-09, curl, abstract re-derived from the raw abstract_inverted_index; the same record was fetched again with WebFetch, abstract present). Verbatim from that abstract: 'In the year following the announcements, prices continue to drift in the same direction, though the drift following omissions is stronger and more robust. This post-dividend initiation/omission price drift is distinct from and more pronounced than that following earnings surprises.' CONSTRUCT CORRESPONDENCE, stated not glossed: the paper's events are dividend initiations and omissions identified from CRSP; this leg's events are whatever press releases the vendor's classifier labels corporate-action reports, scored for tone, which is a broader and noisier set (it includes routine declarations, buybacks, splits and issuance). Same direction (positive action, positive subsequent return) and a horizon inside the paper's one year. Ikenberry, Lakonishok & Vermaelen 1995 JFE, 'Market underreaction to open market share repurchases', is the buyback half of the same under-reaction and is named as BACKGROUND ONLY: its abstract is null on OpenAlex (W3122993843, HTTP 200) and elided on Semantic Scholar (HTTP 200, abstract null), so no sentence of it is quoted and it is not this leg's evidence."
+datasets: [news17]
+signal:
+  fields: [nws17_bam, nws17_d1_bam]
+  vector: vec_avg
+  density: zero
+template:
+  - "group_rank(ts_sum({signal}, {w}), {group})"
+  - "group_rank(ts_decay_linear({signal}, {w}), {group})"
+params:
+  w: [21, 63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE, description-first. forge/labels.py gives both fields sign 'unstated'
+  (sign_source 'unstated'): the descriptions state the POLARITY CODING of the classifier ('-1
+  negative, 0 neutral, 1 positive') and no return direction, and the domain prior that labels.py
+  attaches to other sentiment fields did not fire here. The return direction is taken from the
+  cited paper (positive corporate action, positive drift), so sign +1. There is no label prior to
+  disagree with; the label is absent, not opposed. Consequence for the type judge
+  (forge/typed.py): in full mode the judge reports H5 'no stated sign in a directional role' for
+  vec_avg of an unstated-sign field; the live pre-sim gate runs structural=True (H1/H2/H4 only),
+  which passes the formula - the same situation already on file for
+  starmine_predicted_surprise_gap. Verified 2026-09-09 by rendering both fields x both templates
+  x w in {21, 63, 126} with forge.factory.render and running judge(structural=True): ok on every
+  rendering; full mode reports only the expected H5.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, delay 1, dataset news17 'PR Edition Data',
+  category News / News, both VECTOR, pyramidMultiplier 1.2). nws17_bam: 'BCA classifier sentiment
+  score for corporate action reports: -1 negative, 0 neutral, 1 positive', coverage 0.9136,
+  dateCoverage 0.9507, dateCreated 2025-11-01, userCount 28 / alphaCount 51. nws17_d1_bam: 'A
+  score that represents the news sentiment of the given news story according to the BCA
+  classifier, which specializes in reports on corporate action announcements ...', coverage
+  0.2731, dateCoverage 1.0, dateCreated 2022-07-01, userCount 2 / alphaCount 4. The two are the
+  same classifier in the dataset's two generations, so they are one economic quantity. Labels
+  (forge.labels, USA/d1 entry): kind score, unit score, time event, vec_role event-value, reducers
+  vec_avg / vec_max / vec_min; sparsity dense (0.9136) for nws17_bam and sparse (0.2731) for
+  nws17_d1_bam. The catalogue's dateCoverage 0.9507 on the 2025 generation against 1.0 on the 2022
+  generation has an UNKNOWN calendar meaning (the same pattern is on every 2025/2026 field of this
+  dataset); a leg whose field starts late has a partly empty 5-year window and the canary reads it.
+  The label file attributes both to news17, which the catalogue confirms.
+  WHY THESE TWO AND NOT THE DATASET'S OTHER 43 FIELDS. nws17_acb / nws17_bee / nws17_d1_acb /
+  nws17_d1_bee are the earnings-release and earnings-evaluation classifiers: that is the construct
+  news_earnings_coverage_tone (staged, news48) already carries, and a second copy on another
+  vendor feed is not a distinct mechanism. nws17_ber / nws17_d1_ber (analyst recommendation
+  change) is the construct news_downgrade_recommendation_topic already carries. nws17_qmb /
+  nws17_d1_qmb (M&A tone) has no usable sign: the classifier does not distinguish acquirer from
+  target, and the documented return directions for the two are opposite. nws17_ssc / qcm / qep /
+  event_sentiment_score / ghc_lna are general story tone, the construct five existing legs trade.
+  nws17_nip is the vendor's own projection of two-hour price impact - a pre-built prediction
+  whose re-rank is the standard's Law-1 null, and a two-hour horizon is past at delay 1.
+  nws17_event_similarity_days is event novelty, the stale-news construct news_stale_tone_reversal
+  (staged, news104) already carries. relevance / event_relevance / rp_story_event_count / index /
+  times / country_code / headline / event_text are conditions, codes and text, not bets.
+  DENSITY 'zero', reasoned on the classifier's own scale. The VECTOR is read through vec_avg
+  (event-value role; a sum of per-event scores is not meaningful). Coverage is field-level; at day
+  level a stock has a corporate-action release on a few days a year, so vec_avg is NaN on most
+  days (the sparse-signal case measured on the 2026-09-04 canary: NaN-for-no-event books fail
+  CONCENTRATED_WEIGHT). On this scale 0 IS neutral, so a day without a release is filled with the
+  neutral value and contributes nothing to the window sum; the sum over w days is the accumulated
+  signed corporate-action tone, the same construction insider_significant_buying_drift uses for
+  accumulated directional insider activity. Backfill was rejected: carrying the last reading
+  forward would make a firm with one positive release a year look permanently positive. The factory
+  renders the density as add(vec_avg(field), 0, filter=true), which satisfies typed H4 for the
+  sparse 2022-generation field (densified=True) as well as the dense one.
+  TYPE RULES (forge/typed.py): H4 vector satisfied by vec_avg and density by add(..., filter=true);
+  ts_sum and ts_decay_linear are not change operators (H2); nothing is divided or added across
+  fields (H1); the leg ends in group_rank so it enters a composite's multiply as a bounded operand
+  (H3). The event cadence needs no ts_backfill.
+  WHY TWO TEMPLATES. ts_sum weights every release in the window equally; ts_decay_linear weights
+  the recent ones more, which is the shape of a drift that is strongest in the first months and
+  fades within the paper's year. Which shape the platform rewards is a measurement.
+  HISTORY, CHECKED NOT ASSUMED (hard gate 8). Local forge journal state/layered/runs/forge.jsonl
+  (25,035 rows): 0 rows mention nws17 or news17. VPS journal read over ssh -n on 2026-09-09
+  (28,004 rows): 0. 02_dataset_map: tier D, 0/0 journal rows by both derivations, and news17 is in
+  no composite. state/resim_targets.json holds 4 old climb-era additive blends that read
+  nws17_acb through vec_stddev and nws17_d1_ber through vec_count as one weighted term among six
+  - different fields (earnings tone dispersion, analyst-change count), different construct, no
+  collision. state/banned_fields.json and state/climb/spent_fields.json do not mention nws17.
+  KNOWN CONFOUND, EX-ANTE and unmeasured. The classifier's polarity for a ROUTINE quarterly
+  dividend declaration is not documented. If routine declarations score +1, the leg partly ranks
+  'pays a dividend', a payout-status tilt that is a different and crowded construct; if they
+  score 0, the leg is the discretionary-action signal the mechanism describes. No experiment here
+  separates the two readings. MECHANISM FOR THE RESIDUAL: UNKNOWN. The composite
+  corpaction_x_insider is the construction that filters the routine and cosmetic announcements
+  out by requiring insider buying alongside.
+  DISTINCTNESS, checked not assumed: news_pr_event_tone (news84) is the general tone of all
+  press releases; dividend_increase_prediction (other424) is a model's predicted likelihood of an
+  increase, not an announcement; equity_issuance_dilution and debt_issuance_reversal read the
+  balance sheet, not the release. None reads a corporate-action classifier, and news17 appears in
+  no hypothesis or composite. Whether the resulting book is distinct is a correlation measurement.
+  ATTENUATION (standard Dim 4): strongest for discretionary, infrequent actions after a price
+  decline in mid and small caps; weakens in mega-caps with perpetual buyback programmes and in
+  quarters when payout decisions are forced market-wide (the March-2020 suspensions were
+  liquidity and regulation, not a managerial forecast), when the classifier's sign says nothing
+  about the firm.
+  LADDER RISK, POST-HOC and not a mechanism: diagnosis_ladder.md section 3a records that the two
+  news legs added after the original library (news46 composite tone, 0/124; news_negative_tone_nlp,
+  0/6) never cleared the 2022-2024 ladder window in any composite. This is a news leg. Whether it
+  shares that fate is the measurement; MECHANISM UNKNOWN for why those did.

@@ -1,0 +1,26 @@
+id: short_volume_ratio_informed
+family: short
+category: [Short Interest, Institutions]
+title: Daily short-sale volume share is informed selling
+mechanism: >
+  Short sellers are informed on average; the share of a day's volume that is sold short, averaged
+  over the window, predicts negative returns over the following weeks. Short the names with the
+  highest short-volume share.
+counterparty: Buyers on the other side of informed short sales.
+sign: -1
+source: "EX-ANTE — Boehmer, Jones & Zhang 2008 (heavily shorted stocks underperform about 1.16% per month); Diether, Lee & Werner 2009"
+datasets: [us_short_sale, institutions20]
+signal:
+  fields: [executed_short_trade_share_count, reported_short_sale_share_quantity, inst20_sq_sv]
+signal2:
+  fields: [aggregate_executed_trade_share_count, reported_total_trade_share_quantity, inst20_sq_tv]
+template: "-group_rank(ts_mean({signal} / {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

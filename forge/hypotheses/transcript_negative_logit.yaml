@@ -1,0 +1,27 @@
+id: transcript_negative_logit
+family: tone_call
+category: Analyst
+title: Negative tone of the earnings call (negative logit) predicts post-call underperformance
+mechanism: >
+  The negative logit of the conference call (all speakers, the presentation, or sell-side analysts
+  in Q&A) measures how negative the call sounded. Managers' and analysts' tone carries information
+  beyond the numbers and prices adjust over the following weeks. Calls are quarterly, so the last
+  reading is carried forward. Short the most negative latest call tone.
+counterparty: "Institutions that read the numbers but not the call; retail holders who anchor on guidance"
+sign: -1
+source: "EX-ANTE — Larcker & Zakolyukina 2012 JAR (linguistic cues in conference calls); Price, Doran, Peterson & Bliss 2012 JBF (call tone and post-earnings drift); Mayew & Venkatachalam 2012 JF"
+datasets: [news87]
+signal:
+  fields: [mws87_neg_logit_all, mws87_neg_logit_pres, mws87_analyst_neg_logit_qa]
+  vector: vec_avg
+  density: backfill
+  density_window: 63
+template: "-group_rank({signal}, {group})"
+params:
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

@@ -1,0 +1,30 @@
+id: neg_headline_freq_disagreement
+title: Negative News Volume and Sentiment Disagreement Interaction
+arm: new
+legs: [news_negative_headline_frequency, news_tone_disagreement_trna]
+families: [tone_negative, disagreement]
+combiners: [multiply]
+mechanism: >
+  The conjunction isolates situations where public information flows are heavily negative and
+  internally inconsistent. High negative headline frequency combined with high disagreement among
+  news items suggests that the market is processing conflicting signals about the severity of the
+  bad news. This uncertainty prevents full price adjustment, leading to a drift as the true
+  fundamental impact is gradually resolved and the initial over-reaction to the negative tone
+  reverses.
+counterparty: retail investors and market makers who underprice the uncertainty of conflicting news
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: high-volatility news events with conflicting narratives
+weakens_when: news is uniformly positive or uniformly negative without disagreement
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value Winter: Disagreement is high when valuations are contested, amplifying the drift.
+  Momentum Crash: Disagreement is high during crashes, and negative tone is prevalent, so the
+  signal is strong.
+  Covid: The initial shock was a uniform negative event with low disagreement, weakening the
+  signal.
+  Rate Shock: Disagreement is high as markets debate the impact of rate hikes, and negative tone
+  is prevalent in growth stocks, making the signal effective.

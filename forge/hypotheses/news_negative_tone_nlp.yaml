@@ -1,0 +1,26 @@
+id: news_negative_tone_nlp
+family: tone_negative
+category: Other
+title: Average negative news tone (transformer scores) predicts short-horizon underperformance
+mechanism: >
+  The daily average NEGATIVE sentiment of the stories mapped to a stock measures media pessimism.
+  Pessimistic coverage is followed by downward price pressure over the next days as slow readers
+  sell, so the most negatively covered names underperform. The negative channel is kept separate
+  from the positive one (the dataset scores them separately). Short the most negative tone.
+counterparty: "Investors who trade on the numbers and read the news with a lag; retail holders who sell late"
+sign: -1
+source: "EX-ANTE — Tetlock, Saar-Tsechansky & Macskassy 2008 JF (negative words in firm-specific news predict low earnings and returns); Tetlock 2007 JF (media pessimism, market level)"
+datasets: [nlp_news_scores]
+signal:
+  fields: [negative_sentiment_average, negative_sentiment_average_3, negative_sentiment_average_5]
+  density: zero
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [3, 5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

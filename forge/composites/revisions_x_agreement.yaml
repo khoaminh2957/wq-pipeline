@@ -1,0 +1,20 @@
+id: revisions_x_agreement
+title: Upward revisions that analysts agree on
+legs: [analyst_estimate_revision_drift, analyst_forecast_dispersion]
+families: [revisions, revisions_dispersion]
+combiners: [multiply, gate]
+mechanism: >
+  Upward estimate revisions drift because investors underreact, but a revision made against a
+  wide spread of opinions is noisier and more often reversed; when analysts agree, the revision
+  carries information the crowd has not yet absorbed. Multiplying the revision rank by the
+  low-dispersion rank keeps the confident revisions, and slow-moving institutions that rebalance
+  only after the consensus prints supply the drift.
+counterparty: "Institutions and pension funds that rebalance on quarterly consensus prints rather than on daily revisions"
+source: "EX-ANTE — Chan, Jegadeesh & Lakonishok 1996; Gleason & Lee 2003 (revision drift is stronger for high-innovation, low-dispersion revisions); Diether, Malloy & Scherbina 2002"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid-cap names with 5-15 covering analysts"
+weakens_when: "a market-wide shock resets all estimates at once (March 2020)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

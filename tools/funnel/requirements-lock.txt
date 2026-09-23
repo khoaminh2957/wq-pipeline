@@ -1,0 +1,5 @@
+# alpha_score v2.0.0 pinned env (Khoa 2026-07-18)
+python==3.14
+numpy==2.3.4
+scikit-learn==1.7.2
+scipy==1.16.3

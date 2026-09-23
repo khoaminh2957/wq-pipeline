@@ -1,0 +1,29 @@
+id: news_ravenpack_mean_ssc_drift
+family: tone
+category: News
+title: Mean RavenPack composite sentiment predicts short-horizon drift
+mechanism: >
+  The mean composite sentiment score (0-100) summarizes the tone of a firm's news flow, and positive
+  tone diffuses into prices slowly because the investors who read the feed are not the ones setting the
+  marginal price that week, so the most positively covered names keep drifting up as attention decays.
+counterparty: retail holders who react to headlines with a lag
+sign: 1
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+datasets: [news46]
+signal:
+  fields: [mws46_ravenpack_mean_ssc, mws46_ravenpack_mean_ssc_fast_d1]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  A 0-100 score, so a day with no news is "no change" and backfills rather than reading as the most
+  negative value.

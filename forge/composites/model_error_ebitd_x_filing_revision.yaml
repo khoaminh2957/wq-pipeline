@@ -1,0 +1,26 @@
+id: model_error_ebitd_x_filing_revision
+title: Model uncertainty and filing construction changes
+arm: new
+legs: [model_error_ebitd_ttm, filing_construction_change]
+families: [model_error, filing_revision]
+combiners: [multiply]
+mechanism: >
+  High EBITDA model error indicates a firm is difficult to value due to unpredictable cash flows. When this is
+  combined with a change in the construction of the firm's own filings, it suggests a structural shift in how
+  the company presents its financial reality, often to obscure complexity. This conjunction signals that the
+  uncertainty is not just statistical but also informational, leading to a persistent discount as the market
+  struggles to parse the true risk profile.
+counterparty: sell-side analysts and quantitative modelers who rely on consistent reporting structures
+source: "EX-ANTE — Dittmar et al. 2015, uncertainty in earnings forecasts is associated with lower stock returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: Complex industrial firms with high intangible assets
+weakens_when: Market efficiency improves with standardized reporting regulations
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter: Value investors penalize complexity and uncertainty more heavily.
+  momentum_crash_2016: Momentum crashes are driven by liquidity, not fundamental uncertainty.
+  covid_2020: High uncertainty environment amplifies the penalty for opaque reporting.
+  rate_shock_2022: Rate shocks dominate the discount rate, overshadowing idiosyncratic model errors.

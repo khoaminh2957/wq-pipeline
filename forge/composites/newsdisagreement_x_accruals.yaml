@@ -1,0 +1,119 @@
+id: newsdisagreement_x_accruals
+title: A price set by the optimists, on earnings the cash never delivered
+arm: new
+legs: [news_tone_disagreement_trna, usa_accruals_cashflow]
+families: [disagreement, accruals]
+combiners: [multiply]
+mechanism: >
+  Two conditions have to hold at once for a stock to be both overpriced and scheduled to
+  disappoint, and one leg can only observe one of them. The first leg observes that the day's news
+  items about the firm contradict each other; when valuations diverge and the investors with the
+  lowest ones cannot borrow the shares, the marginal holder is an optimist and the quoted price
+  sits above the average opinion. That says the price is high relative to what the crowd believes,
+  but it says nothing about which way the ambiguity resolves — a contested name whose fundamentals
+  are sound resolves upward and the short loses. The second leg observes the part of reported
+  earnings that operating cash has not delivered; that part reverses, so it names the direction of
+  the coming revision, but on its own it cannot tell a firm whose price already embeds the
+  reversal from one whose holder base is paying the optimist's price for it. The conjunction keeps
+  only the names where both are true: the short side is contested in its news flow and financing
+  its earnings with accruals, so the correction that arrives when the ambiguity resolves has
+  something specific and predictable to correct toward; the long side is a firm whose news flow
+  agrees, leaving no optimist premium in the price, and whose earnings are backed by cash, leaving
+  nothing scheduled to reverse.
+counterparty: "Retail and long-only institutional holders who buy the contested name at the optimists' price and read reported EPS without splitting it into cash and accruals — the institution that has read the cash-flow statement can only take the other side by borrowing the shares, and the equity-lending fee on a contested small or mid cap keeps it out of the marginal price"
+source: "EX-ANTE — the two halves and the bridge between them, each FETCHED by this researcher on 2026-09-09 through the Crossref REST API (api.openalex.org returned HTTP 429, 'Insufficient budget', all day and was not used). (1) DISAGREEMENT HALF: Diether, Malloy & Scherbina 2002, Journal of Finance 57(5), 'Differences of Opinion and the Cross Section of Stock Returns', https://api.crossref.org/works/10.1111/0022-1082.00490 HTTP 200, verbatim from the deposited abstract: 'We provide evidence that stocks with higher dispersion in analysts' earnings forecasts earn lower future returns than otherwise similar stocks.' and 'prices will reflect the optimistic view whenever investors with the lowest valuations do not trade.' CONSTRUCT DIFFERENCE, stated not glossed: they disperse ANALYST EPS FORECASTS, this leg disperses the day's NEWS ITEMS — the force transfers, the measurement channel does not. (2) THE CORRECTION IS AN EVENT: Berkman, Dimitrov, Jain, Koch & Tice, 'Sell on the News: Differences of Opinion and Returns Around Earnings Announcements', https://api.crossref.org/works/10.2139/ssrn.938749 HTTP 200 (2007 working paper; published 2009 as Journal of Financial Economics 92(3), DOI 10.1016/j.jfineco.2008.04.009, whose Crossref record carries no abstract), verbatim: 'such announcements generally reduce differences of opinion among investors and, hence, are also likely to reduce overvaluation if the Miller hypothesis is true' and 'the three-day hedge returns (returns on low minus high differences of opinion stocks) around earnings announcements are 0.2749% (23% annualized) to 0.7132% (60% annualized), depending upon the proxy for differences of opinion.' (3) THE ACCRUAL HALF, AND WHY UNCERTAINTY IS THE PART THAT IS MISPRICED: Fedyk, Singer & Sougiannis 2020, Contemporary Accounting Research 37(2), 'The Accrual Anomaly: Accrual Originations, Accrual Reversals, and Resolution of Uncertainty', https://api.crossref.org/works/10.1111/1911-3846.12538 HTTP 200, verbatim: 'we document that investors face increased uncertainty when accruals originate and decreased uncertainty when accruals reverse, and we provide evidence that only originating accruals are mispriced.' Sloan 1996, The Accounting Review 71(3), https://api.crossref.org/works/10.2308/tar-9608042309 HTTP 200 — record confirmed, but the deposited abstract is a two-line descriptor and states no result, so nothing is quoted from it; the accrual leg carries Sloan and Hribar & Collins 2002 on its own source line."
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "USA mid caps that generate several third-party wire items on a normal day, so a cross-article standard deviation is a real number rather than a one-article artefact, and whose quarterly accrual is large relative to assets and comes from ordinary operations (receivables, inventory, payables) rather than one acquisition — the contest has something to be about and there is a reversal already booked"
+weakens_when: "coverage is thin — a name with one article a day has a mechanically tiny dispersion, so the short side starts ranking how much a stock is written about instead of how much the writing disagrees; the whole tape is contested at once (a macro shock), when a same-day cross-article dispersion carries little cross-sectional information; the accrual is dominated by a single non-recurring item, so its level is not an earnings-quality reading; and fast tapes generally, where the daily news half moves and the quarterly accrual half does not, so the product is driven by one leg"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  WHAT IS DOCUMENTED AND WHAT IS NOT — the important line in this file.
+  Documented and fetched above: (a) divergent opinion plus a binding short-sale constraint leaves
+  the price at the optimist's valuation (DMS 2002); (b) that overvaluation corrects when
+  information arrives that reduces the disagreement (Berkman et al.); (c) the mispriced accrual is
+  the one whose conversion to cash is still uncertain (Fedyk, Singer & Sougiannis 2020).
+  NOT documented, and NOT claimed here: that the news items are disagreeing ABOUT the accrual, or
+  that the two uncertainties are one uncertainty. This composite does not need them to be — it
+  needs only that both conditions hold on the same name at the same time, which is what the
+  product measures. Whether co-occurrence beats either leg alone is the simulation, not a claim.
+  MECHANISM: UNKNOWN for any common cause of the two.
+  A SECOND STATED GAP: Berkman et al. locate the correction at earnings announcements. This
+  composite does not observe announcement dates and holds the position continuously, so it does not
+  time the resolution; and Fedyk et al. separate originating from reversing accruals with a method
+  the accrual leg does not implement (the leg ranks the level of (income - cashflow_op)/abs(assets)
+  over 126 or 252 days). The citations ground the forces; neither is reproduced construct-for-
+  construct, and a null result must not be read back as evidence about their papers.
+  COMBINER, checked in code not assumed. Both legs are bearish (news_tone_disagreement_trna sign
+  -1, usa_accruals_cashflow sign -1), so [multiply] only: forge/compose.py L27-29 rewrites a leg
+  written '-group_rank(...)' as '(1 - group_rank(...))' and L33-34 multiplies the two, giving a
+  book that is long where news dispersion is LOW and accruals are LOW, and short where both are
+  high — which is the mechanism above. The gate branch (L36) inverts a bearish conditioner and
+  would compile to a different book (Verifier note carried on newsneg_x_short and
+  transcriptneg_x_revision, 2026-09-08; netcash_x_insider was repaired for exactly this).
+  No sign change is planned in either direction: the leg's own file already commits ex-ante to the
+  Miller / DMS direction and records the competing ambiguity-premium reading as unresolved, so a
+  negative result here is diagnostic and stays diagnostic.
+  REGIME SIGNS, reasoned for THIS conjunction and for nothing else. They are the standard's
+  reasoning (hard gate 4), NOT a screen: docs/harness5/round_2/diagnosis_ladder.md section 3b
+  measured the maps against the 2022-2024 ladder window and found the '0' composites clear it as
+  often as the '+' ones — REFUTED as a ranking input, and this file must not be ranked by them.
+  value_winter_2014_2020 '0': the two halves pull against each other. Shorting accrual-financed
+  earnings sat on the quality side that led those years, while shorting contested names shorted the
+  story stocks whose whole thesis was contested and which ran anyway. Opposite pulls, no net sign
+  claimed.
+  momentum_crash_2016 '-': the early-2016 reversal rewarded low-quality and heavily-shorted names.
+  The product concentrates its short in names that are BOTH contested and accrual-heavy, which is
+  the intersection that rallies hardest in that kind of junk rally, so the conjunction should give
+  back more than either leg alone rather than less.
+  covid_2020 '0': in Q1 2020 every name's news flow became contradictory at once, and a same-day
+  cross-article dispersion has little cross-sectional information when the dispersion is common; the
+  leg's own 250-day within-name rank addresses a name's fixed level, not a market-wide shock. The
+  accrual reading meanwhile describes a pre-COVID firm. Degrades toward noise in both directions
+  rather than losing money in one.
+  rate_shock_2022 '+': both halves point the same way. 2022 repriced uncertain, long-dated claims
+  down and paid for near-term cash; the short side here is the contested name financing earnings
+  with accruals, which is that claim, and the long side is the quiet cash-backed name.
+  DISTINCTNESS, checked in the files not assumed. No composite in forge/composites/ or
+  forge/composites/staged/ pairs a DISPERSION leg with an accruals leg: the two dispersion legs in
+  the library go to options (ai_disagreement_x_putpremium) and to analyst revisions
+  (revisions_x_agreement), and the fourteen live accruals composites pair an accrual leg with credit
+  language, insiders, PR tone, weekly sentiment tone, profitability, quality, short flow, capex,
+  investment, intangibles, range volatility and predicted surprise, the four staged ones with filing revisions, governance
+  turnover, tax expense and this file (counted 2026-09-09 over both directories). The
+  nearest neighbour is prtone_x_accruals, which is the FIRST moment of the firm's OWN press
+  releases (news84); this is the SECOND moment across THIRD-PARTY wire items (sentiment21).
+  Different construct, different vendor, and the sentiment21 fields carry alphaCount 3-7 against
+  the library's crowded fields. The partner is the crowded half: income alphaCount 15,084,
+  cashflow_op 23,095, assets 169,009 (re-derived from fetched/rc/fields/USA_TOP3000_d1.jsonl).
+  Hard gate 4's >=750 bar binds on the PRIMARY bet, which is the disagreement leg, and its
+  'every leg >= 200' clause does not fire (3-7 here); the same partner ships in fourteen live
+  composites. Whether the resulting book is actually decorrelated is a prod-corr
+  measurement, not a claim made here.
+  PRIOR ON THE SAME CORE IDEA, MEASURED — not previously on either file. The library's
+  ai_news_score_disagreement is the same family ('disagreement'), the same Miller 1977 /
+  Diether-Malloy-Scherbina 2002 pair, and the same construct (cross-item standard deviation of a
+  vendor's negative sentiment channel); this leg's SECOND template
+  '-group_rank(ts_mean({signal}, {w}), {group})' is BYTE-IDENTICAL to that leg's only template,
+  with the same sign, group list, neutralization set and truncation. That idea has been simulated:
+  ai_disagreement_x_putpremium, 60 distinct COMPLETE USA/d1 alphas in state/layered/runs/forge.jsonl
+  (VPS, read-only, 2026-09-09) — sharpe max 0.88 / p50 0.57, 0 rows >= 1.58; fitness max 0.34, 0
+  rows >= 1.0; IS_LADDER_SHARPE max 1.28, 0 rows >= 1.58, 59/60 reporting FAIL at year 2. Re-derived
+  a second way (distinct alpha ids keyed on meta.hypothesis, last row wins): identical. MECHANISM:
+  UNKNOWN for why they died. Candidates, none tested: the construct carries no cross-sectional
+  return information on USA/d1; the ai_news_scores vendor's dateCoverage 0.9001; the option partner
+  (diagnosis_ladder.md section 3a puts option_call_put_iv_spread at y2pass 0.37 over 1,251 rows, but
+  that rate is conditioned on sharpe >= 1.3 and no ai_disagreement row reaches 0.89, so the two are
+  not comparable). n=60 on one vendor does not establish the construct is dead on another; it does
+  establish that this composite is a second attempt at the idea and not a first.
+  PARTNER CHOICE, POST-HOC and used only for allocation: diagnosis_ladder.md section 3a reports
+  usa_accruals_cashflow at a 0.40 rate of clearing the 2022-2024 ladder window on composite rows
+  with Sharpe >= 1.3 (n 184), second highest of the ten legs listed. That number chose the partner;
+  it did not set any sign, label or field in this file, and whether the rate transfers to a leg the
+  partner has never been paired with is unmeasured.
+  FIELDS, re-derived by this researcher from fetched/rc/fields/USA_TOP3000_d1.jsonl rather than
+  taken from the leg's own note: snt21_neg_std / snt21_3neg_std / snt21_4neg_std all present at
+  delay 1, type MATRIX, coverage 0.9996, alphaCount 4 / 3 / 7. usa_accruals_cashflow itself is in
+  seven live composites and three other staged ones, so its fields are known to compile here.

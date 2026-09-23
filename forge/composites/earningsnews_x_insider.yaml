@@ -1,0 +1,67 @@
+id: earningsnews_x_insider
+title: Positive earnings coverage that the people who wrote the release are also buying
+arm: new
+legs: [news_earnings_coverage_tone, insider_significant_buying_drift]
+families: [tone_earnings_news, insider]
+combiners: [multiply]
+mechanism: >
+  Positive tone in a firm's earnings coverage is two things mixed together. Part of it is genuine
+  soft information about the quarter that investors process slowly, and part of it is tone the
+  managers put there: the press release is written by the firm, and abnormally positive tone
+  predicts lower future earnings, with a positive reaction at the announcement that reverses over
+  the following one to two quarters. Read on its own, the tone leg is long both parts. The insider
+  leg separates them, because the people who wrote the release know which part they are in: a
+  manager who is talking up a weak quarter does not buy shares he expects to reverse, while
+  insiders who buy after a positive-toned release commit their own money to the soft information
+  being true. The product therefore keeps positive earnings tone only where it is corroborated by
+  the one party holding the hard information - the genuine-information branch, whose drift is
+  positive - and drops the managed-tone branch, whose delayed reaction is negative. It is not two
+  bullish signals agreeing; it is one public signal filtered by the private verdict of its own
+  authors.
+counterparty: "Retail investors and screen-driven institutions that trade the earnings headline and the tone of its coverage without reading the Form 4 filings that follow it; index funds and quant managers whose earnings input is the reported number alone"
+source: "EX-ANTE — conjunction evidence, tone branch: Huang, Teoh & Zhang 2014, The Accounting Review 89(3), 'Tone Management'. FETCHED https://api.openalex.org/works/https://doi.org/10.2308/accr-50684 (record https://openalex.org/W4253889179) HTTP 200 (2026-09-09). Verbatim from that abstract: 'We find that ABTONE predicts negative future earnings and cash flows' and 'ABTONE has a positive stock return effect at the earnings announcement and a delayed negative reaction in the one and two quarters afterward.' and 'Overall, the evidence is consistent with managers using strategic tone management to mislead investors about firm fundamentals.' - this is why positive earnings tone has to be filtered before it is bought. Insider branch: Cohen, Malloy & Pomorski 2012, Journal of Finance 67(3), 'Decoding Inside Information'. FETCHED https://api.openalex.org/works/https://doi.org/10.1111/j.1540-6261.2012.01740.x (record https://openalex.org/W2890190386) HTTP 200 (2026-09-09). Verbatim: 'there is predictable, identifiable \"routine\" insider trading that is not informative about firms' futures. A portfolio strategy that focuses solely on the remaining \"opportunistic\" traders yields value-weighted abnormal returns of 82 basis points per month' - insiders' non-routine trades carry information about the firm's future, which is what the filter relies on. Tone leg: Tetlock, Saar-Tsechansky & Macskassy 2008 JF (OpenAlex W3122563224, HTTP 200), carried by the leg's own source line. NO paper measuring this exact conjunction (insider purchases x earnings-coverage tone) was found with a fetchable abstract: an OpenAlex search 'insider trading tone earnings press release' (HTTP 200) returned nothing on point, so the claim that insider buying separates the two branches is EX-ANTE reasoning from the two fetched results, untested. Piotroski & Roulstone 2005 JAE was the first choice for the insider branch and was DROPPED: its abstract is null on OpenAlex (W2067154393), Crossref and Semantic Scholar (all HTTP 200, no abstract field)."
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid and small caps with scored earnings coverage and insiders who trade in the open window after the release: enough coverage for the vendor to score the earnings stories, and purchases large enough relative to float to be filtered as significant"
+weakens_when: "the insider leg stops being selective - a market-wide insider-buying wave such as March 2020, when a purchase says 'the market fell' rather than 'this release is true' - and in mega-caps, where insider purchases are negligible relative to float and the coverage tone is uniform; also whenever the insider window does not reach the post-release open window, so the product is empty for most names"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file. Regime maps are
+  measured NOT to predict the 2022-2024 ladder window (diagnosis_ladder.md section 3b); they are
+  the standard's reasoning only and must not be used to rank this composite.
+  value_winter_2014_2020 '0': the long side is names with positive earnings coverage confirmed
+  by insider buying. Insider purchases skew to names that have fallen (insiders buy against the
+  price), which leaned value in a growth-led period, while the tone condition keeps only those
+  with good earnings news; a headwind and a filter that offset, so no directional call.
+  momentum_crash_2016 '+': the February-2016 reversal rewarded beaten-down names; insider
+  purchases had accumulated into the 2015-16 decline, so the insider leg's long side is the side
+  that reversed, and the tone leg is not a momentum bet, so the conjunction is not on the losing
+  side of the crash.
+  covid_2020 '0': Q1-2020 earnings coverage was pandemic language in every name and insider
+  buying was market-wide in March; both legs described the market rather than the firm, so the
+  cross-section is noise-dominated in both directions.
+  rate_shock_2022 '+': the bet is on delivered current earnings confirmed by insiders and carries
+  little duration; 2022 rewarded current earnings over long-dated growth.
+  COMBINER. Both legs are bullish (sign +1), so multiply and gate both keep the orientation;
+  [multiply] is the confirmation reading (both must be high) and is the round brief's stated
+  preference on POST-HOC allocation knowledge (multiply rows at the bar reach fitness 1.0 at
+  130/355 vs gate 6/184) - cited from the brief, not measured here.
+  TIMING, EX-ANTE description not a measurement: insiders at most firms are in a blackout until
+  after the release, so their purchases follow the coverage by days to weeks; the insider leg
+  sums 20-120 days of significant directional activity, which spans the open window, and the
+  tone leg carries the last reading for 63 days, so for most of a quarter the product reads
+  'release tone x insider activity since the release'. If the insider window is short relative to
+  the release date the product is empty for most names (weakens_when).
+  DISTINCTNESS, checked not assumed: no composite in forge/composites/ pairs any tone family with
+  the insider family (insider_significant_buying_drift pairs with accruals, IV spread,
+  profitability, short flow and balance-sheet cash; insider_buy_sell_ratio with accruals), and
+  news48 appears in no composite and no forge journal row (02_dataset_map tier U). PARTNER CHOICE
+  from the round brief's allowed list: insider_significant_buying_drift (2022-2024 window cleared
+  on 0.40 of rows >= 1.3, n 204 - POST-HOC allocation knowledge, used only to choose the partner).
+  Rejected: usa_accruals_cashflow (prtone_x_accruals is already tone x accruals),
+  usa_profitability_ratios (headline_x_profitability, multiwire_x_profitability),
+  option_call_put_iv_spread (usa_sentiment_x_ivspread), sentiment_weekly_continuation and
+  social_twitter_sentiment_continuation (same sentiment domain). Whether the resulting book is
+  actually distinct from the live book is a correlation measurement, not a claim made here.

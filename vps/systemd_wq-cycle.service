@@ -1,0 +1,8 @@
+[Unit]
+Description=Unattended analyse-gate-ablate-present cycle (never submits)
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+Environment=PYTHONPATH=/opt/wq:/opt/wq/tools
+ExecStart=/opt/wq/venv/bin/python /opt/wq/tools/auto_cycle.py
+TimeoutStartSec=5400

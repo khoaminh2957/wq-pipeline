@@ -1,0 +1,26 @@
+id: option_volatility_smirk
+family: options
+category: Option
+title: A steep volatility smirk predicts low returns
+mechanism: >
+  Out-of-the-money put implied volatility above at-the-money call implied volatility means
+  informed traders are paying for downside protection; the steeper the smirk, the lower the
+  subsequent return. Short the names with the steepest smirk over the window.
+counterparty: Equity holders who do not watch the option market.
+sign: -1
+source: "EX-ANTE — Xing, Zhang & Zhao 2010 (steeper smirk predicts lower future returns)"
+datasets: [option3]
+signal:
+  fields: [opt3_volputotma, opt3_volputotmb]
+signal2:
+  fields: [opt3_volcallatm, opt3_volcallatm]
+template: "-group_rank(ts_mean({signal} - {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

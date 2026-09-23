@@ -1,0 +1,24 @@
+id: earnings_call_language_quality
+family: tone
+category: Fundamental
+title: Net tone of the earnings call, especially the Q&A, predicts drift
+mechanism: >
+  Managers' net tone in prepared remarks and, more revealingly, in the unscripted Q&A carries
+  information beyond the reported numbers, and prices absorb it over the following weeks. Long
+  the names with the most positive net call tone and the largest CEO sentiment change.
+counterparty: Investors who read the numbers but not the call.
+sign: 1
+source: "EX-ANTE — Price, Doran, Peterson & Bliss 2012 (earnings-call tone predicts drift); Loughran & McDonald 2011 (LM word lists); Matsumoto, Pronk & Roelofsen 2011 (Q&A is more informative)"
+datasets: [fundamental45]
+signal:
+  fields: [fnd45_sentiment_lm2_net_qa, fnd45_sentiment_lm2_net_pr, fnd45_sentiment_chanage_ceo, fnd45_score]
+template: "group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [42, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

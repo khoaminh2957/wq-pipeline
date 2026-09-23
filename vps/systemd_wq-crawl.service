@@ -1,0 +1,15 @@
+[Unit]
+Description=Keep crawling field catalogues until all 33 exist
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+ExecStart=/root/crawl_supervisor.sh
+Restart=on-failure
+RestartSec=60
+# Deliberately NO StartLimitBurst: a quota wall once turned into a permanent failed unit here, and
+# the retry loop lives inside the script anyway.
+
+[Install]
+WantedBy=multi-user.target

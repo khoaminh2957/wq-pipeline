@@ -1,0 +1,94 @@
+id: audit_fee_escalation
+family: audit_pricing
+category: Fundamental
+title: The auditor raised its price, and the auditor has seen the books
+mechanism: >
+  An audit fee is a price set once a year by the one outside party that has read the client's
+  ledgers, tested its controls and assessed its litigation exposure; the auditor re-prices the
+  engagement to the risk it found. A rise in that price against the firm's own prior year is the
+  auditor's private risk assessment made public in the proxy statement, and Stanley 2011 finds
+  that audit fees are inversely related to the one-year-ahead change in the client's operating
+  performance and reflect changes in earnings that analysts' forecasts do not carry. Equity
+  investors price the firm off the income statement and the analyst consensus, not off the fee
+  table in the DEF 14A, so the auditor's warning is disclosed but not read. Force: behavioural
+  mispricing (limited attention to a low-salience disclosure), persistent because the fee is a
+  governance-vote line item that earnings-focused readers have no routine for, and because the
+  signal moves once a year in small and mid caps where arbitrage capital is thin. Short the names
+  whose audit fee grew the most against their own prior year, within subindustry.
+counterparty: "Sell-side analysts whose earnings forecasts omit the fee information (Stanley 2011), and the growth investors and index funds that price reported earnings off those forecasts without reading the proxy-statement fee disclosure"
+sign: -1
+source: "EX-ANTE — Stanley 2011, Auditing: A Journal of Practice & Theory 30(3), 'Is the Audit Fee Disclosure a Leading Indicator of Clients' Business Risk?'. FETCHED https://api.openalex.org/works/W2136257352 HTTP 200 (2026-09-09; the publisher page https://doi.org/10.2308/ajpt-10049 returns HTTP 403 to a script and was NOT the source of this text). Verbatim from that abstract: 'results from a traditional audit fee model, estimated using a large sample of U.S. public company engagements spanning from 2000 to 2007, reveal a significant inverse relation between fees and the one-year-ahead change in a measure of clients' operating performance.' and 'Results also indicate that audit fees reflect changes in earnings that are unaccounted for by analysts' forecasts.' and 'the relation extends to more forward-looking changes (up to five years ahead) and is stronger for negative versus positive changes in performance.' The paper's construct is the audit fee inside a fee model (a level explained by size and complexity); this leg uses the within-firm change in the log fee, which removes the firm's own size and complexity by differencing rather than by a cross-sectional regression — the correspondence is the fee's information about one-year-ahead operating performance, not the paper's exact residual."
+datasets: [fundamental14]
+signal:
+  fields: [fnd14_latest_audit_fees_sum, fnd14_latest_total_fees_sum]
+  vector: vec_avg
+template:
+  - "-group_rank(ts_delta(log(ts_backfill({signal}, {w})), {d}), {group})"
+  - "-group_rank(ts_delta(ts_backfill({signal}, {w}), {d}) / abs(ts_delay(ts_backfill({signal}, {w}), {d})), {group})"
+params:
+  w: [63, 126]
+  d: [252, 504]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives both fields sign 'unstated' (domain fundamental-other, kind
+  level, unit unitless — the description has no currency word, so the unit defaulted). The sign
+  here is read from the descriptions ('Sum of the latest reported audit fees for the fiscal year,
+  including restatements if available'; 'Sum of latest total fees for the fiscal year') together
+  with Stanley 2011's direction: a larger fee against the firm's own prior year is the auditor
+  pricing more risk, and the abstract's inverse relation with one-year-ahead operating performance
+  makes it bearish. There is no label prior to disagree with; the label is absent, not opposed.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1, dataset fundamental14 'Audit
+  Analytics Directors Data', both VECTOR): fnd14_latest_audit_fees_sum coverage 1.0, dateCoverage
+  0.5559, userCount 17, alphaCount 19; fnd14_latest_total_fees_sum coverage 1.0, dateCoverage
+  0.5559, userCount 9, alphaCount 12. Audit fees is Stanley's variable; total fees (audit plus
+  audit-related, tax and other) is the coarser proxy and is listed second. The labels' dataset
+  attribution agrees with the catalogue for both.
+  TYPE RULES (forge/typed.py). VECTOR -> vec_avg (the label's vec_reducers are vec_avg/vec_max/
+  vec_min; 'the latest reported' fee is one value per firm-year, so vec_avg returns it). Labelled
+  time 'annual' -> ts_backfill inside every template (H4). Coverage 1.0 -> dense, no density
+  operator. UNIT: the labels type the fee as unitless and total assets / revenue / market cap as
+  currency, so the fee-to-size LEVEL (the paper's own control for size) is refused by H1 ('divide
+  unitless by currency', checked 2026-09-09 with typed.judge structural=True). The construct is
+  therefore the within-firm change: template 1 is the change in the log fee (fee models regress
+  the log fee, and a log difference is a growth rate that needs no scale), template 2 the same
+  growth written as a percent change. Both pass typed.judge structural=True on USA/d1; the full
+  judge refuses on H5 only (the field has no label sign), which is the label gap named above.
+  The platform has no ts_returns operator (OPERATORS.md L1240 records the verbatim error), so the
+  change is written out.
+  CADENCE. The fee is disclosed once a year in the proxy statement, so the leg is a step function
+  that moves at most once a year per name; {d} = 252 compares against the prior fiscal year, 504
+  against two years back. Turnover comes from the partner leg, not from this one.
+  DATE COVERAGE, a stated risk not a finding. Every fnd14_* field carries dateCoverage 0.5559,
+  while every dataset in a current composite reads 0.95-1.0 (fundamental6 1.0, us_short_sale 1.0,
+  option8 0.9507, news_sentiment_transfer 0.9507, insider_agg_matrix 0.9507). What 0.5559 maps to
+  in calendar time is UNKNOWN here (no file on disk states the platform's date range or this
+  dataset's start). If the fields begin after 2019-01, the 5-year LOW_SHARPE window is partly
+  empty on every row while the 2022-2024 ladder window is covered; the canary's PnL start date is
+  the measurement, and a leg that starts late should be dropped rather than re-argued.
+  HISTORY CHECK, run not assumed. Neither field appears in any state/*targets*.json,
+  state/banned_fields.json or state/climb/spent_fields.json (grep 2026-09-09). Fourteen OTHER
+  fnd14_ fields appear in state/resim_targets.json from climb-era random draws (cash-flow
+  amounts, addresses, auditor names); none is a fee field. The local forge journal
+  (state/layered/runs/forge.jsonl, 2026-09-09 14:18) has 0 rows on any fnd14_ field.
+  ATTENUATION, pre-registered. A fee change is scope as well as risk: an acquisition, a first-year
+  SOX 404 attestation, a new auditor's first-year discount (DeAngelo 1981 lowballing, not
+  re-fetched, named as background) or a change of auditor all move the fee without a risk
+  reading. group_rank within subindustry removes industry-wide fee inflation but not firm-level
+  scope changes, so the leg should attenuate in the year of an auditor switch (the dataset's
+  fnd14_curr_auditor_since_event_type codes could condition this; not used here — codes are
+  sign-free and the leg is kept to one construct). Mega-caps with multinational scope carry fee
+  changes dominated by geography, not risk. Strongest where the auditor's re-pricing is the only
+  news: mid caps with one engagement and thin analyst coverage.
+  README RULE. Khoa 2026-09-04: VECTOR legs live in later/ until the dense ones are validated
+  live. This file is staged and invisible to the loader; whether a VECTOR leg is admitted is his
+  tick, not this file's claim.
+  OVERLAP TO WATCH, not a claim. The leg's short side (auditor-priced operating decline) may
+  correlate with the accruals and credit-safety legs, which also select deteriorating names.
+  MECHANISM UNKNOWN for how much; the measured leg correlation decides, and a high reading means
+  this leg added no distinct mechanism and should be dropped.

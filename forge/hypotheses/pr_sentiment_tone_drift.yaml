@@ -1,0 +1,26 @@
+id: pr_sentiment_tone_drift
+family: tone
+category: News
+title: Press release sentiment tone predicts short-horizon price drift
+mechanism: >
+  The mean sentiment score from corporate press releases captures the tone of management's controlled narrative, which is a costly signal that is not fully incorporated into prices immediately because retail investors and passive flow respond to the headline with a lag, causing the initial price impact to be incomplete and drift over subsequent days.
+counterparty: retail investors and passive flow who react to headlines with a lag
+sign: 1
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+datasets: [news84]
+signal:
+  fields: [mean_sentiment_score_transfer]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is a level score where a gap means no change in the underlying narrative, so backfill is appropriate. The sign is positive as per the domain prior and standard tone literature.

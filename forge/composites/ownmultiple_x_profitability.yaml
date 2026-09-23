@@ -1,0 +1,162 @@
+id: ownmultiple_x_profitability
+title: A multiple stretched past the firm's own history, judged against whether its earning power moved
+arm: new
+legs: [valuation_own_history_multiple, usa_profitability_ratios]
+families: [valuation, profitability]
+combiners: [multiply]
+mechanism: >
+  A forward multiple sitting above the median the same firm has carried over its own history is a
+  statement about expected growth: price has moved further than the sell side's forecast earnings for
+  that firm, so the excess is opinion rather than reported or forecast fundamentals. That statement is
+  not an error by itself - a firm whose earning power has genuinely risen SHOULD carry a richer
+  multiple, and Novy-Marx measures that profitable firms trade at richer valuation ratios and still
+  earn higher returns. It becomes an error when nothing has moved in what the firm actually earns on
+  its capital. The conjunction therefore reads the expectation implied by the multiple against the
+  firm's realised profitability and takes a position only where the two disagree: short where the
+  multiple has expanded past the firm's own anchor while operating income on assets and net income on
+  equity have not, long where the multiple has contracted below that anchor while the earning power
+  has held. Piotroski and So document that the value/glamour return is concentrated in exactly the
+  disagreeing subset and absent in the congruent one, and that is the property neither leg has alone:
+  the valuation leg alone shorts every re-rated firm including the ones that earned their re-rating,
+  and the profitability leg alone is long quality at any price. The force is behavioural mispricing by
+  extrapolation - investors project a salient growth rate forward and pay for it while analysts anchor
+  the denominator - and the accounting leg is what separates the projected growth rate from the
+  delivered one. Persistence is the bearer set the valuation leg names: benchmark-tracking index funds
+  whose weight in the stretched name rose mechanically with the multiple and who cannot underweight it,
+  and arbitrageurs who cannot hold a long-horizon, unbounded-left-tail short through a drawdown
+  (Shleifer-Vishny 1997).
+counterparty: "Growth investors and momentum-following retail buyers who pay the higher multiple for a projected growth rate rather than for a realised change in return on capital; sell-side analysts whose anchored forecasts leave the multiple's denominator behind the price; and benchmark-tracking index funds and passive mandates whose weight in the stretched name has just risen with the multiple and which therefore cannot underweight it at the moment the deviation is largest"
+source: >-
+  EX-ANTE - the CONJUNCTION's own evidence, not either leg's: Piotroski & So 2012, Review of Financial
+  Studies 25(9), "Identifying Expectation Errors in Value/Glamour Strategies: A Fundamental Analysis
+  Approach", FETCHED https://api.openalex.org/works/doi:10.1093/rfs/hhs061 HTTP 200 (2026-09-09),
+  verbatim: "Under mispricing explanations, prices of glamour (value) firms reflect systematically
+  optimistic (pessimistic) expectations; thus, the value/glamour effect should be concentrated (absent)
+  among firms with (without) ex ante identifiable expectation errors. Classifying firms based upon
+  whether expectations implied by current pricing multiples are congruent with the strength of their
+  fundamentals, we document that value/glamour returns and ex post revisions to market expectations are
+  predictably concentrated (absent) among firms with ex ante biased (unbiased) market expectations."
+  Second conjunction cite, for why a rich multiple is not on its own the bet: Novy-Marx, "The Other Side
+  of Value: The Gross Profitability Premium" (NBER w15940, April 2010; Journal of Financial Economics
+  108(1), 2013), FETCHED https://www.nber.org/papers/w15940 HTTP 200 (2026-09-09), verbatim: "Profitable
+  firms generate significantly higher average returns than unprofitable firms, despite having, on
+  average, lower book-to-markets and higher market capitalizations. Controlling for profitability also
+  dramatically increases the performance of value strategies, especially among the largest, most liquid
+  stocks." (https://api.openalex.org/works/doi:10.1016/j.jfineco.2013.01.003 returns HTTP 200 for the
+  journal version but carries no abstract, so the quoted text is the NBER abstract of the same paper and
+  is labelled as such.) Leg-side grounding is carried by the leg files and is NOT re-fetched here:
+  Golubov & Konstantinidi 2017/2019 and Lakonishok, Shleifer & Vishny 1994 in
+  valuation_own_history_multiple; Novy-Marx 2013 and Fama & French 2015 in usa_profitability_ratios.
+  CONSTRUCT GAP, stated not papered over: Piotroski & So classify the expectation with a
+  cross-sectional book-to-market and the fundamentals with the 9-signal FSCORE; this composite
+  substitutes a within-firm forward-P/E deviation from the firm's own historical median for the first
+  and the profitability block only (operating income / assets, income / equity, ts_rank within the
+  firm's own history then group_rank across peers) for the second. Whether their result survives both
+  substitutions is UNKNOWN - no experiment here tests it.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: >
+  Mid- and large-cap operating businesses with a long enough continuous forward-P/E history for the
+  firm's own median to be an anchor rather than a small sample, with comfortably positive forecast EPS
+  so the deviation is measured on a stable denominator, and where operating income over assets and net
+  income over equity are comparable from year to year - that is, outside financials and REITs, where
+  leverage makes return on equity non-comparable, and outside pre-revenue biotech, where both ratios
+  carry no economic reading.
+weakens_when: >
+  Earnings-collapse regimes. When forecast EPS falls faster than price the forward multiple stretches
+  upward mechanically, so the stretched tail fills with distressed cyclicals rather than glamour names,
+  and those same names sit at the bottom of the profitability leg - the conjunction then puts its
+  deepest short exactly where a low-quality rebound pays. The sign-crossing half of the same hazard,
+  stated separately because it points the OTHER way: when forecast EPS crosses zero the forward P/E
+  turns negative, so current-minus-own-median falls to the firm's within-firm minimum and the name
+  enters the LONG (cheap-versus-own-anchor) end of the valuation leg rather than the short end. The
+  profitability leg damps this - a loss-maker ranks at the bottom, so the product lands low-mid - but
+  does not remove it, and the leg does not screen the sign of forecast EPS (leg file, CONSTRUCTION
+  HAZARD). This bites in exactly the two regimes signed "-". Size of the net effect: UNKNOWN, no
+  experiment here tests it. It also has nothing to say where the multiple
+  expanded together with a real rise in return on capital: the two legs then agree the name is fine and
+  the composite holds no position (no loss, but no signal either). And it degrades in the weeks between
+  quarterly reports, when the price-side leg updates daily while fundamental6's operating income and
+  equity are quarterly and carried forward, so a fresh price is being read against a stale fundamental.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, REASONED FOR THIS CONJUNCTION - and per diagnosis_ladder.md 3b the regime maps were
+  MEASURED not to predict the ladder ('+' composites clear the 2022-2024 window as often as '0' ones),
+  so these are the standard's reasoning only and must not be used to rank this composite.
+  value_winter_2014_2020 "0": two forces point opposite ways and neither is measured here. Against:
+  2014-2020 is the window in which multiples that had already expanded kept expanding, and the short
+  side of the valuation leg is exactly those names, so a mean-reversion bet on the multiple was paid to
+  wait. For: the long side of the profitability leg is the quality tilt that led that same window, and
+  the valuation leg is a within-firm deviation rather than a cross-sectional cheapness level, so the
+  book-to-market factor's drawdown does not map onto it mechanically. Signing this "+" or "-" would be
+  picking the more plausible of two untested forces, which RULE 0 forbids.
+  momentum_crash_2016 "-": reasoned from the construction hazard the leg file states, not from a
+  separate story. In the 2015-2016 energy and materials collapse forecast EPS fell faster than price,
+  so those names' forward P/E stretched ABOVE their own historical median - they entered the valuation
+  leg's short tail - and their collapsed operating income put them at the bottom of the profitability
+  leg as well. Both legs are therefore short the corner that rebounded hardest from February 2016.
+  covid_2020 "-": the same hazard, one regime later. Guidance was withdrawn or slashed market-wide in
+  Q1-Q2 2020, which both stretches the multiple of every earnings-impaired cyclical and makes the
+  denominator itself unreliable, while the trailing profitability ratios describe a pre-COVID firm. The
+  recovery from April 2020 then paid that impaired corner. One mechanism, appearing twice; it is the
+  same reason both signs are negative and it is stated once rather than dressed as two findings.
+  rate_shock_2022 "+": a higher discount rate compresses the multiple of long-duration expectations,
+  which is the short side, and cash-generative names with high realised return on capital were the
+  rewarded side, which is the long side. Both halves point the same way. MECHANISM of the 2022
+  cross-section beyond this: UNKNOWN.
+  COMBINER. valuation_own_history_multiple is bearish (sign -1, its template leads with '-'), so
+  [multiply] only: forge.compose.positive_form turns the bearish leg into (1 - group_rank(...)) inside
+  multiply, while the gate branch would invert it (measured 2026-09-08, Verifier note carried on
+  newsneg_x_short and transcriptneg_x_revision). Under multiply the long corner is
+  cheap-versus-own-anchor AND profitable, the short corner is stretched AND unprofitable, which is the
+  disagreement the mechanism claims - the congruent names sit in the middle and carry no weight.
+  STRUCTURAL NOTE, an observation about the two templates and not a claim about returns: both legs
+  ts_rank within the firm's own window before group_rank across peers, so the product compares a
+  within-firm change in the market's multiple against a within-firm change in realised profitability.
+  PARTNER CHOICE is POST-HOC allocation knowledge and nothing else: diagnosis_ladder.md 3a reports
+  usa_profitability_ratios at a 0.35 rate of clearing the 2022-2024 window on composite rows with
+  Sharpe >= 1.3 (n 206). That number chose the partner. It did not choose any field, any sign or any
+  label here, and it is not evidence about this conjunction.
+  DISTINCTNESS, checked not assumed (grep legs: forge/composites/*.yaml and staged/, 2026-09-09):
+  family "valuation" appears in zero composites - valuation_own_history_multiple is the library's only
+  valuation leg - and the 13 OTHER composites carrying usa_profitability_ratios (14 including this
+  one) pair it with news headline tone, multiwire tone, twitter/social sentiment, weekly sentiment
+  continuation, short flow, short-interest surprise, insider buying, option IV spread, accruals,
+  audit-fee escalation and downside beta - eleven distinct partner legs, never a valuation multiple.
+  The earlier count "15" and its partner list were wrong and are withdrawn: intangibles, investment
+  and distress pair with profitability_classic_ratios, a DIFFERENT leg (family profitability,
+  datasets fundamental7/fundamental72), not with this partner, and coverage (usa_debt_service_coverage,
+  in coverage_x_short) pairs with no profitability leg at all. Re-derived 2026-09-09 by parsing the
+  legs list of every forge/composites/*.yaml and staged/*.yaml - a raw grep over file TEXT returns 23,
+  because ten further staged composites only MENTION this partner in prose. The closest existing
+  pair is netcash_x_insider
+  (net cash / market equity, family balance_sheet_cash), a different leg and a different partner.
+  Whether the resulting BOOK is distinct is a correlation measurement and is not claimed here; the
+  known cost is that 13 other composites already carry this partner's long-quality side.
+  TYPED-DOMAIN SLIP, consequence of the leg file's recorded label slip and re-derived here 2026-09-09:
+  forge.labels puts diff_current_vs_hist_pe_ratio in domain "news" (DOMAIN_RULES pattern `story`
+  matching inside "hi-story"), so forge.typed.judge returns domains [news, profitability] on every row
+  built from that field and [profitability, valuation] on every row built from
+  diff_current_vs_hist_price_ratio_earnings. As the CODE sees it, roughly half of this composite's
+  rows carry the same domain pair as headline_x_profitability and multiwire_x_profitability.
+  Semantically it is not a duplicate - the field is a valuation deviation, not tone - but any dedupe
+  or diversity accounting keyed on typed domains will see a collision.
+  EXISTENCE / CROWDING, re-derived 2026-09-09 against fetched/rc/fields/USA_TOP3000_d1.jsonl (RULE 0
+  point 5, second derivation of the leg file's numbers): diff_current_vs_hist_pe_ratio - MATRIX, delay 1,
+  coverage 0.9961, other685, userCount 5, alphaCount 6; diff_current_vs_hist_price_ratio_earnings -
+  MATRIX, delay 1, coverage 0.9961, other685, userCount 1, alphaCount 2. The partner's fields are the
+  opposite: assets alphaCount 169,009, operating_income 67,731, equity 27,790, income 15,084, coverage
+  0.5, fundamental6. Standard hard gate 4 does not trip - the primary bet is the fresh other685 leg at
+  alphaCount 2-6 and the "every leg >= 200" clause needs BOTH legs crowded - but the partner is a
+  heavily used accounting ratio and the honest reading is that any edge here has to come from the
+  conjunction, not from the profitability side on its own.
+  CONFOUND carried from the leg file, stated before any result: current-P/E-minus-own-median rises with
+  price and falls with forecast earnings, so the valuation leg is mechanically correlated with 12-month
+  price momentum orthogonalised by estimate revisions and its short side overlaps the recent-winner
+  set. Any comparison of this composite against a momentum book, or against the existing quality
+  composites, must be pooled within that overlap before it has a verdict.
+  NOTHING HERE HAS BEEN MEASURED. No sim, no Sharpe, no ladder row for this pair: the file is EX-ANTE
+  plus one POST-HOC partner-allocation number, and the size and even the existence of the effect on
+  USA/d1 is UNKNOWN.

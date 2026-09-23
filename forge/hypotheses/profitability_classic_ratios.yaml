@@ -1,0 +1,29 @@
+id: profitability_classic_ratios
+family: profitability
+category: Fundamental
+title: Profitable firms outperform; time-series rank of the ratio removes level effects
+mechanism: >
+  Operating profitability and return on equity predict returns because investors discount
+  profits too heavily relative to book value. Ranking each firm's current ratio against its own
+  history (the playbook template) and then across its peers isolates improvement from level.
+  Long the names with the highest profitability ratios.
+counterparty: Investors who overpay for unprofitable growth.
+sign: 1
+source: "EX-ANTE — Novy-Marx 2013 (gross profitability premium); Fama & French 2015 (profitability factor). SOURCE — gold-medal playbook template group_rank(ts_rank(ratio,126), subindustry) (00_baseline §B3)"
+datasets: [fundamental7, fundamental72]
+signal:
+  fields: [fnd7_ointfund_qpdbio, fnd7_ointfund_qin, fnd72_s_pit_or_cf_q_cf_net_inc]
+signal2:
+  fields: [fnd7_ointfund_qta, fnd7_ointfund_qqec, fnd72_s_pit_or_bs_q_1_bs_tot_eqy]
+template:
+  - "group_rank(ts_rank({signal} / {signal2}, {w}), {group})"
+  - "group_rank(ts_backfill({signal} / {signal2}, {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

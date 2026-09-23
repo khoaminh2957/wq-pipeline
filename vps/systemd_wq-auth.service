@@ -1,0 +1,16 @@
+[Unit]
+Description=WorldQuant BRAIN auth daemon (one live link, always)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+ExecStart=/opt/wq/venv/bin/python -u /opt/wq/auth_daemon.py
+Restart=always
+RestartSec=20
+StandardOutput=append:/opt/wq/state/wq-auth.out
+StandardError=append:/opt/wq/state/wq-auth.err
+
+[Install]
+WantedBy=multi-user.target

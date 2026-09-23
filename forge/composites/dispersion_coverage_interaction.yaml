@@ -1,0 +1,25 @@
+id: dispersion_coverage_interaction
+title: Dispersion reversal amplified by high debt service coverage
+arm: new
+legs: [analyst_estimate_dispersion_reversal, usa_debt_service_coverage]
+families: [dispersion, coverage]
+combiners: [multiply]
+mechanism: >
+  The reversal effect of analyst dispersion is stronger in firms with high debt service coverage because these firms have greater
+  financial flexibility to absorb the cash flow uncertainty implied by analyst disagreement. In high-coverage firms, the market
+  over-punishes dispersion as a sign of distress, but the strong coverage ratio reveals the firm can easily resolve the
+  uncertainty without default risk, leading to a larger subsequent price correction as investors re-evaluate the fundamental
+  stability.
+counterparty: credit-focused institutional investors who overreact to dispersion in leveraged firms
+source: "EX-ANTE — Wermers 2004, analyst disagreement interacts with firm fundamentals"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: high-coverage firms with high analyst disagreement
+weakens_when: market-wide credit spreads widen and coverage ratios become less informative
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter: high-coverage names with dispersion were undervalued. momentum_crash: dispersion didn't predict reversal during
+  systemic risk-off. covid: dispersion in high-coverage firms resolved quickly with relief, amplifying reversal. rate_shock:
+  dispersion in high-coverage firms was often macro-driven, reducing idiosyncratic reversal.

@@ -1,0 +1,24 @@
+[Unit]
+Description=wq climb loop — the miner. Restarts itself; the flock keeps it a singleton.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+ExecStart=/bin/bash /opt/wq/climb_loop.sh
+# THE ACTUATOR THAT DID NOT EXIST.
+# 2026-08-16: the loop exited at 12:19:55 on an expired session. The watchdog delivered its alert
+# at 12:21:24 — 84 s later, correctly. The loop then lay dead 8h07m, because detection was never
+# the bottleneck: nothing in the tree could START it. Detection 5/6, recovery 0/6.
+# The loop re-checks auth at the top of every round and exits cleanly when it is dead, so a retry
+# against a dead session costs one HTTP GET every 5 minutes and picks up the moment Khoa taps.
+# climb_loop.sh takes flock 9 on /var/lock/wq_climb.lock and exits 0 if another copy holds it, so
+# this can never produce a second miner — including against the hand-started copy running now.
+Restart=always
+RestartSec=300
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

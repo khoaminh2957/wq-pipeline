@@ -1,0 +1,44 @@
+id: range_volatility_arbitrage_cost
+family: volatility
+category: Model
+title: Normalized average true range — the price of leverage constraints and the arbitrageur's holding cost
+mechanism: >
+  Normalized average true range is the average daily true range divided by the price, so it is a
+  scale-free measure of how far a stock moves in a day; the three fields' descriptions define
+  exactly that and state no return direction. Two documented forces make the widest-range names
+  the losers. First, investors who are forbidden to borrow — mutual funds and pension mandates —
+  cannot lever a quiet portfolio to reach their return target, so they buy the volatile names
+  instead and bid them above fair value; the constraint is written into a mandate, so it does not
+  learn and does not go away. Second, a stock's own range is the holding cost of any position
+  taken against it, so wherever a mispricing already exists it survives longest in the widest-range
+  names. Ranking the range inside the peer group removes the group's common volatility and leaves
+  a proxy for the firm's own; it is a proxy, not a measured idiosyncratic residual. Short the
+  widest normalized range.
+counterparty: "Leverage-constrained institutions — mutual funds and pension mandates that may not borrow and reach for volatility instead — and retail buyers of lottery-like volatile names"
+sign: -1
+source: >
+  EX-ANTE — Ang, Hodrick, Xing & Zhang, NBER w10852 (WebFetch 2026-09-08, HTTP 200,
+  https://www.nber.org/papers/w10852): "stocks with high idiosyncratic volatility relative to the
+  Fama and French (1993) model have abysmally low average returns". Frazzini & Pedersen, NBER
+  w16601 (WebFetch 2026-09-08, HTTP 200, https://www.nber.org/papers/w16601): "some investors are
+  prohibited from using leverage ... The former investors bid up high-beta assets". SIGN NOTE
+  (task step 2): the descriptions of all three fields define the quantity and give no return
+  direction, so the sign comes from these two fetched papers, not from a label prior — and it
+  contradicts the prior, which labels tcm_ta50_d1_natr sign "+" in domain "valuation"; that is a
+  label slip on a volatility field (forge/labels.py DOMAIN_SIGN), and the description wins.
+  CONSTRUCT NOTE: the papers measure idiosyncratic volatility (AHXZ) and beta (FP); this leg
+  measures total range volatility ranked within the peer group. Related, not identical.
+datasets: [tech_chart_model]
+signal:
+  fields: [normalized_average_true_range_50d, normalized_average_true_range_10d, tcm_ta50_d1_natr]
+template:
+  - "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

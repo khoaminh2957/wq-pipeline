@@ -1,0 +1,59 @@
+# The gate a change must clear before it may reach the alpha pipeline (agreements D4, D9).
+#
+# This file is deliberately thin. Every judgement lives in tools/ci_gate.py so that the same command
+# gives the same verdict on a laptop, on the VPS and here — "it passed in CI" and "it passed on my
+# machine" have to be the same sentence, or the gate teaches people to distrust it.
+#
+# WHAT THIS RUNNER CANNOT DO, said here so nobody reads a green tick as more than it is: 22 of the
+# 247 tests load fetched/rc/field_labels.jsonl (101 MB) and a 50 MB field catalogue. GitHub refuses
+# files over 100 MB, so a hosted runner cannot execute them. tools/ci_gate.py names those files and
+# says where they ARE covered — the VPS deploy smoke, which has the data. A gate that printed
+# "247 passed" while running 225 would be lying in the most damaging way available to it.
+#
+# Deployment is NOT here. tools/deploy.py snapshots, ships, smokes and rolls back against a host that
+# holds the desk's only journal, and it is under audit (docs/evalharness/audits/deploy.md). Wiring an
+# unattended runner to it before that audit clears would be the opposite of what CI is for.
+
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # one gate per branch; a newer push supersedes an older run rather than racing it
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: install
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pyyaml requests
+
+      - name: gate
+        # the single source of truth for what a change must satisfy
+        run: python tools/ci_gate.py
+
+      - name: scorecard
+        # informational: the three-axis benchmark, printed on every run so a reviewer sees what the
+        # change did to the pipeline's own score. The 4-per-day floor is REPORTED here and never
+        # blocks — at the measured rate every version fails it, and a gate on the floor would freeze
+        # development. tools/ci_gate.py blocks on REGRESSION instead (D9).
+        if: always()
+        run: python forge/offline/benchmark.py || true

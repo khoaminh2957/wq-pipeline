@@ -1,0 +1,127 @@
+id: dividend_exday_demand_cycle
+family: payout_calendar
+category: Earnings
+title: A payer's price is bid up into its next ex-dividend day and gives it back after
+mechanism: >
+  The vendor's previous ex-dividend date changes only when a payer actually goes ex, so the number
+  of days since that stored value last changed is the name's position in its own payout cycle: near
+  zero the day after the ex-day, largest just before the next one. Hartzmark & Solomon document that
+  companies have positive abnormal returns in months when a dividend is predicted, that the effect
+  survives comparison with the same payers in months without a predicted dividend, and - the part
+  this construction needs - that prices increase in the period before the ex-day, when there is no
+  news about the dividend, and reverse afterwards. Force: INSTITUTIONAL/FUNDING-FRICTION - demand
+  pressure from a published mandate that cannot wait for a better entry; in their words "price
+  pressure from dividend-seeking investors" - a dated, foreseeable, non-informational bid, not a
+  re-pricing of the firm; they state that the pattern relative to non-predicted months makes
+  risk-based explanations unlikely, and that is their claim, quoted, not a mechanism established
+  here. Long the payers furthest through their cycle, whose next ex-day is nearest; short the payers
+  that have just gone ex, whose prices the same paper documents reverse.
+counterparty: >
+  Income-seeking individual investors and dividend-mandated funds that buy a payer in order to
+  receive the dividend and let it go once the ex-day has passed - the price-pressure agents
+  Hartzmark & Solomon name - together with the equity market makers who supply them stock into a
+  demand wave whose date is published in advance. They recur because the payout cycle repeats every
+  payment period and a mandate to hold dividend payers cannot wait for a better entry.
+sign: 1
+source: >-
+  EX-ANTE — Hartzmark & Solomon, "The Dividend Month Premium" (published as Journal of Financial
+  Economics 109(3), 2013, doi 10.1016/j.jfineco.2013.02.015, whose Crossref record carries NO
+  abstract). FETCHED https://api.crossref.org/works/10.2139/ssrn.1930620 HTTP 200 (2026-09-09,
+  confirmed twice: once through the bibliographic query and once by fetching the work record
+  directly; curl reports 200 for both). Verbatim from that abstract: "We document an asset-pricing
+  anomaly whereby companies have positive abnormal returns in months when a dividend is predicted."
+  and "The premium is consistent with price pressure from dividend-seeking investors." and
+  "Measures of liquidity and demand for dividends are associated with larger price increases in the
+  period before the ex-day (when there is no news about the dividend), and larger reversals
+  afterwards." The last sentence is the one that signs BOTH sides of this leg. SOURCE — the
+  platform's own operator documentation for days_from_last_change
+  (fetched/rc/operator_docs/days_from_last_change.json, lastModified 2026-03-01) gives this exact
+  construction as its worked example on the sibling calendar column: "Last_earnings_date =
+  days_from_last_change(ern2_earnrelease_d1_calendar_prev)".
+datasets: [earnings2]
+signal:
+  fields: [ern2_exdivdnd_d1_calendar_prev, ern2_exdivdnd_d1_calendar_next]
+  density: backfill
+  density_window: 20
+template:
+  - "group_rank(days_from_last_change({signal}), {group})"
+  - "group_rank(ts_rank(days_from_last_change({signal}), {w}), {group})"
+params:
+  w: [125, 250]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py records both fields as domain "payout-yield", sign "unstated",
+  sign_source "unstated", kind "level", time "event". There is therefore no label prior to agree or
+  disagree with, and none is used: a date has no return sign. The sign is attached to the DERIVED
+  quantity "days since that date last changed" and comes from the fetched abstract above.
+  docs/harness5/02_dataset_map.md is right that every earnings2 field is a DATE and that its four
+  "signed" fields are a label slip (a coarse regex put earnings dates under profitability with
+  Novy-Marx's prior); the exdivdnd pair is not among those four and carries no sign at all.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA TOP3000 delay 1, dataset earnings2, category
+  Earnings, subcategory Earnings Estimates, pyramidMultiplier 1.3, dateCreated 2022-09-01):
+  ern2_exdivdnd_d1_calendar_prev "Previous ex-dividend date", MATRIX, coverage 0.512, userCount 31,
+  alphaCount 48; ern2_exdivdnd_d1_calendar_next "Next ex-dividend date", MATRIX, coverage 0.481,
+  userCount 29, alphaCount 42. These are the two least-used fields of the dataset by userCount.
+  Coverage near a half is expected and is not a defect. EVIDENCE, not assertion: the catalogue gives
+  dateCoverage 1.0 against a cross-sectional coverage of 0.512 - a value on every date, for about
+  half the names. That shape is what a permanently-missing subset looks like rather than a
+  time-gapped feed; that the missing subset is the non-payers is SPECULATION consistent with it, not
+  measured here. Either way the missing name is NaN and simply leaves the book, which is the correct
+  universe for this leg.
+  DENSITY. ern2_exdivdnd_d1_calendar_next has coverage 0.481 < 0.5 and labels sparsity "sparse", so
+  typed.py H4 requires a density operator; a date is a level whose gap means "no change", so the
+  brief's rule gives backfill, not zero. density_window 20 is the default. The same ts_backfill sits
+  over the prev field, where it is also the right fill: carrying the last recorded date forward
+  registers no change, so days_from_last_change is unaffected by a short vendor gap.
+  THIRD RISK, pre-registered. The gap argument covers gaps shorter than the 20-day window only. A gap
+  LONGER than 20 days sends the series value -> NaN -> value; whether days_from_last_change counts
+  that re-appearance as a change is NOT documented anywhere on file: MECHANISM UNKNOWN. dateCoverage
+  1.0 says the field is not time-gapped for a name that has it, so this is expected to be rare, not
+  absent.
+  CONSTRUCTION, and what it does NOT assume. days_from_last_change needs only that the stored value
+  changes when a new ex-date is recorded; it never reads the number, so nothing here depends on how
+  the date is encoded. The two ex-day fields are rendered as SEPARATE candidates by the factory (one
+  field per formula), not combined. For the prev field the update moment follows from the
+  description. For the next field the moment at which the vendor rolls the value - at the
+  declaration, or when the previous ex-day passes - is NOT documented anywhere on file: MECHANISM
+  UNKNOWN. It is included so the measurement can separate the two readings; if only the prev field
+  carries a result, that is information, and no claim about the next field is made here.
+  PRINCIPAL OPEN RISK, pre-registered rather than argued away. On the ex-day itself the price falls
+  mechanically by roughly the dividend, and on that day this leg is still at its most long (the
+  clock resets only once the new date is recorded). Hartzmark & Solomon's abnormal returns are
+  computed on the standard convention in which returns include the dividend; whether the platform's
+  own return series nets that drop, and therefore whether the documented run-up survives on it, is
+  NOT documented in this repo and is not assumed here. That is the first thing the simulation
+  decides, and if the leg is negative this is the candidate explanation to test first - not proof
+  of one.
+  SECOND RISK. A payer that suspends or stops paying keeps its clock running with no ex-day coming,
+  so it ranks as "most imminent" forever; a special dividend resets the clock without belonging to
+  the recurring cadence; a monthly payer, a semi-annual payer and a quarterly payer sit on different
+  cycle lengths. Template 2 (ts_rank of the age over the name's own past 125 or 250 days) is there
+  because it normalises a name against its own cadence rather than against the cross-section;
+  template 1 does not. Which of the two is better is a measurement, not a prediction.
+  OVERLAP TO WATCH, not a claim. forge/hypotheses/staged/earnings_announcement_imminence.yaml
+  (staged today by another agent) builds the same operator on the same dataset's EARNINGS release
+  columns. US payers commonly declare a dividend alongside an earnings release, so the two clocks
+  may be phase-locked for part of the universe and the two books may correlate. This leg differs in
+  its universe (payers only, ~51% coverage against 0.9651), in its event, in its documented source
+  and in having a documented sign on BOTH sides rather than only the long side. Whether the books
+  are actually distinct is a correlation measurement; nothing here asserts they are.
+  TYPED JUDGE, run not assumed (2026-09-09, forge.typed.judge with the USA/d1 labels): the rendered
+  formulas "group_rank(days_from_last_change(ts_backfill(ern2_exdivdnd_d1_calendar_prev, 20)),
+  subindustry)" and the ts_rank variant on both fields return ok=True, hard=[] in structural mode -
+  the mode runner.py actually gates with. In full mode they return H6 "orientation unknown" because
+  days_from_last_change yields kind "count" with sign 0; full mode is not the gate in use, and the
+  +1 here is declared on the literature, not on a label.
+  HISTORY, checked not assumed. No forge hypothesis or composite uses earnings2 except the staged
+  leg named above; no ern2_exdivdnd id appears in any state/layered/runs/*.jsonl row (the only ern2
+  ids ever simulated are two random typed-grammar rows using corppresntn_next and earnrelease_next);
+  neither field is in state/banned_fields.json or state/climb/spent_fields.json. Both are listed
+  KEEP in state/layered/screen_meaning.json, which is a keep/drop screen, not a use ledger.
+  Nothing here has been simulated.

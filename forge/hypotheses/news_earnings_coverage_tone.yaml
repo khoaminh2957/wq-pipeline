@@ -1,0 +1,86 @@
+id: news_earnings_coverage_tone
+family: tone_earnings_news
+category: News
+title: The tone of a firm's earnings coverage is the soft half of the announcement, and it is priced late
+mechanism: >
+  The vendor scores every story about a firm's earnings - the release itself and the evaluations
+  written about it - on a sentiment scale, and the day's earnings stories are averaged per stock.
+  That average is the soft information of the announcement: what the coverage says about the
+  quarter, as distinct from the EPS number it reports. Reading the number is free and reading the
+  text is not, so the number is in the price at once and the text is incorporated over the
+  following weeks; the tone of earnings coverage therefore predicts the post-announcement drift in
+  the direction of the tone. Force: behavioural mispricing (limited attention / costly processing
+  of text), persistent because the population that trades the number without the words is
+  replenished every quarter. Long the names whose latest earnings coverage is the most positive
+  within the peer group; earnings news arrives once a quarter, so the last reading is carried
+  forward for a quarter.
+counterparty: "Retail investors and screen-driven institutions that trade the headline EPS surprise and never process the text of the earnings coverage; quant managers whose earnings input is the reported number alone"
+sign: 1
+source: "EX-ANTE — Tetlock, Saar-Tsechansky & Macskassy 2008, Journal of Finance 63(3), 'More Than Words: Quantifying Language to Measure Firms' Fundamentals'. FETCHED https://api.openalex.org/works?search=More%20Than%20Words%3A%20Quantifying%20Language%20to%20Measure%20Firms%27%20Fundamentals (record https://openalex.org/W3122563224, doi 10.1111/j.1540-6261.2008.01362.x) HTTP 200 (2026-09-09). Verbatim from that abstract: '(2) firms' stock prices briefly underreact to the information embedded in negative words; and (3) the earnings and return predictability from negative words is largest for the stories that focus on fundamentals.' CONSTRUCT CORRESPONDENCE, stated not glossed: the paper counts negative words in Wall Street Journal / Dow Jones stories and finds the effect largest for fundamentals-focused stories; this leg takes the vendor's bipolar sentiment score of the stories it classifies as earnings-release / earnings-evaluation coverage, i.e. the fundamentals subset directly. Same direction (more negative tone, lower subsequent return) and the same short underreaction horizon. Engelberg 2008, 'Costly Information Processing: Evidence from Earnings Announcements', is the paper about soft information at the announcement itself; its abstract could NOT be fetched (OpenAlex W2126640908 carries a null abstract; SSRN refused the connection, HTTP 000) and it is therefore NOT cited as evidence here."
+datasets: [news48]
+signal:
+  fields: [nws48_ber, nws48_bee]
+  vector: vec_avg
+  density: backfill
+  density_window: 63
+template:
+  - "group_rank({signal}, {group})"
+  - "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, delay 1, dataset news48 'Global Media News
+  Data', category News / News Sentiment, type VECTOR, coverage 1.0, dateCoverage 0.9507,
+  dateCreated 2023-07-01, pyramidMultiplier 1.2): nws48_ber 'Score representing news sentiment
+  specializing in earnings release announcements', userCount 5 / alphaCount 6; nws48_bee
+  'Sentiment score for stories about earnings evaluations', userCount 17 / alphaCount 25. Labels
+  (forge.labels, USA/d1): sign '+' with sign_source domain-prior (Tetlock 2007), kind score, unit
+  score, time event, vec_role event-value, reducers vec_avg/vec_max/vec_min, sparsity dense. The
+  label file attributes both to news48, which the catalogue confirms.
+  SIGN SOURCE, description-first. Neither description states which end of the scale is positive;
+  both say 'sentiment score'. The dataset's own nws48_ess description does state it - 'score
+  (0-100) measuring news sentiment for an entity in the story, higher is more positive' - and this
+  leg takes the same vendor convention for the two earnings classifiers. The label prior and the
+  description-read agree, so there is no disagreement to report. If the vendor's scale for these
+  two classifiers turned out to be inverted, a measured negative sign would be a label error to
+  correct EX-ANTE from vendor documentation, never a POST-HOC flip.
+  WHY THESE TWO AND NOT nws48_ess / nws48_ssc / nws48_qcm / nws48_qep / nws48_aes: those score all
+  events, the whole story, or a 91-day positive-event ratio - the general-tone construct that
+  sentiment_weekly_continuation and news_ravenpack_composite_tone (news46, the same vendor's other
+  feed) already trade. This leg is confined to the earnings subset because that is the subset in
+  which the cited paper finds the predictability largest; that is an EX-ANTE choice, not a
+  measurement on this dataset.
+  DENSITY. The VECTOR is read through vec_avg (event-value role; a sum of scores is meaningless).
+  Coverage 1.0 is field-level; at day level a stock has earnings coverage on a few days per
+  quarter, so vec_avg is NaN on most days - the sparse-signal case measured on the 2026-09-04
+  canary (NaN-for-no-event books fail CONCENTRATED_WEIGHT). Density is backfill, not zero: a day
+  without earnings news is 'no new reading', and 0 on a 0-100 scale would be the most negative
+  reading possible. density_window 63 is one quarter (transcript_negative_logit precedent).
+  Cadence is event-driven quarterly, so turnover is expected low; that matters for the ladder
+  (turnover < 0.30 sets the 2-3-year bar at 2.02 rather than 2.37 - diagnosis_ladder.md section 1,
+  API-observed). Whether the turnover actually lands there is a measurement.
+  TYPE RULES (forge/typed.py): H4 vector satisfied by vec_avg; no divide, no multiply inside the
+  leg; the leg ends in group_rank so it enters a composite's multiply as a bounded operand (H3).
+  HISTORY CHECK, run not assumed. No news48 field appears in any forge journal row
+  (02_dataset_map: tier U, 0 rows by both derivations) and news48 is in no composite.
+  state/resim_targets.json contains old-pipeline additive blends that read nws48_ssc, nws48_qep
+  and nws48_ens_elapsed through vec_count / vec_stddev - counts and dispersion, not this
+  construct - and neither nws48_ber nor nws48_bee appears in any state/*targets*.json.
+  state/cell_target_fields.json and state/forge/inventory_empty_cells.json list every news48
+  field because they are catalogues, not ledgers; a hit there carries no meaning.
+  OVERLAP TO WATCH, not a claim: earnings coverage is part of the same weeks' news flow, so this
+  leg may correlate with sentiment_weekly_continuation. MECHANISM UNKNOWN for how much. If the
+  measured correlation is high, this leg has not added a distinct mechanism and should be dropped
+  rather than re-argued.
+  ATTENUATION (standard Dim 4): weakest in mega-caps, where the coverage is uniform and processed
+  at once by many analysts; strongest in mid and small caps that have scored earnings coverage
+  but few analysts. Managed tone (Huang, Teoh & Zhang 2014, fetched in the composite's source
+  line) has a delayed NEGATIVE reaction, so on its own the leg is expected to be diluted by it;
+  the composite earningsnews_x_insider is the construction that filters it out.

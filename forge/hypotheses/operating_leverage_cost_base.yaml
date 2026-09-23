@@ -1,0 +1,119 @@
+id: operating_leverage_cost_base
+family: operating_leverage
+category: Fundamental
+title: A large operating cost base on a small asset base makes profit a levered claim on demand
+mechanism: >
+  A firm that must run a large operating cost base off a small stock of assets earns its profit as
+  the residual after that base is covered, so the same proportional change in demand moves its
+  operating income by far more than it moves the operating income of a peer whose cost base is
+  small relative to its assets. That is operating leverage: fixed and semi-fixed operating costs
+  turn equity into a levered claim on the demand state, and the leverage does not disappear in a
+  downturn because the cost base is contracted, staffed and leased ahead of the revenue it serves.
+  Force: RISK PREMIUM. Garcia-Feijoo & Jorgensen document a positive association between the degree
+  of operating leverage and systematic risk and between the degree of operating leverage and stock
+  returns, and read it as a risk-based explanation; Novy-Marx documents that operating leverage
+  predicts returns in the cross-section and that it is a within-industry effect. The premium is
+  compensation for bearing recession-state cash-flow risk, so it is not arbitraged away. Long, within
+  the peer group, the names whose operating cost base is largest relative to total assets.
+counterparty: "Institutional equity managers run against an annual tracking-error and drawdown mandate, who structurally underweight the firms whose operating income collapses first in a demand contraction because their own career and redemption risk is measured over exactly the horizon in which that contraction shows up; they shed the recession-state cash-flow risk and pay the premium to whoever will hold it, and the mandate that makes them do so is a standing feature of the industry, not a one-off dislocation"
+sign: 1
+source: "EX-ANTE — Garcia-Feijoo & Jorgensen 2010, Financial Management 39(3), 'Can Operating Leverage Be the Cause of the Value Premium?'. FETCHED https://api.crossref.org/works/10.1111/j.1755-053X.2010.01106.x HTTP 200 (2026-09-09; Crossref carries the publisher-deposited abstract, so the publisher page was NOT fetched). Verbatim from that abstract: 'Consistent with these models, we find a positive association between BE/ME and the degree of operating leverage (DOL), between DOL and stock returns, and between DOL and systematic risk.' and 'Overall, our findings provide support for a risk-based explanation for the value premium that is consistent with existing theoretical models.' That sentence is where this leg's SIGN comes from: positive DOL, positive returns. SECOND CITE, also fetched: Novy-Marx, 'Operating Leverage', Review of Finance, https://api.openalex.org/works/doi:10.1093/rof/rfq019 HTTP 200 (2026-09-09; OpenAlex work W4250903965, abstract reconstructed from abstract_inverted_index). Verbatim: 'Using a novel measure of operating leverage, I document that it predicts returns in the cross-section, and strategies formed by sorting on operating leverage earn significant excess returns.' and 'Operating leverage also explains why the value premium is weak and non-monotonic across industries, but strong and monotonic within industries.' The second quote is why every template ranks WITHIN subindustry / industry / sector and why the settings neutralize there. NEITHER fetched abstract discloses its authors' formula for operating leverage; the measure used here - the operating cost base scaled by total assets - is THIS leg's own choice and is NOT claimed to reproduce either paper's construct."
+datasets: [fundamental13]
+signal:
+  fields: [fnd13_rkdincomestatementq_etoe, fnd13_scor]
+signal2:
+  fields: [fnd13_rkdbalancesheetq_atot, fnd13_rkdbalancesheetq_atot]
+template:
+  - "group_rank(ts_backfill({signal}, {w}) / ts_backfill({signal2}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, {w}) / ts_backfill({signal2}, {w}), 252), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives all three fields sign 'unstated' (fnd13_rkdincomestatementq_etoe
+  domain fundamental-other, fnd13_scor domain sales, fnd13_rkdbalancesheetq_atot domain size;
+  all kind level, unit currency; re-run 2026-09-09 through forge.labels.label on the USA/TOP3000/d1
+  catalogue rows, and none of the three domains has a DOMAIN_SIGN entry, which is why all three come
+  back 'unstated'). There is therefore no label prior to agree or
+  disagree with - the label is absent, not opposed. The sign is set from the field DESCRIPTIONS
+  ('Total Operating Expense' and 'Cost of Revenue, Total' are the recurring cost of running the
+  business; 'Total Assets' is the stock it is run off) plus the cited direction (DOL positively
+  associated with stock returns). The catalogue's dataset attribution (fundamental13) agrees with
+  the label file for all three fields.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1, universe TOP3000, dataset
+  fundamental13 'Comprehensive Fundamentals Dataset', all MATRIX, all dateCoverage 1.0):
+  fnd13_rkdincomestatementq_etoe 'Total Operating Expense' coverage 0.9022, userCount 140,
+  alphaCount 429; fnd13_scor 'Cost of Revenue, Total' coverage 0.8147, userCount 94, alphaCount 460;
+  fnd13_rkdbalancesheetq_atot 'Total Assets' coverage 0.9726, userCount 144, alphaCount 590. All
+  labelled quarterly, so ts_backfill sits under every operator (typed.py H4); all coverage >= 0.5,
+  so no density operator. The denominator is a scale, not a leg, which is why its unstated sign is
+  allowed there (typed.py divide branch).
+  TYPE RULES, run not assumed (typed.judge on USA/d1, 2026-09-09). Both templates, rendered with
+  each signal/signal2 pair and each group, return structural=True with no hard failure (currency /
+  currency -> ratio, H1 ok; no VECTOR, no sparse field, quarterly backfilled, H4 ok; ts_rank of a
+  ratio is not H2-forbidden). The FULL judge refuses on H5 only - 'has no stated sign but stands in
+  a directional role' - which is the label gap named above and the same gap the staged
+  tax_expense_surprise_momentum and audit_fee_escalation legs document. Operator count 4 (template 1)
+  and 5 (template 2).
+  WHAT THE MEASURE IS AND IS NOT, stated arithmetically rather than argued. operating cost base /
+  total assets = (revenue / total assets) x (operating cost base / revenue) = asset turnover x
+  (1 - operating margin). So this leg is mechanically INCREASING in asset turnover and DECREASING in
+  operating margin. Two consequences, both named rather than smoothed over. (1) It is expected to
+  correlate POSITIVELY with a turnover / operating-efficiency leg (chn_operating_efficiency) and
+  NEGATIVELY with the margin and profitability legs (usa_profitability_ratios,
+  profitability_classic_ratios, operating_margin_change), which is why it is NOT paired with a
+  profitability leg in the composite. (2) The library therefore now carries two documented effects
+  that point OPPOSITE ways on the margin dimension: gross profitability (Novy-Marx 2013, carried by
+  the profitability legs) says long high margin, operating leverage (the two cites above) says long
+  the thin-margin, high-cost-base side. That tension is in the literature, not resolved here.
+  MECHANISM UNKNOWN for which dominates on USA/d1; the platform's correlation and Sharpe read is
+  the measurement, and if this leg simply comes back as short-profitability it has added no distinct
+  mechanism and should be dropped rather than re-argued.
+  ALTERNATIVE FORCE, listed because more than one fits (RULE 0 #3). The risk-premium reading is the
+  one the cited abstract states ('a risk-based explanation'). A behavioural reading also fits: investors
+  extrapolate the current margin and underestimate how violently operating income swings with demand
+  at a firm whose cost base is large, so the names are systematically mispriced rather than
+  compensated. No experiment here distinguishes them. The leg is tagged risk-premium because that is
+  what the fetched citation says, not because it was tested.
+  CONSTRUCT. Template 1 is the cross-sectional level, which is what both cited papers sort on.
+  Template 2 reads the same ratio against the firm's own trailing year (ts_rank over 252), which
+  strips the persistent business-model component and leaves a firm that is BECOMING more
+  operating-levered; that is this leg's own variant and is NOT the cited construct. Whether it helps
+  is a measurement.
+  CADENCE. Both line items are reported once a quarter, so the leg is a step function that moves at
+  most four times a year per name; its turnover comes from the partner leg and from the group ranks,
+  not from the field.
+  ATTENUATION, pre-registered. The ratio measures a firm's cost-structure CHOICE only where the peer
+  group contains real cost-structure variation. It does not in subindustries where 'operating expense
+  over assets' is the business model rather than a choice - banks, insurers, REITs and regulated
+  utilities carry balance sheets sized by regulation, so the ratio there ranks the asset base, not the
+  leverage. It also attenuates where operating income is near zero or negative, because the multiplier
+  the mechanism rests on is then undefined in sign. Strongest where cost bases genuinely differ inside
+  a subindustry: retail, distribution, transport, restaurants, capital goods.
+  HISTORY CHECK, run not assumed (2026-09-09). None of the three ids appears in any
+  state/*targets*.json; state/banned_fields.json and state/climb/spent_fields.json contain no fnd13_
+  field at all; the forge journal state/layered/runs/forge.jsonl has 0 rows containing 'fnd13_'.
+  fnd13_rkdincomestatementq_etoe and fnd13_rkdbalancesheetq_atot do each appear in
+  state/forge/plans/1788794000.json, but in generator-drawn formulas, not as this construct: etoe
+  appears once as the DENOMINATOR of depreciation_amortization_cashflow_3 (a different quantity,
+  scaled the other way up) inside a sentiment product, and atot as the denominator of
+  netprofit_estimate_trend_slope_3yr in construction 266 (hypothesis
+  typed:sentiment_x_profitability_x_cashflow) - a generator draw, NOT the staged
+  tax_expense_surprise_momentum leg. Construction 250 is also worth naming:
+  multiply(ts_rank(ts_mean(snt22_4dts_gen_178, 20), 252), group_rank(ts_backfill(depreciation_amortization_cashflow_3 / fnd13_rkdincomestatementq_etoe, 63), industry))
+  is the same SHAPE as this composite (a tone rank multiplied by a group_rank of a fundamental ratio
+  containing etoe), with etoe on the other side of the divide. Neither was ever simulated: 0 rows
+  containing 'fnd13_' in the 28,220 lines of the VPS journal (ssh read-only, 2026-09-09). The normalized formula of this leg - operating cost base over
+  total assets, group-ranked - appears nowhere.
+  DATASET OVERLAP, stated. fundamental13 is also the dataset of the staged leg
+  tax_expense_surprise_momentum (fnd13_ttax / fnd13_rkdbalancesheetq_atot). The two share only the
+  denominator; the numerators are a tax provision and an operating cost base, and the mechanisms
+  (Thomas & Zhang tax-expense information vs operating leverage) are unrelated. If they are simulated
+  in the same round their cross-correlation is worth reading, since both are quarterly step functions
+  scaled by the same assets number.

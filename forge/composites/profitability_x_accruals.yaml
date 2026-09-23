@@ -1,0 +1,20 @@
+id: profitability_x_accruals
+title: Profitable AND cash-backed earnings
+legs: [profitability_classic_ratios, accruals_cashflow_classic]
+families: [profitability, accruals]
+combiners: [multiply, gate]
+mechanism: >
+  Profitability predicts returns, but headline profits built from accruals persist less than
+  cash-backed profits and later reverse. The product of the profitability rank and the low-accrual
+  rank is high only for firms that are both profitable and cash-backed, which is the two-leg core
+  of the Piotroski F-score; investors who chase headline profitability without checking its cash
+  backing are the ones paying.
+counterparty: "Retail investors and earnings-chasing funds that buy headline profitability without checking accruals (Piotroski 2000: the effect concentrates in small, low-analyst-coverage value firms)"
+source: "EX-ANTE — Piotroski 2000 (F-score: profitability and accrual signals in value firms); Novy-Marx 2013 (gross profitability); Sloan 1996"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "small, low-coverage names where fundamental analysis is scarce"
+weakens_when: "earnings are dominated by one-off items or in growth regimes where profitability is fully priced"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

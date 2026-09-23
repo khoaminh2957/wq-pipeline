@@ -1,0 +1,20 @@
+id: insider_x_accruals
+title: Insiders buying while accruals are low
+legs: [insider_buy_sell_ratio, accruals_accounting_quality]
+families: [insider, accruals]
+combiners: [multiply, gate]
+mechanism: >
+  Insiders know whether reported earnings are cash-backed; their net buying when accruals are
+  low confirms that the accounting is conservative and the stock underpriced, while insider
+  selling in high-accrual firms marks the earnings that will reverse. Conditioning the insider
+  buy-sell rank on the low-accrual rank separates informed buying from routine trading, and
+  outside shareholders who ignore Form-4 style filings take the other side.
+counterparty: "Outside shareholders and index funds that do not read insider filings, and earnings-chasing retail buyers"
+source: "EX-ANTE — Beneish & Vargus 2002 (insider trading, earnings quality and accrual mispricing); Lakonishok & Lee 2001; Sloan 1996"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "small and mid caps with concentrated insider ownership"
+weakens_when: "insider sales are dominated by scheduled option exercises"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

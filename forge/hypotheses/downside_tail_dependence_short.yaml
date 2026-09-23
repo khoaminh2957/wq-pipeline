@@ -1,0 +1,31 @@
+id: downside_tail_dependence_short
+family: tail_dependence
+category: Model
+title: Shorting stocks with high lower-tail dependence to the market
+mechanism: >
+  High lower-tail dependence indicates that a stock is likely to experience extreme negative returns
+  concurrently with the market, a characteristic that risk-managed institutions and market makers
+  actively avoid. This leads to systematic shorting or reduced long positioning, which depresses the
+  price below its fundamental value relative to less fragile peers, creating a predictable drift.
+counterparty: risk-managed institutional investors and market makers
+sign: -1
+source: "EX-ANTE — Ang & Xuan 2006, stocks with high downside risk earn higher returns due to investor preference for upside"
+datasets: [forward_beta_risk]
+signal:
+  fields: [downside_tail_dependence]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  Using the MATRIX version of downside_tail_dependence to satisfy the Model catalogue requirement for
+  matrix-typed signals in this template context. The sign is negative as higher tail dependence
+  (higher score) predicts lower returns due to systematic risk aversion by institutional counterparties.

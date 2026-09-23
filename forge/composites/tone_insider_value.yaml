@@ -1,0 +1,19 @@
+id: tone_insider_value
+title: Headline tone and insider net value predict returns
+arm: new
+legs: [benzinga_headline_tone_drift, insider_net_value_eur]
+families: [tone, insider]
+combiners: [multiply]
+mechanism: >
+  Positive headline tone attracts retail attention that drives price up, but insiders only buy into this positive drift when they believe the news is fundamentally justified rather than speculative, so the combination of good news and insider conviction filters out hype-driven spikes that reverse, leaving only the drift supported by private information.
+counterparty: retail investors chasing headlines and institutional insiders filtering the signal
+source: "EX-ANTE — Jeng and Yang 2017, insider trading predicts returns especially during high media attention"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small caps with high retail ownership
+weakens_when: insider trading is restricted or during broad market crashes where all names fall together
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value winter: tone and insider alignment works as fundamental signal. Momentum crash: both signals are crowded and reverse together. Covid: retail attention spikes make tone more predictive, insiders confirm. Rate shock: macro dominates, specific stock signals are drowned out.

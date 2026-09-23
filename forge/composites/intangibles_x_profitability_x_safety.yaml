@@ -1,0 +1,19 @@
+id: intangibles_x_profitability_x_safety
+title: Productive intangibles, profitable and financially safe
+legs: [rd_intensity_premium, profitability_classic_ratios, smartratios_credit_safety]
+families: [intangibles, profitability, distress]
+combiners: [multiply]
+mechanism: >
+  R&D-intensive profitable firms earn a premium that book-based investors miss, but the premium
+  is a lottery for the financially fragile among them; a credit-safety leg keeps the firms whose
+  research spending is funded from strength, where the underpricing is persistent rather than a
+  distress bet. Book-value investors and distressed-equity speculators are the counterparties.
+counterparty: "Book-value investors and index funds that screen on unadjusted book ratios, and lottery-seeking retail holders of distressed equity"
+source: "EX-ANTE — Chan, Lakonishok & Sougiannis 2001; Novy-Marx 2013; Campbell, Hilscher & Szilagyi 2008"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: "technology and healthcare names with steady R&D and a credit score"
+weakens_when: "rates rise sharply and long-duration cash flows are discounted (2022)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

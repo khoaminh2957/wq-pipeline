@@ -1,0 +1,9 @@
+[Unit]
+Description=Run the forge regression tests daily at 10:30 (before the 11:00 quota reset)
+
+[Timer]
+OnCalendar=*-*-* 10:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

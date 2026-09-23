@@ -1,0 +1,13 @@
+[Unit]
+Description=wq climb liveness check every 60s
+
+[Timer]
+# 300s not 90s: /var/lock is tmpfs and is empty from boot until the loop first takes its lock,
+# so an earlier first check would report a loop that simply has not started yet.
+OnBootSec=300
+OnUnitActiveSec=60
+AccuracySec=5s
+# No Persistent= on a monotonic timer.
+
+[Install]
+WantedBy=timers.target

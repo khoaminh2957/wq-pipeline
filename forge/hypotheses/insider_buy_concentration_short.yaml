@@ -1,0 +1,29 @@
+id: insider_buy_concentration_short
+family: insider
+category: Insiders
+title: Short-window insider buy-to-sell ratio predicts short-term drift
+mechanism: >
+  A spike in the buy-to-sell ratio over the last week signals recent, discretionary insider accumulation that is not yet reflected in the market price.
+  Because insiders are subject to trading windows and have superior information about near-term operational or financial developments, this concentrated buying creates a temporary information asymmetry.
+  As the general market gradually incorporates this information over the following days, the stock drifts upward to align with the insiders' valuation.
+counterparty: Retail investors and index funds that do not monitor insider transaction filings in real-time
+sign: 1
+source: "EX-ANTE — Jeng and Loughran 2000, insider trading predicts abnormal returns"
+datasets: [insiders1]
+signal:
+  fields: [buy_to_sell_amount_ratio_1wk]
+  density: zero
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field has a cadence of 'event' and a coverage of 0.78. Although the description is a ratio, the underlying data represents discrete transaction events.
+  A zero value in a week where no transactions occurred implies 'no event' rather than a neutral stance, so a 'zero' density rule is appropriate to avoid misinterpreting inactivity as a specific signal level.

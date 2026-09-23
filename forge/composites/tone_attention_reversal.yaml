@@ -1,0 +1,25 @@
+id: tone_attention_reversal
+title: Positive news tone amplifies attention reversal
+arm: new
+legs: [news_ravenpack_mean_ssc_drift, sentiment_abnormal_coverage_reversal]
+families: [tone, attention]
+combiners: [multiply]
+mechanism: >
+  Abnormal news volume marks an attention peak where retail flow is most likely to overreact; positive
+  tone identifies which side of that overreaction is happening. The conjunction captures names where
+  high-volume positive news creates a retail bid that exhausts and reverses, so the composite predicts
+  lower subsequent returns when both conditions hold.
+counterparty: retail investors who chase high-volume positive headlines
+source: "EX-ANTE — Barber and Odean 2008, retail trading and overreaction to news"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small-cap and mid-cap stocks with high retail ownership
+weakens_when: institutional flow dominates or earnings surprise overwhelms the news signal
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value winter: + because retail attention cycles are most pronounced in calm, idiosyncratic markets.
+  Momentum crash: 0 because systematic deleveraging overwhelms idiosyncratic attention dynamics.
+  COVID: + because uncertainty and media saturation amplify retail overreaction to news spikes.
+  Rate shock: - because macro-driven flow dominates idiosyncratic news and attention effects.

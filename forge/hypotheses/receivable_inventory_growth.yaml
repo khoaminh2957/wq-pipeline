@@ -1,0 +1,26 @@
+id: receivable_inventory_growth
+family: investment
+category: Other
+title: Receivables and inventories growing faster than sales are bad news
+mechanism: >
+  When receivables or inventories rise relative to sales, the firm is stretching credit or
+  failing to sell what it made; these fundamental signals predict lower earnings and returns.
+  Short the names with the largest one-year rise in receivables-to-sales and inventory-to-sales.
+counterparty: Investors who read sales growth without its working-capital cost.
+sign: -1
+source: "EX-ANTE — Lev & Thiagarajan 1993 (fundamental information analysis); Abarbanell & Bushee 1998 (abnormal returns to a fundamental analysis strategy)"
+datasets: [ml_factor_proj]
+signal:
+  fields: [change_1y_accounts_receivable_to_sales, change_1y_inventory_to_sales]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [21, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

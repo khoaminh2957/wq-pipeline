@@ -1,0 +1,20 @@
+id: usa_sentiment_x_profitability_x_accruals
+title: Weekly news sentiment confirmed by profitable, cash-backed fundamentals (USA Sentiment cell)
+legs: [sentiment_weekly_continuation, usa_profitability_ratios, usa_accruals_cashflow]
+families: [tone, profitability, accruals]
+combiners: [multiply]
+mechanism: >
+  Weekly-aggregated news sentiment continues because investors underreact to accumulated tone,
+  and it continues most where the tone is backed by profitable, cash-backed results rather than
+  by promotion. The product of the sentiment rank, the profitability rank and the low-accrual
+  rank keeps the names where tone and fundamentals agree; investors who read headlines without
+  the numbers, or the numbers without the accruals, are the counterparties.
+counterparty: "Headline-following retail investors and analysts anchored on reported EPS"
+source: "EX-ANTE — Heston & Sinha 2017 (weekly news sentiment); Tetlock, Saar-Tsechansky & Macskassy 2008; Sloan 1996; Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with steady news coverage"
+weakens_when: "market-wide news dominates firm-specific tone (March 2020)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8, 16]
+  truncation: 0.08

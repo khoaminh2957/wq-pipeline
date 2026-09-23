@@ -1,0 +1,27 @@
+id: debt_issuance_reversal
+family: financing
+category: Fundamental
+title: Firms that add long-term debt underperform
+mechanism: >
+  External financing of any kind predicts low returns: managers raise debt when their stock
+  is expensive and investment opportunities are weak. Short the names with the largest
+  increase in long-term debt relative to revenue.
+counterparty: Investors who buy what managers finance.
+sign: -1
+source: "EX-ANTE — Bradshaw, Richardson & Sloan 2006 (net external financing and returns); Spiess & Affleck-Graves 1999 (debt offerings)"
+datasets: [fundamental6, fundamental7]
+signal:
+  fields: [fnd6_ltdchy, fnd7_ointfund_qsitld]
+signal2:
+  fields: [fnd6_cptnewq_revtq, fnd7_ointfund_qta]
+template:
+  - "-group_rank(ts_backfill({signal} / {signal2}, {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

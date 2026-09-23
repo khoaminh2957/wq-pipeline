@@ -1,0 +1,26 @@
+id: snt22_neg_dispersion_reversal
+family: disagreement
+category: Sentiment
+title: Within-day negative sentiment dispersion predicts short-horizon reversal
+mechanism: >
+  A high standard deviation of negative sentiment scores across same-day articles indicates a lack of consensus on the severity of bad news, creating ambiguity that hinders immediate full price adjustment. As the news cycle matures over the next few days, the market resolves this dispersion, causing the initial price impact to drift back toward the fundamental mean.
+counterparty: retail investors and algorithmic traders who overreact to high-variance negative headlines before the mean reverts
+sign: -1
+source: "EX-ANTE — Tetlock 2007, dispersion in analyst forecasts predicts underperformance"
+datasets: [sentiment22]
+signal:
+  fields: [snt22_4neg_std]
+  density: zero
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  Using 'zero' density because a day with no news articles means no sentiment event occurred, rather than a zero value indicating a specific level.

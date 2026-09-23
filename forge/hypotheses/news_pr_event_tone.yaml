@@ -1,0 +1,25 @@
+id: news_pr_event_tone
+family: tone_pr
+category: News
+title: Press-release event tone predicts drift after corporate announcements
+mechanism: >
+  Sentiment scored on the company's own press releases measures the tone of corporate
+  announcements (earnings, contracts, guidance). Positive announcement tone is under-reacted to and
+  is followed by drift, in the same way as earnings surprises. Long the most positive PR tone.
+counterparty: "Retail investors who under-react to announcement content; analysts who revise estimates slowly"
+sign: 1
+source: "EX-ANTE — Bernard & Thomas 1989 JAR (post-announcement drift); Tetlock, Saar-Tsechansky & Macskassy 2008 JF"
+datasets: [news84]
+signal:
+  fields: [mean_sentiment_score_transfer, mean_primary_sentiment_score_transfer, max_sentiment_score_transfer]
+  density: zero
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

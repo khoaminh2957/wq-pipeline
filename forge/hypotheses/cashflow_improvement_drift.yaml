@@ -1,0 +1,26 @@
+id: cashflow_improvement_drift
+family: profitability
+category: Other
+title: Multi-year cash-flow improvement drifts
+mechanism: >
+  Improvements in free cash flow and operating cash flow relative to assets over three years
+  reflect durable operating gains that prices absorb slowly. Long the names with the largest
+  improvement.
+counterparty: Investors anchored on earnings rather than cash.
+sign: 1
+source: "EX-ANTE — Desai, Rajgopal & Venkatachalam 2004 (cash flow to price and the accrual anomaly); Sloan 1996 (cash component of earnings persists)"
+datasets: [ml_factor_proj]
+signal:
+  fields: [change_3y_fcf_to_assets, change_3y_operating_cashflow_to_assets]
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [21, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

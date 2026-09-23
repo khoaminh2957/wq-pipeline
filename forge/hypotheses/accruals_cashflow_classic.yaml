@@ -1,0 +1,26 @@
+id: accruals_cashflow_classic
+family: accruals
+category: Fundamental
+title: Earnings not backed by operating cash flow reverse
+mechanism: >
+  The accrual anomaly computed from statements: net income minus operating cash flow, scaled
+  by total assets. High accruals mean low-quality earnings that reverse. Short the highest.
+counterparty: Investors who fixate on reported earnings.
+sign: -1
+source: "EX-ANTE — Sloan 1996; Hribar & Collins 2002 (cash-flow-statement accruals)"
+datasets: [fundamental7, fundamental72]
+signal:
+  fields: [fnd7_ointfund_qin, fnd72_s_pit_or_cf_q_cf_chng_non_cash_work_cap]
+signal2:
+  fields: [fnd7_ointfund_qfcnao, fnd72_s_pit_or_bs_q_bs_tot_asset]
+template:
+  - "-group_rank(ts_rank(({signal} - {signal2}) / abs({signal2}), {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

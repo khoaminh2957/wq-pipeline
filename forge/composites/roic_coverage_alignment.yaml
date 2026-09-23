@@ -1,0 +1,27 @@
+id: roic_coverage_alignment
+title: Capital efficiency and debt service capacity
+arm: new
+legs: [roic_trend_prosperity_drift, usa_debt_service_coverage]
+families: [profitability, coverage]
+combiners: [multiply]
+mechanism: >
+  The conjunction of high capital efficiency and strong debt service coverage isolates firms that
+  generate high returns on invested capital while maintaining ample cushion against financial
+  distress. This combination signals a durable competitive advantage that is not undermined by
+  high leverage, leading to sustained positive drift as the market recognizes the quality and
+  safety of earnings.
+counterparty: credit-sensitive institutional investors who underweight capital efficiency
+source: "EX-ANTE — Novy-Marx 2013, gross profitability predicts returns better than book-to-market"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: High leverage, cyclical sectors
+weakens_when: Low interest rate environments or low leverage sectors
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value winter 2014-2020: High ROIC and strong coverage are strong quality signals that outperform
+  in value regimes. Momentum crash 2016: The signal may be neutral as momentum crashes affect all
+  stocks. Covid 2020: High ROIC firms with strong coverage are resilient and may outperform as
+  investors seek quality and safety. Rate shock 2022: High rates hurt high-leverage firms, but the
+  coverage signal may be weak in a broad selloff.

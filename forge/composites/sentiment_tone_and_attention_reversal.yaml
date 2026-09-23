@@ -1,0 +1,19 @@
+id: sentiment_tone_and_attention_reversal
+title: Headline tone drift amplified by attention reversal
+arm: new
+legs: [news_headline_sentiment_extremes, sentiment_abnormal_coverage_reversal]
+families: [tone_composite, attention]
+combiners: [multiply]
+mechanism: >
+  The conjunction isolates periods where strong positive headline tone coincides with a spike in news volume, which marks a peak in retail attention that is destined to reverse; by multiplying the tone signal with the negative attention signal, we capture the specific scenario where over-optimism is being bought by a transient, attention-driven cohort that will subsequently exit, causing a double correction in price.
+counterparty: retail investors who buy on hype and exit on attention decay
+source: "EX-ANTE — Da 2011, attention predicts future returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: high-volatility, small-cap tech
+weakens_when: sustained institutional buying overrides retail flows
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  The positive sign in value winter reflects the strength of retail-driven drift in quiet markets; the zero in momentum crash indicates that systematic selling overwhelms sentiment effects; the positive sign in covid reflects the extreme retail participation in meme stocks; the negative sign in rate shock indicates that macro risk aversion dominates sentiment signals.

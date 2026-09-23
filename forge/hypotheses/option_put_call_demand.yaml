@@ -1,0 +1,26 @@
+id: option_put_call_demand
+family: options
+category: Option
+title: Out-of-the-money put-to-call demand predicts low returns
+mechanism: >
+  Open interest and volume in out-of-the-money puts relative to out-of-the-money calls measure
+  net demand for downside exposure; high relative put demand precedes low returns. Short the
+  names with the highest put-to-call demand over the window.
+counterparty: Equity holders who do not watch the option market.
+sign: -1
+source: "EX-ANTE — Pan & Poteshman 2006 (put-call ratios); Cremers & Weinbaum 2010 (deviations from put-call parity)"
+datasets: [option3]
+signal:
+  fields: [opt3_openinteputotm, opt3_volumeputotm]
+signal2:
+  fields: [opt3_openintecallotm, opt3_volumecallotm]
+template: "-group_rank(ts_mean({signal} / {signal2}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

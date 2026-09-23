@@ -1,0 +1,17 @@
+id: transcriptneg_x_revision
+title: "Negative call tone with downward analyst revisions"
+arm: new
+legs: [transcript_negative_logit, analyst_estimate_revision_drift]
+families: [tone_call, revisions]
+combiners: [multiply]   # Verifier 2026-09-08: the gate branch inverts a bearish leg (audit_hypotheses.md)
+mechanism: >
+  A negative-sounding earnings call followed by downward estimate revisions is the case where both the manager's tone and the analysts' numbers say the same thing; investors anchored on prior guidance sell slowly, so the stock drifts down. The product keeps the agreeing cases.
+counterparty: "Retail holders anchored on prior guidance; institutions that read the numbers but not the call"
+source: "EX-ANTE — Price, Doran, Peterson & Bliss 2012 JBF; Chan, Jegadeesh & Lakonishok 1996 JF (revisions drift)"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "firms with regular calls and analyst coverage"
+weakens_when: "quarters dominated by macro news"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

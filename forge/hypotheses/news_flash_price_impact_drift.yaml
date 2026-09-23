@@ -1,0 +1,224 @@
+id: news_flash_price_impact_drift
+family: news_impact
+category: News
+title: The signed price impact of a firm's own news flashes keeps going after the flash is over
+mechanism: >
+  The vendor attaches to every news flash it carries for a firm a signed number between -1.00 and
+  +1.00 that represents the impact that flash has on the market over the two hours after it
+  arrives. This leg averages the day's flashes and accumulates that signed impact over one to six
+  months, a day without a flash counting zero. The quantity is therefore the direction and size of
+  the price movement the firm's news produced - not the polarity of the language in it and not the
+  stock's total return, which mixes news-driven and non-news-driven movement together. Savor
+  measured that this exact distinction is what separates drift from reversal: price events
+  accompanied by information are followed by drift while no-information ones result in reversals,
+  which he interprets as investors under-reacting to news about fundamentals and over-reacting to
+  other shocks that move prices. The two-hour window the score describes is finished long before a
+  delay-1 book can trade it, so this leg does not trade the flash; it trades the part of the
+  adjustment that Savor's evidence says is still to come. Force: behavioural mispricing -
+  under-reaction to public information - kept open by scarce attention and by the slow approval
+  cycle of the institutions that have to act on the news. Long the names whose news-driven push
+  over the window was most positive within the peer group, short the most negative.
+counterparty: >-
+  Retail investors whose attention arrives with the headline and whose trading is finished inside
+  the flash's own two-hour window, and long-only institutions and mandate-driven funds whose
+  position changes are approved on a slower cycle than news arrives, so their buying and selling
+  reaches the tape over the following weeks. Both recur: attention is scarce and is spent on
+  whatever is salient today, and an investment committee's cycle does not shorten because a wire
+  moved, which is why the incomplete reaction Savor measured is not arbitraged away by the holders
+  themselves.
+sign: 1
+source: >-
+  EX-ANTE — Savor 2012, Journal of Financial Economics 106(3) 635-659, "Stock returns after major
+  price shocks: The impact of information", DOI 10.1016/j.jfineco.2012.06.011. FETCHED
+  https://ideas.repec.org/a/eee/jfinec/v106y2012i3p635-659.html HTTP 200 (2026-09-09, WebFetch
+  returned the publisher abstract in full; curl -o /dev/null on the same URL returns 200). The
+  OpenAlex record https://api.openalex.org/works/W3125043070 returns HTTP 200 but its
+  abstract_inverted_index is null, and Semantic Scholar (DOI lookup, HTTP 200) reports the
+  abstract elided by the publisher, so neither was the source of this text. Verbatim from the
+  fetched abstract: "Using analyst reports as a proxy, I find that price events accompanied by
+  information are followed by drift, while no-information ones result in reversals. One
+  interpretation of these results is that investors underreact to news about fundamentals and
+  overreact to other shocks that move stock prices." and "Furthermore, drift exists only when the
+  direction of the price move and of the change in analyst recommendations have the same sign."
+  CONSTRUCT CORRESPONDENCE, stated not glossed: the paper conditions on LARGE realized price
+  changes and uses the presence of an analyst report as its proxy for information; this leg
+  conditions on no realized move at all and reads the vendor's signed score for the price impact
+  of the firm's own news flashes, which is the news-driven component of the move rather than the
+  move itself. Same direction (a news-accompanied move is followed by drift in the same direction)
+  and a horizon inside the paper's. The paper's same-sign condition is NOT reproduced by this leg
+  alone; it is what the composite adds. Chan 2003, JFE 70(2) 223-260, "Stock price reaction to
+  news and no-news: drift and reversal after headlines", is the earlier statement of the same
+  split and is NOT cited as evidence: its abstract is absent from OpenAlex (W3122799874, HTTP
+  200), from Semantic Scholar (DOI lookup HTTP 200, abstract null) and from RePEc
+  (https://ideas.repec.org/a/eee/jfinec/v70y2003i2p223-260.html HTTP 200, "No abstract is
+  available for this item"), so no sentence of it is quoted.
+datasets: [news17]
+signal:
+  fields: [nws17_d1_nip, nws17_nip]
+  vector: vec_avg
+  density: zero
+template:
+  - "group_rank(ts_sum({signal}, {w}), {group})"
+  - "group_rank(ts_decay_linear({signal}, {w}), {group})"
+params:
+  w: [21, 63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE, description-first. forge/labels.py records both fields sign "unstated",
+  sign_source "unstated": the descriptions state the SCALE and the WINDOW ("a granular score
+  between -1.00 and 1.00 ... that represents the degree of impact a news flash has on the market
+  over the following 2-hour period") and no return direction, and the sentiment domain prior that
+  labels.py attaches elsewhere in this dataset did not fire here (domain is labelled "news", not
+  "sentiment"). The return direction is taken from the cited paper - a news-accompanied price move
+  is followed by drift in the same direction - so sign +1. There is no label prior to disagree
+  with; the label is absent, not opposed. Consequence for the type judge (forge/typed.py): full
+  mode reports H5 "no stated sign in a directional role" for vec_avg of an unstated-sign field;
+  the live pre-sim gate runs structural=True (H1/H2/H4 only), which passes - the same situation
+  already on file for starmine_predicted_surprise_gap and news_corporate_action_tone.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, delay 1, USA TOP3000, dataset news17 "PR
+  Edition Data", category News / News, both VECTOR, pyramidMultiplier 1.2). nws17_d1_nip:
+  "A granular score between -1.00 and 1.00 with up to 2 decimal places that represents the degree
+  of impact a news flash has on the market over the following 2-hour period.", catalogue coverage
+  1.0, dateCoverage 1.0, dateCreated 2022-07-01, userCount 2 / alphaCount 2. nws17_nip: "-1.00 to
+  1.00 score estimating market impact over the next two hours after the news flash", catalogue
+  coverage 0.9136, dateCoverage 0.9507, dateCreated 2025-11-01, userCount 10 / alphaCount 15. The
+  two are the same vendor score in the dataset's two generations, so they are one economic
+  quantity. Labels (forge.labels, USA/d1): kind score, unit score, time event, vec_role
+  event-value, vec_reducers vec_avg / vec_max / vec_min; sparsity dense for BOTH at USA/d1 -
+  forge.labels.for_region(label, "USA/d1") gives nws17_d1_nip coverage 1.0 and nws17_nip coverage
+  0.9136, which AGREES with the catalogue. CORRECTION (verifier 2026-09-09, re-derived by the
+  fixer): the earlier reading of 0.497 as this field label's coverage was the record's TOP-LEVEL
+  value, which forge/labels.py catalogue_rows sets from the first region file of a sorted glob -
+  ASI_ILLIQUID_MINVOL1M_d1.jsonl, whose ASI/d1 nws17_nip row is coverage 0.497 - not from USA/d1;
+  there is no label-vs-catalogue disagreement. Density is applied for a different and stronger
+  reason: field-level coverage says nothing about day-level NaN, and vec_avg is NaN on any day with
+  no flash whatever the field coverage is. The 2025
+  generation's dateCoverage 0.9507 against the 2022 generation's 1.0 has an UNKNOWN calendar
+  meaning - the same pattern is on every 2025/2026-created field of this dataset - so whether
+  nws17_nip carries history across the 2019-2024 sim window is UNKNOWN; nws17_d1_nip (created
+  2022-07-01) certainly spans the 2022-2024 ladder window, and the sim reads both.
+  CROWDING (standard gate 4): alphaCount 2 and 15, userCount 2 and 10 - far below the >= 200
+  per-leg and >= 750 primary-field lines. The dataset has 259 users overall (02_dataset_map tier
+  D), which is the dataset's crowd, not this field's.
+  WHY THIS FIELD AND NOT THE DATASET'S OTHER 43. nws17_bam / nws17_d1_bam (corporate-action tone)
+  is taken by news_corporate_action_tone, staged in this same round from this same dataset;
+  nws17_acb / bee / d1_acb / d1_bee are earnings-release and earnings-evaluation tone, the
+  construct news_earnings_coverage_tone (staged, news48) and news_pr_event_tone (live, news84)
+  carry; nws17_ber / d1_ber (analyst recommendation change) is the construct
+  news_downgrade_recommendation_topic carries; nws17_ssc / qcm / qep / ghc_lna /
+  event_sentiment_score are general story tone, which five live legs trade; nws17_qmb / d1_qmb
+  (M&A tone) has no usable sign because the classifier does not separate acquirer from target and
+  the documented return directions for the two differ; nws17_event_similarity_days is event
+  novelty, the construct news_stale_tone_reversal (staged, news104) carries; relevance /
+  event_relevance / rp_story_event_count / rp_story_event_index are prominence conditioners, the
+  construct news_side_mention_spillover (staged, news104) carries; country_code, headline,
+  event_text and the six *_time_utc fields are codes, text and timestamps whose numeric encoding
+  is not documented anywhere on file - a lag built by subtracting two of them would rest on an
+  assumption about their encoding that nothing here can check, so none is used. nip is the one
+  field group in this dataset that no live leg, no staged leg and no journal row touches.
+  THE SIBLING LEG REJECTS THIS FIELD, and the disagreement is stated rather than left implicit.
+  news_corporate_action_tone.yaml (staged the same round, same dataset) rejects nws17_nip as "the
+  vendor's own projection of two-hour price impact - a pre-built prediction whose re-rank is the
+  standard's Law-1 null, and a two-hour horizon is past at delay 1." Neither half binds here. This
+  leg does not re-rank the raw score: it accumulates it over 21-126 days into a quantity the vendor
+  does not publish, and the edge the standard asks for is the composite conjunction. And the
+  expired two-hour window is the PREMISE of the bet, not an objection to it - whether the score is
+  a measurement or a projection, at delay 1 the two hours are past, and what is traded is the part
+  of the adjustment Savor's evidence says is still to come. Which of the two files is right about
+  nip is the pre-registered correlation test in THE CENTRAL CONFOUND paragraph below, not an
+  argument.
+  THE CENTRAL CONFOUND, stated before the claim. nip is a vendor MODEL OUTPUT and its inputs are
+  not documented. Two readings fit the description and nothing here separates them: (a) it scores
+  the price movement the flash caused, which is the quantity Savor's split is about, and this leg
+  is then the information-accompanied branch that drifts; (b) it is largely a monotone transform
+  of the flash's sentiment, in which case this leg's book is another news-tone book and the
+  construct is NOT distinct from news_pr_event_tone, news_ravenpack_composite_tone or
+  news_headline_tone_benzinga. MECHANISM: UNKNOWN. The experiment that would separate them is
+  available after simulation and is pre-registered here: the correlation of this leg's daily PnL
+  with those legs' books (the pnl-distance rule already on file), plus the rank correlation of the
+  rendered signal with a tone leg rendered on the same cell. If (b) holds, this leg should be
+  dropped rather than re-explained.
+  THE OPPOSITE SIGN EXISTS AND IS NOT EXCLUDED. Abnormal attention and news-driven price pressure
+  are documented to REVERSE, and two live legs trade exactly that with sign -1
+  (sentiment_abnormal_coverage_reversal, wikipedia_attention_reversal). Savor's split is the
+  reason the sign here is +1 rather than -1: the reversal in his evidence is on the
+  no-information price events and the drift is on the information-accompanied ones, and a
+  news-impact score is the information-accompanied branch by construction. That construction is
+  the assumption, not a finding: news17 is a press-release feed, and a press release can be
+  promotional content that moves the price without information, which is Savor's reversing branch.
+  PRE-REGISTERED FALSIFICATION: if the leg's sign is negative in-sample, the reading is that the
+  promotional branch dominates this feed - the leg is then wrong, not to be sign-flipped and kept
+  (S5 sign discipline / standard gate 5).
+  VECTOR REDUCER, and the count-scaling it does NOT remove. vec_avg gives the day's typical
+  news-driven push; the label's vec_role (event-value) allows vec_avg / vec_max / vec_min only, so
+  vec_sum would fail typed H4 and that alone settles the reducer. What vec_avg does NOT do is keep
+  flash COUNT out of the leg, and an earlier draft of this paragraph claimed it did - that claim
+  was wrong and is withdrawn. add(vec_avg(f), 0, filter=true) fills no-news days with 0
+  (OPERATORS.md L49) and ts_sum sums the window (L1398), so the leg equals (number of news DAYS in
+  the window) x (average signed daily impact); ts_decay_linear is a decay-weighted average of the
+  same zero-filled series (L902) and is count-scaled the same way, and ts_mean would be a monotone
+  transform of ts_sum that group_rank cannot distinguish. The leg is therefore count-scaled by
+  construction, which is what the mechanism line says it is (total accumulated push, not typical
+  push) - but it means the abnormal-coverage construct that sentiment_abnormal_coverage_reversal
+  trades with sign -1 is inside this leg, not excluded from it. That is a named risk, not a solved
+  one. PRE-REGISTERED: alongside the tone-leg correlation test above, measure this leg's daily-PnL
+  correlation with sentiment_abnormal_coverage_reversal's book and the rank correlation of the
+  rendered signal with news-article-count on the same cell; a high correlation with the
+  opposite-sign coverage leg means the leg is trading news volume and should be dropped, not
+  re-explained.
+  DENSITY "zero", reasoned on the field's own scale. At day level a firm has news flashes on some
+  days only, so vec_avg is NaN on the rest, and a NaN-for-no-event book ranks into a few names and
+  fails CONCENTRATED_WEIGHT (measured on the 2026-09-04 canary, 163/197 rows). On a -1..+1 impact
+  scale 0 IS "no news-driven push", so a day without a flash is filled with 0 and contributes
+  nothing to the window's accumulation. Backfill was rejected: carrying the last flash's impact
+  forward would make one release keep pushing a firm's rank for months with no further news, which
+  is the opposite of what an accumulated-impact quantity means. The factory renders the density as
+  add(vec_avg(field), 0, filter=true), which satisfies typed H4 for the sparse 2025-generation
+  field as well as the dense one.
+  TYPE RULES (forge/typed.py): H4 vector satisfied by vec_avg and density by add(..., filter=true);
+  ts_sum and ts_decay_linear are not change operators, so H2 does not bind; nothing is divided or
+  added across fields, so no unit is crossed (H1); the leg ends in group_rank, so it enters a
+  composite's multiply as a bounded operand (H3). The field's cadence is event, not
+  quarterly/annual, so no ts_backfill is required.
+  TYPED JUDGE, run not assumed (2026-09-09): forge.factory.render for both fields x both templates
+  x w in {21, 63, 126} x group in {subindustry, industry, sector}, each rendering passed to
+  forge.typed.judge with structural=True (the live pre-sim gate, runner.py structurally_ok): ok,
+  hard [] on all 36. Full mode reports exactly one failure, H5 "vec_avg(nws17_d1_nip) has no
+  stated sign in a directional role" (H6 is not reached once a hard failure is recorded); the sign
+  is declared in this file from the cited paper, not read off the label. The composite rendering
+  was checked the same way: compose.combine of this leg and the insider leg under multiply gives
+  multiply(group_rank(ts_sum(add(vec_avg(nws17_d1_nip), 0, filter=true), 63), subindustry),
+  group_rank(ts_sum(add(directional_indicator_2, 0, filter=true), 60), subindustry)), which the
+  judge passes structurally with hard [], bounded true, layer 3, domains {news, insider-flow}.
+  WHY TWO TEMPLATES. ts_sum weights every flash in the window equally; ts_decay_linear weights the
+  recent ones more, which is the shape of a drift that is strongest first and fades. Which shape
+  the platform rewards is a measurement, not a claim.
+  HISTORY, CHECKED NOT ASSUMED (standard gate 8). Local forge journal state/layered/runs/forge.jsonl
+  (28,195 rows, counted by the fixer at 2026-09-09 20:51 local - the 25,035 previously written here
+  was diagnosis_ladder.md's 14:18 pull, borrowed not measured): 0 rows mention nws17 or news17. VPS
+  journal read over ssh -n read-only on 2026-09-09 (/opt/wq/state/layered/runs/forge.jsonl, 28,220
+  rows, likewise re-counted rather than carried over from the 28,199 previously written): 0. state/resim_targets.json
+  mentions nws17_acb and nws17_d1_ber only (old climb-era additive blends, different fields,
+  different construct, no collision) and no nip field. state/banned_fields.json and
+  state/climb/spent_fields.json do not mention nws17. 02_dataset_map.md lists news17 as tier D
+  with 0/0 journal rows and it appears in no composite.
+  LAW 1 (standard gate 6). A bare cross-sectional re-rank of one pre-built vendor score adds
+  nothing; this leg is not the bet. It accumulates the score over 21-126 days into a quantity the
+  vendor does not publish, and the edge the standard requires is the composite's two-leg
+  conjunction (Dim 5), not this leg alone.
+  ATTENUATION (standard Dim 4), pre-registered. Strongest in mid and small caps with a sparse
+  release flow, where one flash is a real event whose impact score is not diluted by a continuous
+  stream and where the information diffuses slowly. Weakens in mega-caps that issue routine
+  releases every week (the day's average impact tends toward zero and the accumulation measures
+  release cadence rather than news), and in market-wide news waves - March 2020 - when nearly
+  every firm's flashes carry the same sign and the leg stops describing the cross-section.
+  LADDER RISK, POST-HOC and not a mechanism: diagnosis_ladder.md section 3a records that the two
+  news legs added after the original library never cleared the 2022-2024 window in any composite
+  (news46 composite tone 0/124, news_negative_tone_nlp 0/6). This is a news leg. Whether it shares
+  that fate is the measurement; MECHANISM UNKNOWN for why those did. Nothing here was simulated.

@@ -1,0 +1,26 @@
+id: deferred_tax_earnings_quality
+family: accruals
+category: Fundamental
+title: Large deferred tax expense marks book income ahead of taxable income
+mechanism: >
+  A large deferred tax expense means book income exceeds taxable income; such book-tax
+  differences mark earnings that persist less and reverse. Together with the accrual ratio from
+  the same source, short the names with the largest deferred tax expense and accruals.
+counterparty: Investors who take book income at face value.
+sign: -1
+source: "EX-ANTE — Hanlon 2005 (large book-tax differences → lower earnings persistence); Phillips, Pincus & Rego 2003 (deferred tax expense detects earnings management); Sloan 1996"
+datasets: [fundamental93]
+signal:
+  fields: [fnd93_expense_d1_mean, fnd93_expense_d1_current_t, fnd93_accruals_d1_mean]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

@@ -1,0 +1,20 @@
+id: usa_insider_x_short_x_profitability
+title: Insiders buying, shorts absent, business profitable (USA Insiders cell)
+legs: [insider_significant_buying_drift, short_volume_ratio_informed, usa_profitability_ratios]
+families: [insider, short, profitability]
+combiners: [multiply]
+mechanism: >
+  Insider purchases predict returns; the prediction is cleanest where informed short sellers
+  are absent and the business already earns, because then the purchase is neither a contrarian
+  bet against a crowd that knows something nor a turnaround gamble. The product of the three
+  ranks keeps those firms; outside shareholders who track neither filings nor short volume
+  supply the drift.
+counterparty: "Outside shareholders and index funds that track neither insider filings nor short volume"
+source: "EX-ANTE — Lakonishok & Lee 2001; Boehmer, Jones & Zhang 2008; Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "small and mid caps with concentrated insider ownership and liquid borrow"
+weakens_when: "insider sales are dominated by scheduled option exercises"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.15

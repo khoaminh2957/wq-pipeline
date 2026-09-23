@@ -1,0 +1,16 @@
+[Unit]
+Description=wq forge loop — the redesigned miner (composites, USA/d1 first). Singleton by flock; never beside wq-climb.
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+Environment=N=300
+Environment=ROUNDS=100000
+Environment="FORGE_ARGS=--mode composites --order USA/d1,d1 --no-split --delays 1 --ab new"
+ExecStart=/bin/bash /opt/wq/forge_loop.sh
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

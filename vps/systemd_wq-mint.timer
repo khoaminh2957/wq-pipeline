@@ -1,0 +1,10 @@
+[Unit]
+Description=wq mint check every minute
+
+[Timer]
+OnBootSec=120
+OnUnitActiveSec=60
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

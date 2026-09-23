@@ -1,0 +1,77 @@
+id: spin_x_insider
+title: Words managed one way and money moving the other way
+arm: new
+legs: [call_tone_spin_over_fundamentals, insider_significant_buying_drift]
+families: [tone_management, insider]
+combiners: [multiply]
+mechanism: >
+  The first leg is what management chose to say beyond the fundamentals on its own call; the
+  second is what the same people then did with their own money. Cheng and Lo show the two are
+  chosen together: when managers plan to buy, they increase the number of bad-news forecasts to
+  lower the purchase price and time the purchases after the bad news, so the words are managed
+  down while the money goes in. The conjunction reads the two channels against each other. A
+  call whose tone sits below its own fundamental content (the spin leg's long side) together
+  with significant insider buying is the documented pattern of a manager talking a quarter
+  down before buying it, and the product puts it at the top. A call whose tone runs ahead of
+  its fundamental content (the spin leg's short side) with no significant buying behind it is
+  tone that neither the fundamental events nor the managers' money supports, the case Huang,
+  Teoh and Zhang show reverses over the following one to two quarters, and the product puts it
+  at the bottom. Cheng and Lo find no disclosure adjustment before sales, so the short corner
+  rests on the tone-reversal evidence alone, not on insider selling; the conjunction's own
+  evidence is concentrated in the long corner, and that asymmetry is stated, not hidden.
+counterparty: "Holders and sentiment-score users who trade the call's overall tone at face value: they sell to insiders after a talked-down call, and they buy a talked-up call that neither the fundamental events on it nor the insiders' own money supports"
+source: "EX-ANTE — Cheng & Lo 2006, Journal of Accounting Research 44(5), 'Insider Trading and Voluntary Disclosures'. FETCHED https://api.openalex.org/works/https://doi.org/10.1111/j.1475-679x.2006.00222.x HTTP 200 (2026-09-09; OpenAlex id W3125695164; the publisher page was not fetched). Verbatim from that abstract: 'we find that when managers plan to purchase shares, they increase the number of bad news forecasts to reduce the purchase price.' and 'Confirming this strategic behavior, we find that managers successfully time their trades around bad news forecasts, buying fewer shares beforehand and more afterwards.' and 'We do not find that managers adjust their forecasting activity when they are selling shares, consistent with higher litigation concerns associated with insider sales.' This is the conjunction's own evidence (disclosure managed down, then purchases), not either leg's; the paper's disclosures are management forecasts, and the dataset covers earnings and guidance calls, so the object is management's voluntary qualitative disclosure in both. The spin leg is grounded by Huang, Teoh & Zhang 2014 TAR, FETCHED https://api.openalex.org/works/https://doi.org/10.2308/accr-50684 HTTP 200: 'ABTONE has a positive stock return effect at the earnings announcement and a delayed negative reaction in the one and two quarters afterward.' The insider leg carries Lakonishok & Lee 2001 and Jeng, Metrick & Zeckhauser 2003 on its own source line; they are not re-fetched here."
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "small and mid caps with a CEO-initiated open-market purchase in the quarter after a call whose fundamental-tagged events read better than its overall tone: Cheng and Lo find the talk-down-then-buy relation strongest for CEO trades, and Huang, Teoh and Zhang find tone management concentrated in balance-sheet-constrained and older firms"
+weakens_when: "the insider leg has nothing to say (mega-caps, where open-market purchases are rare and sales are plan-driven, leave the product carried by the spin leg alone); quarters when every call turns negative at once (Q1-Q2 2020), so the polarity difference has little cross-section; and names absent from the transcript vendor (coverage 0.72), where the 63-day carry is stale or empty"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction and labelled EX-ANTE reasoning; measured NOT to
+  predict the ladder (docs/harness5/round_2/diagnosis_ladder.md section 3b), so they are the
+  standard's gate-4 reasoning only and must not rank this composite.
+  value_winter_2014_2020 '0': neither leg prices cheapness. Insider purchases lean contrarian
+  into fallen names (the insider leg's own source), which the value winter ran against, while
+  the spin leg is style-neutral; the two do not compound into a value bet.
+  momentum_crash_2016 '0': the early-2016 reversal lifted beaten-down names regardless of what
+  their calls said; the long corner (understated and bought) sits partly in those names and
+  gains, the short corner (talked up and unbought) is lifted with them and loses; net
+  indeterminate.
+  covid_2020 '+': insider purchases cluster in crashes (contrarian pattern, EX-ANTE from the
+  insider leg's source) while the spin leg's cross-section shrinks as every call turns negative,
+  so the product follows the insider corner; whether the 2020 rebound rewarded that corner is
+  not measured here.
+  rate_shock_2022 '+': the short corner is tone with neither fundamental events nor insider
+  money behind it, which is the narrative-priced side a discount-rate shock represses; the long
+  corner is a name whose own managers bought after understating it. Reasoning, not evidence.
+  diffuse mid-cycle '+': the base case of both papers.
+  COMBINER. call_tone_spin_over_fundamentals is bearish (sign -1), so [multiply] only: the gate
+  branch inverts a bearish leg (measured 2026-09-08). The product is
+  multiply(1 - rank(spin), rank(insider buying)): top when the call understated AND insiders
+  bought, bottom when the call ran ahead AND nobody bought.
+  PARTNER CHOICE. POST-HOC allocation knowledge was used ONLY to choose the partner, never for
+  a sign: composites containing insider_significant_buying_drift cleared the ladder's 2022-2024
+  window on 0.40 of rows with Sharpe >= 1.3 (n 204). short_volume_ratio_informed was avoided
+  (already in 9 of 45 composites; every platform passer on it read prod-corr 0.79-0.85),
+  news_ravenpack_composite_tone and short_interest_surprise were avoided (0/124 and 0/61 ever
+  cleared the window). Among the remaining partners the insider leg is the only one for which
+  a paper documents the CONJUNCTION itself rather than each leg separately; the two news-tone
+  partners share the text-sentiment domain with the new leg and were excluded on that ground,
+  and accruals/profitability would re-pair a call-text leg with fundamentals, which
+  tone_x_profitability and prtone_x_accruals already do.
+  DISTINCTNESS, checked not assumed (grep legs: in forge/composites/*.yaml, 2026-09-09): the
+  insider legs are paired with accruals (insider_x_accruals, usa_insider_x_profitability_x_accruals),
+  net cash (netcash_x_insider), options (usa_insider_x_ivspread, usa_insider_x_ivspread_x_profitability)
+  and short flow (usa_insider_x_short_x_profitability); no composite pairs any call-transcript
+  or disclosure-tone leg with an insider leg, and event_sentiment_signals appears in no
+  composite or hypothesis. Whether the resulting book is distinct from the live book is a
+  correlation measurement, not a claim made here.
+  ASYMMETRY. Cheng and Lo find no disclosure management before sales, and the insider leg's own
+  literature finds purchases informative and sales not; so the product's evidence sits in the
+  long corner and the short corner is carried by the tone-reversal paper alone. If the measured
+  PnL comes only from the short side, the conjunction evidence did not transfer and this file
+  should say so rather than be re-argued.
+  MECHANISM for anything this composite will measure: UNKNOWN until simulated. Staged only;
+  invisible to the live loader.

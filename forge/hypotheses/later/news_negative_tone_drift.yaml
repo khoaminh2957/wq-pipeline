@@ -1,0 +1,27 @@
+id: news_negative_tone_drift
+family: tone
+category: News
+title: Negative directional tone, aggregated over a week, continues
+mechanism: >
+  Negative and financial-down tone in firm-specific news predicts low earnings and low returns,
+  and the market absorbs it slowly when the tone accumulates over many stories. Short the names
+  with the highest average negative directional tone over the window.
+counterparty: Investors who underreact to accumulated negative coverage.
+sign: -1
+source: "EX-ANTE — Tetlock, Saar-Tsechansky & Macskassy 2008 (negative words predict low earnings and returns); Heston & Sinha 2017"
+datasets: [news73]
+signal:
+  fields: [nws73_globalsent_findownscore, nws73_globalsent_negativescore]
+  vector: vec_avg
+  density: backfill
+  density_window: 20
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

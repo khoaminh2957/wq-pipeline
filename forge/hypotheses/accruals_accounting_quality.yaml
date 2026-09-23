@@ -1,0 +1,26 @@
+id: accruals_accounting_quality
+family: accruals
+category: Fundamental
+title: High accruals mean low-quality earnings that reverse
+mechanism: >
+  Earnings built from accruals rather than cash persist less than cash earnings, and investors
+  price them as if they were the same. Firms with the highest accruals (percent, working-capital,
+  cash-flow and Jones-model measures) subsequently underperform. Short the highest accruals.
+counterparty: Investors who fixate on reported earnings.
+sign: -1
+source: "EX-ANTE — Sloan 1996 (accrual anomaly); Hafzalla, Lundholm & Van Winkle 2011 (percent accruals); Dechow & Dichev 2002"
+datasets: [fundamental44]
+signal:
+  fields: [fnd44_perc_accruals, fnd44_working_capital_accruals, fnd44_cashflow_accruals, fnd44_modified_jones_cf_accruals]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

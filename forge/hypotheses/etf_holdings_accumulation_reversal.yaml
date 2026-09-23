@@ -1,0 +1,62 @@
+id: etf_holdings_accumulation_reversal
+family: etf_flow
+category: Other
+title: Breadth of ETF accumulation is mandated, non-fundamental demand and it reverts
+mechanism: >
+  The number of ETF shares held of a constituent moves when the fund creates or redeems, and a
+  creation is filled with the whole basket pro rata: the fund buys the name because money arrived,
+  not because anything was learned about the name. Aggregated over the ETFs that hold a stock, the
+  count of funds adding minus the count trimming, scaled by the number that changed at all, is a
+  breadth measure of that mandated demand. Brown, Davies & Ringgenberg 2021 show ETF creation and
+  redemption activity is a signal of NON-FUNDAMENTAL demand and that high-flow ETFs subsequently
+  underperform; Ben-David, Franzoni & Moussawi 2018 show the shock reaches the underlying through
+  the arbitrage channel and that ETF-owned stocks show more negative price autocorrelation. So the
+  price move that mandated ETF accumulation caused is given back. Short the names the most ETFs
+  are adding; long the names the most ETFs are trimming.
+counterparty: >
+  Index-tracking ETFs and their authorized participants: a passive fund's mandate is to hold the
+  index basket, so on an inflow it buys every constituent at whatever the price is and cannot
+  decline the one that is temporarily expensive; the flow-chasing retail investor whose inflow
+  triggered the creation bears the resulting cost. The mandate is structural and has not been
+  arbitraged away in ten years of growing passive share, which is the persistence reason.
+sign: -1
+source: "EX-ANTE — Brown, Davies & Ringgenberg 2021, Review of Finance 25(4) 937-972, 'ETF Arbitrage, Non-Fundamental Demand, and Return Predictability' (https://api.crossref.org/works/10.1093/rof/rfaa027, HTTP 200): 'A portfolio that is short high-flow ETFs and long low-flow ETFs earns excess returns of 1.1-2.0% per month, consistent with non-fundamental demand distorting asset prices away from fundamental values.' Ben-David, Franzoni & Moussawi 2018, Journal of Finance, 'Do ETFs Increase Volatility?' (https://api.crossref.org/works/10.1111/jofi.12727, HTTP 200): 'The liquidity shocks can propagate to the underlying securities through the arbitrage channel' and 'ETF ownership increases the negative autocorrelation in stock prices.'"
+datasets: [other580]
+signal:
+  fields: [positive_percent_change_count_5d, positive_percent_change_count, positive_percent_change_count_2]
+signal2:
+  fields: [negative_percent_change_count_5d, negative_percent_change_count, negative_percent_change_count_60d]
+template: "-group_rank(ts_mean(({signal} - {signal2}) / ({signal} + {signal2}), {w}), {group})"
+params:
+  w: [5, 10, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN, from the descriptions, not the label prior. forge/labels.py labels all 126 `negative_*`
+  fields of other580 sign '-' with sign_source 'description'. That is a LABEL SLIP: the word
+  "negative" in those descriptions names the direction of the change in ETF shares held, not a
+  bearish return expectation, and the 126 matching `positive_*` fields are left 'unstated'. The
+  leg therefore takes its sign from the composed quantity and the citation, not from the field
+  labels: the quantity rendered is net ETF-accumulation breadth (higher = more ETFs adding), it is
+  bearish, sign is -1, and the template starts with '-'.
+  FIELD PAIRS, index by index: (5d) positive_percent_change_count_5d "Number of ETFs with positive
+  5-day percent changes in shares held" x negative_percent_change_count_5d "Number of ETFs with
+  negative 5-trading-day percent changes in shares held"; (20d) positive_percent_change_count x
+  negative_percent_change_count, both "...with a positive/negative 20-day percent change in shares
+  held"; (60d) positive_percent_change_count_2 "Number of ETFs with positive 60-day percent change
+  in shares held" x negative_percent_change_count_60d "Count of negative percent changes in
+  holdings over 60 days". All six are MATRIX at USA/TOP3000/delay 1 with coverage 1.0 and kind
+  'count', unit 'count' - so (P-N)/(P+N) never divides across units and needs no density operator
+  or ts_backfill (time = daily).
+  MECHANISM UNKNOWN: this dataset reports the change in shares held, and nothing in it says whether
+  a given change came from a fund-level creation/redemption or from an index reweight. The leg does
+  not depend on the split - both are mandated, price-insensitive demand - but the decomposition is
+  not established here and no experiment in this repo has measured it.
+  CROWDING: other580 userCount 79, alphaCount 141 (datasets_survey.json, 2026-09-04); each of the
+  six fields carries userCount 0 / alphaCount 0 in fetched/rc/fields/USA_TOP3000_d1.jsonl. Far
+  below the standard's >=200 / >=750 crowding lines.

@@ -1,0 +1,155 @@
+id: newsimpact_x_insider
+title: A news-driven price move that the people who wrote the news are buying into
+arm: new
+legs: [news_flash_price_impact_drift, insider_significant_buying_drift]
+families: [news_impact, insider]
+combiners: [multiply]
+mechanism: >
+  Savor's result is not that price moves drift; it is that only SOME of them do. Price events
+  accompanied by information are followed by drift while no-information ones reverse, and in his
+  evidence the drift exists only when a second, independent directional signal - the change in
+  analyst recommendations - has the same sign as the price move. The news-impact leg cannot make
+  that split on its own. news17 is a press-release feed: a flash that moved the price can be real
+  information about the firm's cash flows, or it can be promotional content issued by the firm
+  that moves the price without information, which is precisely Savor's reversing branch, and an
+  impact score measures the size and direction of the move, never its content. Insider buying is
+  the second directional signal, supplied by the only people who both wrote the release and know
+  what is behind it, and it is costly in a way an announcement is not: the manager is committing
+  his own undiversified capital and accepting the disclosure and litigation exposure that comes
+  with it. Requiring both to point the same way keeps the branch where the firm's news moved the
+  price up and the firm's own officers were buying at that higher price, and drops the branch
+  where the release pushed the price and nobody inside paid for it. The composite is therefore
+  Savor's same-sign condition implemented with the insiders' money in place of the analyst's
+  recommendation, not two bullish signals stacked.
+counterparty: >-
+  Retail investors who trade the press-release headline inside the flash's own session and never
+  read the Form 4 filings that follow it, and long-only institutions and index funds whose
+  approval cycle is slower than the wire and whose insider input is absent entirely; on the short
+  side, the holders of firms whose releases pushed the price with no officer willing to buy at it.
+source: >-
+  EX-ANTE — conjunction evidence: Savor 2012, Journal of Financial Economics 106(3) 635-659,
+  "Stock returns after major price shocks: The impact of information", DOI
+  10.1016/j.jfineco.2012.06.011. FETCHED https://ideas.repec.org/a/eee/jfinec/v106y2012i3p635-659.html
+  HTTP 200 (2026-09-09, WebFetch returned the publisher abstract in full; curl on the same URL
+  returns 200; the OpenAlex record W3125043070 is HTTP 200 with a null abstract and was not the
+  source). Verbatim, and it is the CONJUNCTION sentence rather than either leg's own evidence:
+  "Furthermore, drift exists only when the direction of the price move and of the change in
+  analyst recommendations have the same sign." With, from the same abstract: "Using analyst
+  reports as a proxy, I find that price events accompanied by information are followed by drift,
+  while no-information ones result in reversals." CONSTRUCT CORRESPONDENCE, partial and stated:
+  the paper's second directional signal is a sell-side recommendation change, this composite's is
+  significant directional insider activity; the paper measures both around a large realized price
+  move, this composite multiplies two accumulations over 21-126 and 20-120 trading days and
+  conditions on no realized move. A DOCUMENTED COUNTER-CONSIDERATION, fetched rather than
+  omitted: Cheng & Lo 2006, Journal of Accounting Research 44(5) 815-848, "Insider Trading and
+  Voluntary Disclosures". FETCHED https://ideas.repec.org/a/bla/joares/v44y2006i5p815-848.html
+  HTTP 200 (2026-09-09, WebFetch and curl). Verbatim: "when managers plan to purchase shares, they
+  increase the number of bad news forecasts to reduce the purchase price" and "managers
+  successfully time their trades around bad news forecasts, buying fewer shares beforehand and
+  more afterwards." The two legs are therefore not independent in the way the mechanism assumes -
+  see the notes, where both readings of what that does to the long branch are stated and neither
+  is claimed. The legs' own grounding (Savor 2012 for the news leg; Lakonishok & Lee 2001, Jeng,
+  Metrick & Zeckhauser 2003, Cohen, Malloy & Pomorski 2012 for the insider leg) is carried by each
+  leg's source line and is not re-fetched here.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "0", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: >-
+  Mid and small caps with a sparse press-release flow and officers who trade in the open window
+  around it: one release is then a real event whose impact score is not diluted by a continuous
+  stream, the purchase is large relative to float, and coverage is thin enough that the
+  information diffuses over weeks rather than at the flash.
+weakens_when: >-
+  Mega-caps that issue routine releases every week, where the day's average impact tends toward
+  zero and officer purchases are negligible against float; market-wide news waves such as March
+  2020, when nearly every firm's flashes carry the same sign and both legs describe the market
+  rather than the cross-section; and blackout quarters, when the insider leg's window is empty for
+  reasons that say nothing about the firm.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction and not copied. Regime maps are MEASURED not to
+  predict the 2022-2024 ladder window (diagnosis_ladder.md section 3b, where the "0" composites
+  cleared it as often as the "+" ones); they are the standard's EX-ANTE reasoning only and must
+  not be used to rank this composite.
+  value_winter_2014_2020 "0": two forces that point opposite ways and no basis for netting them.
+  The news-impact leg is not a style bet - a firm's releases move its price in growth and value
+  names alike - while the insider leg leans toward names that have already fallen, because that is
+  when officers buy, which is a value tilt into a decade that punished it. Neutral leg plus a
+  headwind: no directional call.
+  momentum_crash_2016 "0": the same standoff, running the other way. February 2016 reversed the
+  beaten-down names upward, which helps the insider leg's long side and hurts a continuation bet
+  on recent news-driven moves. The composite's long side needs both, so it is long neither the
+  crowded winners a momentum crash punishes nor purely the losers it rewards.
+  covid_2020 "0": in March 2020 the flashes were pandemic news carrying the same sign for nearly
+  every firm and the insider buying was market-wide. Both legs described the market rather than
+  the cross-section, so the book degrades toward noise in both directions rather than losing in
+  one.
+  rate_shock_2022 "+": the only regime where the two legs point the same way. In a year of
+  persistent repricing the short side - firms whose releases pushed the price down and whose
+  officers bought nothing - is the side both legs select, and neither leg carries duration for a
+  discount-rate shock to reprice: the news leg's horizon is 1-6 months and the insider leg's is
+  the same. Stated as reasoning, not as a prediction about the ladder.
+  COMBINER. Both legs are bullish (sign +1), so multiply and gate would each keep the orientation;
+  [multiply] is the confirmation reading the mechanism describes (both must be high) and is the
+  round brief's stated preference on POST-HOC allocation knowledge (multiply rows at the bar reach
+  fitness 1.0 at 130/355 against 6/184 for gate) - cited from the brief, not measured here.
+  THE CONJUNCTION'S OWN CONFOUND, from the fetched Cheng & Lo abstract. The two legs are not
+  independent: managers increase bad-news forecasts before buying and buy more afterwards, so
+  insider purchases follow NEGATIVE firm disclosure by design. Two readings fit and no experiment
+  here separates them. (i) The long branch this composite selects - positive news impact AND
+  insider buying - is rarer and adversely selected, so the book is thin on the long side and the
+  product is carried by the short side. (ii) A purchase made after the firm's own news has pushed
+  the price UP is the expensive case Cheng & Lo say managers avoid, so the ones that happen anyway
+  are a stronger signal. MECHANISM: UNKNOWN. Reading (ii) is the flattering one and is exactly the
+  kind of story to distrust; it is written here to be tested (long-side count and long-side PnL
+  share, both readable from the recordset after simulation), not to be believed.
+  INHERITED CONFOUND FROM THE NEW LEG, repeated so it is not lost: nip is a vendor model output
+  whose inputs are undocumented, and if it is largely a transform of the flash's sentiment then
+  this composite is a tone x insider composite, not a news-impact x insider one. The leg file
+  pre-registers the correlation test that would show it.
+  PARTNER CHOICE, POST-HOC allocation knowledge used only to choose the partner and for nothing
+  else. On rows with Sharpe >= 1.3, composites carrying insider_significant_buying_drift cleared
+  the 2022-2024 window at 0.40 (n 204). Rejected, and why: sentiment_weekly_continuation (0.42)
+  and social_twitter_sentiment_continuation (0.26) are the same news/sentiment domain as the new
+  leg, which the brief forbids; option_call_put_iv_spread (0.37) would repeat the live domain pair
+  [tone, options] (usa_sentiment_x_ivspread, usa_twitter_x_ivspread); usa_profitability_ratios
+  (0.35) would repeat [tone, profitability] (headline_x_profitability, tone_x_profitability,
+  multiwire_x_profitability, usa_twitter_x_profitability); usa_accruals_cashflow (0.40) would
+  repeat [tone_pr, accruals] (prtone_x_accruals). Insider is the one allowed partner that no
+  news-family leg is paired with anywhere in forge/composites/ - checked by reading the families
+  line of all 45 live composites, not assumed - and it is also the corroborating channel closest
+  to the analyst-recommendation signal in Savor's same-sign sentence. Whether the 0.40 rate
+  transfers to a composite whose other leg is new is the measurement, not a prediction.
+  CROWDING TO WATCH, named not hidden. SEVEN other composites already in
+  forge/composites/staged/ this round take insider_significant_buying_drift (corpaction_x_insider,
+  earningsnews_x_insider, mnascale_x_insider, newsquarter_x_insider, sidemention_x_insider,
+  spin_x_insider, stalenews_x_insider - all seven have mtimes between 14:43:03 and 20:37:34,
+  before this file's 20:39:38 original mtime; an earlier draft said
+  four and undercounted), and ALL EIGHT of the resulting composites carry a news- or
+  sentiment-domain new leg - re-derived by the fixer from forge.labels.for_region(..., "USA/d1")
+  domain on each new leg's own fields: news for this leg, sentiment for corpaction, earningsnews,
+  sidemention, spin and stalenews, and news+sentiment / news+sales for newsquarter and mnascale.
+  (The verifier's edit said six of eight; the measured count is eight of eight.)
+  corpaction_x_insider is built on the SAME dataset
+  (news17, corporate-action tone). If several ship, their books may correlate through the shared
+  insider leg, and this one and corpaction_x_insider may correlate through news17 as well. That is
+  a correlation measurement to run before any of them is submitted, not a prediction made here;
+  the standing rule is prod and self correlation < 0.7 on the submitted row.
+  DISTINCTNESS OF THE PAIR, checked not assumed: grepping the families line of every file in
+  forge/composites/ shows insider paired with balance_sheet_cash, options, profitability, short
+  and accruals, and every tone/news family (tone, tone_pr, tone_composite, tone_multiwire,
+  tone_negative, tone_call, social, disagreement, coverage, recommendation) paired with short,
+  profitability, accruals, options and revisions - no news family is paired with insider. Whether
+  the resulting book is distinct from the live 18 all-binding passers is a correlation
+  measurement.
+  ORIENTATION, run not assumed (2026-09-09). forge.compose.combine on a rendering of each leg
+  under multiply gives multiply(group_rank(ts_sum(add(vec_avg(nws17_d1_nip), 0, filter=true), 63),
+  subindustry), group_rank(ts_sum(add(directional_indicator_2, 0, filter=true), 60), subindustry));
+  forge.typed.judge structural=True returns ok, hard [], bounded true, layer 3, domains {news,
+  insider-flow}. Both operands are group_rank scores in [0, 1], so the product is rank-bounded
+  (typed H3) and higher = long.
+  LADDER RISK, POST-HOC: news legs added after the original library have cleared the 2022-2024
+  window 0 times (diagnosis_ladder.md section 3a, news46 0/124 and news_negative_tone_nlp 0/6),
+  and MECHANISM UNKNOWN for why. This composite's new leg is a news leg. Nothing here was
+  simulated.

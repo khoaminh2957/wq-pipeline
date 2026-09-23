@@ -1,0 +1,26 @@
+id: wikipedia_attention_reversal
+family: attention
+category: Other
+title: Abnormal Wikipedia attention marks retail interest that reverses
+mechanism: >
+  Company page views measure information-seeking by individual investors; a spike relative to
+  the stock's own baseline brings attention-driven buying whose price impact reverts. Short
+  the names with the highest ratio of last-week views to their longer baseline.
+counterparty: Attention-driven buyers.
+sign: -1
+source: "EX-ANTE — Da, Engelberg & Gao 2011 (search attention → price pressure then reversal); Moat et al. 2013 (Wikipedia usage patterns before market moves)"
+datasets: [other571]
+signal:
+  fields: [oth571_views7d, oth571_views7d]
+signal2:
+  fields: [oth571_views84d, oth571_views28d]
+template: "-group_rank(ts_backfill({signal} / {signal2}, {w}), {group})"
+params:
+  w: [5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

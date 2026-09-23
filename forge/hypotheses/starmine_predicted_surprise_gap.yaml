@@ -1,0 +1,54 @@
+id: starmine_predicted_surprise_gap
+family: predicted_surprise
+category: Model
+title: The accuracy-weighted consensus sits above the printed consensus, so a beat is coming
+mechanism: >
+  StarMine's SmartEstimate re-weights the same analysts' EPS forecasts by their past accuracy and
+  recency; the predicted surprise is that weighted number minus the plain I/B/E/S mean, divided by
+  the mean. The quoted number every screen, earnings preview and rebalancing rule uses is the plain
+  mean, so when the analysts who have been right lately sit above it, the price embeds a forecast
+  that the better-informed subset of the same analysts has already abandoned, and the gap is closed
+  at the next announcement. Force: behavioural mispricing, sustained by anchoring on a published
+  summary statistic. Long the names with the largest predicted percentage surprise.
+counterparty: "Investors and index-tracking institutions anchored on the printed I/B/E/S mean consensus, plus the analysts whose stale forecasts hold that mean down"
+sign: 1
+source: "EX-ANTE — Clement & Tse 2005, Journal of Finance 60(1), 'Financial Analyst Characteristics and Herding Behavior in Forecasting'. FETCHED https://api.openalex.org/works/W2057285392 HTTP 200 (2026-09-09; the publisher page https://doi.org/10.1111/j.1540-6261.2005.00731.x returns HTTP 403 to a script and was NOT the source of this text). Verbatim from that abstract: 'bold forecasts are more accurate than herding forecasts' and 'Thus, bold forecasts incorporate analysts' private information more completely and provide more relevant information to investors than herding forecasts.' A consensus that weights analysts by past accuracy and recency therefore carries information the equal-weighted mean does not. Bernard & Thomas 1989 supplies the direction (a positive earnings surprise is followed by positive drift); here the surprise is predicted before the announcement rather than measured after it, and Bernard & Thomas is NOT re-fetched, so it is named as background, not as this leg's evidence."
+datasets: [predictive_starmine]
+signal:
+  fields: [predicted_surprise_pct_fq1_earnings_3, predicted_surprise_pct_fy1_earnings_7, predicted_surprise_pct_f12m_earnings_3]
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_mean(ts_backfill({signal}, {w}), 10), {group})"
+params:
+  w: [5, 22]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py gives these fields sign 'unstated': its domain regex sends any
+  description containing 'predict' to domain ml-prediction, which carries no DOMAIN_SIGN prior. The
+  sign here is read from the description ('Predicted percentage surprise in FQ1 earnings' —
+  a larger value is a larger expected beat) as the task requires, not from the label. There is no
+  prior to disagree with; the label is absent, not opposed.
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, delay 1, all MATRIX, dataset predictive_starmine,
+  userCount 0 / alphaCount 0): predicted_surprise_pct_fq1_earnings_3 coverage 0.9905;
+  predicted_surprise_pct_fy1_earnings_7 coverage 0.9872; predicted_surprise_pct_f12m_earnings_3
+  coverage 0.9985. All dense, so no density operator; labelled quarterly/annual, so ts_backfill sits
+  inside every template (typed.py H4).
+  HISTORY CHECK, run not assumed. None of the three ids appears in any state/*targets*.json or in a
+  NO_GO ledger. The higher-coverage FY1 variant predicted_surprise_pct_fy1_earnings_4 (coverage
+  0.9988) was the first choice and was DROPPED: it is listed in state/banned_fields.json and
+  state/climb/spent_fields.json, as are predicted_surprise_pct_fy1_earnings_2 and
+  predicted_surprise_pct_fy2_earnings_2. What those two lists imply for a forge leg is not
+  established here — they are the old climb pipeline's spent/banned field ledger, not a forge
+  formula ledger — so the field was swapped rather than argued around. state/field_roles.json is a
+  20,307-entry role catalogue, not a ledger; a hit there carries no meaning.
+  OVERLAP TO WATCH, not a claim. The SmartEstimate weights recency as well as accuracy, so part of
+  this gap is mechanically recent revisions and the leg may correlate with
+  analyst_estimate_revision_drift. MECHANISM UNKNOWN for how much; no experiment here separates the
+  accuracy component from the recency component. If the measured correlation with that leg is high,
+  this hypothesis has not added a distinct mechanism and should be dropped rather than re-argued.

@@ -1,0 +1,86 @@
+id: corpaction_x_insider
+title: A payout or buyback announcement that the announcers are also buying
+arm: new
+legs: [news_corporate_action_tone, insider_significant_buying_drift]
+families: [corporate_action_tone, insider]
+combiners: [multiply]
+mechanism: >
+  A positive corporate-action release is an announcement by managers that the firm will spend cash
+  on its owners, and the literature that found the drift after it also found that the signal is
+  often not credible: a buyback authorisation costs nothing until shares are actually bought, many
+  programmes are announced to support the price and never completed, and a dividend increase can be
+  catering to investor demand rather than a forecast of cash. Read alone, the tone leg is long the
+  credible and the cosmetic announcements alike. The insider leg separates them with the
+  announcers' own money. Babenko, Tserlukevich and Vedrashko find that announcement returns to
+  open-market repurchase programmes are positively related to past insider purchases, that firms
+  whose insiders bought more are more likely to complete the programme, and that insider purchases
+  predict post-announcement returns; John and Lang find that dividend initiations preceded by
+  insider selling earn negative excess returns, significantly below those with no insider trading
+  or insider buying. The product therefore keeps positive corporate-action tone only where the
+  insiders have committed their own capital in the same direction - the completed-programme,
+  cash-backed branch whose drift is positive - and drops the cosmetic branch. It is one public
+  managerial signal filtered by the private trades of the same managers, not two bullish signals
+  agreeing.
+counterparty: "Shareholders who sell into a repurchase or trade the payout headline without reading the Form 4 filings around it; index funds and quant managers whose payout input is the trailing yield and whose insider input is absent; and the managers of cosmetic programmes, whose announcements the filter drops"
+source: "EX-ANTE — conjunction evidence, buyback branch: Babenko, Tserlukevich & Vedrashko 2012, Journal of Financial and Quantitative Analysis, 'The Credibility of Open Market Share Repurchase Signaling', DOI 10.1017/s0022109012000312. FETCHED https://api.openalex.org/works/W2109609060 HTTP 200 (2026-09-09, curl with the abstract re-derived from the raw abstract_inverted_index, and WebFetch on the same record, abstract present). Verbatim: 'We conjecture that executives who buy shares of their firm before an announcement add credibility to the undervaluation signal. Consistent with this hypothesis, we find that announcement returns are positively related to past insider purchases, especially for firms that are priced less efficiently. Firms whose insiders bought more shares are also more likely to complete their repurchase plans. Finally, we find that insider purchases predict post-announcement stock returns.' Dividend branch: John & Lang 1991, Journal of Finance, 'Insider Trading around Dividend Announcements: Theory and Evidence', DOI 10.1111/j.1540-6261.1991.tb04621.x. FETCHED https://api.openalex.org/works/W2162133176 HTTP 200 (same method, 2026-09-09). Verbatim: 'For firms with insider selling prior to the dividend initiation announcement, the excess returns are negative and significantly lower than for the remaining firms (with no insider trading or just insider buying) as implied by our model.' CONSTRUCT CORRESPONDENCE, partial and stated: both papers measure insider trades BEFORE the announcement; this composite's insider window (20-120 trading days of significant directional activity) spans before and after the release, and the tone leg's events are the vendor's corporate-action classifier rather than the papers' repurchase programmes and dividend initiations. Bonaime & Ryngaert 2013 JCF, 'Insider trading and share repurchases: Do insiders and firms trade in the same direction?', is the paper on the same conjunction with post-announcement timing; its abstract is null on OpenAlex (W3123413452, HTTP 200) and it is therefore NOT cited as evidence. The tone leg is grounded by Michaely, Thaler & Womack 1995 (W3125902854, HTTP 200) and the insider leg by Lakonishok & Lee 2001 / Cohen, Malloy & Pomorski 2012, each carried by its own leg's source line and not re-fetched here."
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid and small caps whose corporate actions are discretionary and infrequent - a first or special dividend, a new buyback authorisation after a price decline - and whose insiders trade in the open window around the release: the announcement is then a choice that can be credible or cosmetic, and the insider purchase is large enough relative to float to be filtered as significant"
+weakens_when: "the scored releases are routine quarterly declarations, so the tone leg ranks payout status rather than a decision; in market-wide waves when both legs describe the market rather than the firm - the March-2020 dividend and buyback suspensions coincided with market-wide insider buying; and in mega-caps with perpetual buyback programmes and insider purchases negligible relative to float"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file. Regime maps are
+  measured NOT to predict the 2022-2024 ladder window (diagnosis_ladder.md section 3b); they are
+  the standard's reasoning only and must not be used to rank this composite.
+  value_winter_2014_2020 '0': the corporate-action leg is not a cheapness bet - buybacks and
+  dividend increases were announced across growth and value names in 2014-2020 - while the insider
+  leg leans toward names that have fallen (insiders buy against the price), a mild value headwind.
+  A neutral leg and a headwind: no directional call.
+  momentum_crash_2016 '+': the February-2016 reversal rewarded beaten-down names; buyback
+  authorisations cluster after declines (the undervaluation framing of the cited paper) and
+  insider purchases had accumulated into the 2015-16 decline, so the long side is the side that
+  reversed, and neither leg is a momentum bet.
+  covid_2020 '0': the March-2020 suspensions were forced by liquidity and regulators, not a
+  managerial forecast of cash, so the mechanism does not apply to that quarter's negative tone;
+  insider buying was market-wide in March. Both legs described the market rather than the firm, so
+  the cross-section is noise-dominated in both directions.
+  rate_shock_2022 '+': 2022 repriced long-duration growth and rewarded cash returned to
+  shareholders now; the long side is cash-returning firms whose insiders are buying, and the bet
+  carries little duration.
+  COMBINER. Both legs are bullish (sign +1), so multiply and gate both keep the orientation;
+  [multiply] is the confirmation reading (both must be high) and the round brief's stated
+  preference on POST-HOC allocation knowledge (multiply rows at the bar reach fitness 1.0 at
+  130/355 vs gate 6/184) - cited from the brief, not measured here.
+  TIMING, EX-ANTE description not a measurement: the tone leg sums releases over 21-126 trading
+  days and the insider leg sums significant directional activity over 20-120 days, so for most of
+  a quarter the product reads 'corporate-action tone this quarter x insider activity this
+  quarter'. The cited evidence is for insider purchases BEFORE the announcement; the windows here
+  catch those and the post-release open-window trades alike, and the two are not separated.
+  PARTNER CHOICE, POST-HOC allocation knowledge used only to choose the partner: on rows with
+  Sharpe >= 1.3, composites carrying insider_significant_buying_drift cleared the 2022-2024 window
+  at 0.40 (n 204). Rejected, and why: usa_accruals_cashflow (0.40) - prtone_x_accruals already
+  pairs a press-release tone leg with accruals, so the domain pair would repeat;
+  usa_profitability_ratios (0.35) - headline_x_profitability and multiwire_x_profitability are
+  tone x profitability; option_call_put_iv_spread (0.37) - usa_sentiment_x_ivspread is
+  tone x IV spread, and no fetched paper names an options x payout-announcement conjunction;
+  sentiment_weekly_continuation (0.42) and social_twitter_sentiment_continuation (0.26) - same
+  news/sentiment domain as the new leg. Insider was chosen because the fetched abstracts name the
+  exact conjunction (insider purchases x repurchase announcement; insider trades x dividend
+  initiation), which no fetched evidence supplies for any other partner. Whether the 0.40 rate
+  transfers is the measurement.
+  DISTINCTNESS, checked not assumed: no composite in forge/composites/ pairs any news or tone
+  family with the insider family (insider_significant_buying_drift pairs with balance-sheet cash,
+  IV spread, profitability, short flow and accruals), and news17 appears in no composite and no
+  forge journal row. CROWDING TO WATCH, not a claim: three composites in forge/composites/staged/
+  (earningsnews_x_insider, spin_x_insider, stalenews_x_insider) also take
+  insider_significant_buying_drift as the partner; if several ship, their books may correlate
+  through the shared insider leg. That is a correlation measurement, not a prediction made here.
+  ORIENTATION. Rendered by forge/compose.py as multiply(group_rank(tone leg), group_rank(insider
+  leg)); both operands are group_rank scores in [0, 1], so the product is bounded (typed H3) and
+  higher = long (H6). Checked 2026-09-09 with typed.judge structural=True on the rendered USA/d1
+  formula for both tone fields.
+  LADDER RISK, POST-HOC: news legs added after the original library have cleared the 2022-2024
+  window 0 times (diagnosis_ladder.md section 3a). This composite's new leg is a news leg.
+  MECHANISM UNKNOWN for why those failed; whether this one does is the measurement.

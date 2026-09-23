@@ -1,0 +1,19 @@
+id: short_pressure_x_accruals
+title: Short pressure amplified by accruals
+arm: new
+legs: [short_pressure_notional_momentum, accruals_accounting_quality]
+families: [short, accruals]
+combiners: [multiply]
+mechanism: >
+  The conjunction identifies firms where high short pressure coincides with low-quality earnings (high accruals). Shorts are often targeting accounting manipulation, so the combination captures a stronger bearish signal than either factor alone.
+counterparty: short sellers
+source: "EX-ANTE — Desjardins 2008, short interest predicts future returns; Sloan 1996, accruals predict returns"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "-", rate_shock_2022: "-"}
+strongest_in: high short interest, high accruals
+weakens_when: low short interest, low accruals
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  The product of two negative-sign signals yields a positive composite sign for the bearish effect. In momentum crashes, short pressure and accruals both predict further declines. In rate shocks, high short interest may indicate liquidity issues, weakening the signal.

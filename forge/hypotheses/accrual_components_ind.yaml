@@ -1,0 +1,26 @@
+id: accrual_components_ind
+family: accruals
+category: Fundamental
+title: Current-asset accruals scaled by assets reverse
+mechanism: >
+  The accrual anomaly measured directly on its components: current-asset accruals divided by
+  total assets. Firms whose current-asset accruals are largest relative to their asset base
+  have the least persistent earnings and underperform. Short the highest ratios.
+counterparty: Investors who fixate on reported earnings.
+sign: -1
+source: "EX-ANTE — Sloan 1996; Richardson, Sloan, Soliman & Tuna 2005 (accrual components and reliability)"
+datasets: [fundamental89]
+signal:
+  pattern: "^fnd89_asset_4[1-3]_11$"
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

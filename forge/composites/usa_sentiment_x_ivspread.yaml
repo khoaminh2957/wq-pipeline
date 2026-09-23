@@ -1,0 +1,20 @@
+id: usa_sentiment_x_ivspread
+title: Weekly news sentiment confirmed by the option market (USA Sentiment cell)
+legs: [sentiment_weekly_continuation, option_call_put_iv_spread]
+families: [tone, options]
+combiners: [multiply, gate]
+mechanism: >
+  Weekly-aggregated news sentiment continues because investors underreact to accumulated tone;
+  it continues most where option traders — who pay for their view — already price the upside,
+  i.e. where calls trade at a higher implied volatility than puts. Conditioning the sentiment
+  rank on the call-put spread rank keeps the names where tone has an informed crowd behind it,
+  and headline-following investors in the unconfirmed names take the other side.
+counterparty: "Headline-following retail investors who trade tone without the option market's confirmation"
+source: "EX-ANTE — Heston & Sinha 2017 (weekly news sentiment); Cremers & Weinbaum 2010 (call-put IV spread)"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "0"}
+strongest_in: "mid caps with steady news coverage and listed options"
+weakens_when: "market-wide news dominates firm-specific tone (March 2020)"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.15

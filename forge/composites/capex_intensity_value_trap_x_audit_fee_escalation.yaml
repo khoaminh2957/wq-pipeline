@@ -1,0 +1,19 @@
+id: capex_intensity_value_trap_x_audit_fee_escalation
+title: High capital expenditure intensity combined with rising audit fees predicts underperformance
+arm: new
+legs: [capex_intensity_value_trap, audit_fee_escalation]
+families: [investment, audit_pricing]
+combiners: [multiply]
+mechanism: >
+  The conjunction of high capital expenditure intensity and rising audit fees suggests that the firm is not only investing heavily but also facing increased scrutiny from auditors, which may indicate potential financial reporting issues or higher risk. This combination amplifies the negative signal of high investment intensity, as it implies that the firm's investments are not only capital-intensive but also potentially risky or of lower quality, leading to a stronger drift in stock prices as the market reassesses the firm's true value and risk profile.
+counterparty: Risk-averse institutional investors who prioritize financial stability and low-risk investments
+source: "EX-ANTE — Dechow et al. 2011, higher audit fees are associated with lower earnings quality and higher risk"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: Cyclicals and capital-intensive industries
+weakens_when: Interest rates are low and capital is cheap, reducing the cost of investment
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  In value winters, the negative signal of high capex and rising audit fees is more pronounced as investors seek safety. During momentum crashes, the effect is neutral as momentum strategies dominate. In the 2020 pandemic, the effect is positive as investors flee from risky, capital-intensive firms. In the 2022 rate shock, the effect is negative as higher interest rates increase the cost of capital, making high capex firms even more vulnerable.

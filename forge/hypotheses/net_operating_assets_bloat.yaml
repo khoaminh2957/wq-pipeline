@@ -1,0 +1,26 @@
+id: net_operating_assets_bloat
+family: investment
+category: Fundamental
+title: Bloated balance sheets underperform
+mechanism: >
+  Net operating assets accumulate when past earnings were not backed by cash; investors do
+  not discount the bloat and the firm subsequently underperforms. Short the names with the
+  highest net operating assets and other-asset growth.
+counterparty: Investors who ignore balance-sheet bloat.
+sign: -1
+source: "EX-ANTE — Hirshleifer, Hou, Teoh & Zhang 2004 (do investors overvalue firms with bloated balance sheets?); Cooper, Gulen & Schill 2008 (asset growth)"
+datasets: [fundamental90, other401]
+signal:
+  fields: [fnd90_game_noa, fnd90_game_other_asset_gr, fnd90_game_inventory_chg]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

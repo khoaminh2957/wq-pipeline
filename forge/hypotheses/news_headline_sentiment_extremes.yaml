@@ -1,0 +1,24 @@
+id: news_headline_sentiment_extremes
+family: tone_composite
+category: News
+title: Extreme positive headline tone predicts post-event drift
+mechanism: >
+  The maximum sentiment score within a single day's news flow captures the most optimistic narrative available to investors, and because the marginal buyer who reacts to this tone is not the same agent setting the institutional price, the positive drift from over-reaction to extreme headlines persists as the market slowly incorporates the fundamental validity of the news.
+counterparty: retail investors who chase headline hype
+sign: 1
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+datasets: [news85]
+signal:
+  fields: [peak_sentiment_value, sentiment1_highest_score]
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field represents a probability score in [0,1], so a day with no headlines is treated as 'no change' rather than a negative value, justifying the use of ts_mean without explicit zero-handling.

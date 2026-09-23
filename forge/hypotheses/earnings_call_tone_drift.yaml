@@ -1,0 +1,24 @@
+id: earnings_call_tone_drift
+family: tone
+category: Earnings
+title: Earnings-call tone predicts post-call drift
+mechanism: >
+  Managers' tone on the earnings call carries information beyond the numbers, and prices adjust
+  to it over the following weeks. The call is quarterly, so the last tone is carried forward with
+  a backfill window. Long the names with the most positive latest call tone.
+counterparty: Investors who read the numbers but not the call.
+sign: 1
+source: "EX-ANTE — Price, Doran, Peterson & Bliss 2012 (conference-call tone predicts post-earnings drift); Mayew & Venkatachalam 2012"
+datasets: [earnings_sent_matrix]
+signal:
+  fields: [sentiment_weighting_method1, sentiment_weighting_method2, positive_sentiment_probability_3]
+template: "group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [42, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

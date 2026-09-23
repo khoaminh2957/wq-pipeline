@@ -1,0 +1,17 @@
+id: newsneg_x_short
+title: "Negative news tone confirmed by short sellers"
+arm: new
+legs: [news_negative_tone_nlp, short_volume_ratio_informed]
+families: [tone_negative, short]
+combiners: [multiply]   # Verifier 2026-09-08: the gate branch inverts a bearish leg (audit_hypotheses.md)
+mechanism: >
+  Pessimistic news coverage and heavy short-sale volume are two channels through which bad news reaches prices; where both say the same thing the slow readers who hold the stock have not yet sold, and the drift that follows is the product of the two ranks. Short the names that are both most negatively covered and most shorted; names where only one channel fires are down-weighted.
+counterparty: "Retail and slow-diffusion holders who read the numbers but not the news, and who do not watch short volume"
+source: "EX-ANTE — Tetlock 2007 JF; Boehmer, Jones & Zhang 2008 JF (short sellers are informed); Engelberg, Reed & Ringgenberg 2012 JFE (short sellers trade on news)"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "large-cap names with dense coverage and active lending"
+weakens_when: "market-wide sell-offs when tone is negative everywhere"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

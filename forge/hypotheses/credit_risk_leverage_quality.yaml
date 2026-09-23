@@ -1,0 +1,29 @@
+id: credit_risk_leverage_quality
+family: leverage
+category: Model
+title: High leverage relative to credit quality predicts underperformance
+mechanism: >
+  The leverage score captures the burden of fixed financial obligations, and when this burden is high,
+  the firm is in a state of financial fragility where any negative shock can trigger a non-linear
+  drop in value due to distress risk or forced deleveraging, leading to subsequent price underperformance.
+counterparty: risk-averse institutional investors who discount for tail risk and liquidity
+sign: -1
+source: "EX-ANTE — Altman 1968, financial distress and leverage predict credit risk and stock returns"
+datasets: [model36]
+signal:
+  fields: [credit_risk_leverage_score]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field sign is negative in the source table, indicating that higher leverage scores (higher debt)
+  are associated with lower future returns, which aligns with the economic intuition of distress risk.

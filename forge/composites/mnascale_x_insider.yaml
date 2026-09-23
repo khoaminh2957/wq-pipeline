@@ -1,0 +1,88 @@
+id: mnascale_x_insider
+title: A big deal, and whether the people who signed it are buying the stock themselves
+arm: new
+legs: [mna_relative_deal_size_overreach, insider_significant_buying_drift]
+families: [acquisitions, insider]
+combiners: [multiply]
+mechanism: >
+  The two legs stand where the two halves of one published test stood. Akbulut's acquisition half
+  is stock-financed acquisition ACTIVITY, not a deal scaled by the buyer's revenue, and his
+  overvaluation half is read from insider trades; this pair keeps the insider half and substitutes
+  relative deal size for the event indicator. The substitution is stated, not glossed. Akbulut
+  measures a firm's overvaluation by what its own managers do with their personal holdings, and
+  finds that overvalued equity is what pushes managers into stock acquisitions and that those
+  acquisitions destroy value for the buyer's shareholders. A large purchase is therefore not one
+  event of uniform quality. Where the people who authorised it are at the same time buying the
+  shares with their own money, the deal is not the overvaluation-financed kind that paper
+  describes, and the conjunction lets the name stand. Where a purchase large next to the buyer's
+  own revenue arrives from a firm whose insiders are not buying, the two readings point at the same
+  firm from opposite sides - one that has committed a large part of itself to an asset bought at
+  auction, and no personal conviction from the people who set the price. The product is long the
+  acquirers whose own decision-makers back the transaction with their own capital and short the
+  ones who do not, which is neither leg on its own: the deal-size leg cannot see who signed it, and
+  the insider leg cannot see what was signed.
+counterparty: "The acquiring firm's managers, who commit shareholder money to a purchase they do not fund personally, and the index funds and other passive institutions that must absorb the enlarged acquirer at its post-deal weight while those insiders are selling into it"
+source: "EX-ANTE — Akbulut 2013, Journal of Financial and Quantitative Analysis 48(4), 'Do Overvaluation-Driven Stock Acquisitions Really Benefit Acquirer Shareholders?'. FETCHED https://api.crossref.org/works?query.bibliographic=Do+Overvaluation-Driven+Stock+Acquisitions+Really+Benefit+Acquirer+Shareholders+Akbulut&rows=3&select=title,author,issued,DOI,abstract,container-title HTTP 200 (2026-09-09); the same abstract returned again from https://api.crossref.org/works/10.1017/s0022109013000379 (2026-09-09, status reported as 200/ok). The Cambridge Core publisher page was NOT fetched and is not the source of this text. Verbatim from that abstract: 'I study the effects of overvalued equity on acquisition activity and shareholder wealth, using managers' insider trades to measure overvaluation. I find that overvalued equity drives managers to make stock acquisitions, and such acquisitions destroy value for acquirer shareholders.' and 'Overvalued stock acquirers earn negative and lower returns in the short run and substantially underperform similarly overvalued nonacquirer firms in the long run.' That is the CONJUNCTION's own evidence - insider trades and acquisition activity inside one test - not a restatement of either leg. The acquisition leg's direction is carried by its own source (Malmendier, Moretti & Peters, NBER w18024, FETCHED https://www.nber.org/papers/w18024 HTTP 200, 2026-09-09); the insider leg is carried by its own (Lakonishok & Lee 2001; Jeng, Metrick & Zeckhauser 2003) and is not re-fetched here. TENSION BETWEEN THE TWO CITES, stated not resolved: Akbulut's effect is specific to STOCK acquisitions financed by overvalued equity, while the acquisition leg's own paper assigns the underperformance to the opposite financing channel - its abstract, re-fetched https://www.nber.org/papers/w18024 HTTP 200 (2026-09-09), reads verbatim 'Merger characteristics commonly associated with underperformance, such as acquiror size, acquiror Q, or stock financing do not explain the underperformance. Instead, the large underperformance of cash-financed mergers and their post-merger increase in leverage is consistent with behavioral and practitioner views on the determinants of merger outcomes.' Neither leg can observe financing type. Whether the conjunction lands on Akbulut's population, MMP's, or a mixture: MECHANISM UNKNOWN, no experiment here distinguishes them."
+regimes: {value_winter_2014_2020: "-", momentum_crash_2016: "0", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid-cap acquirers whose annual revenue is small enough that one purchase is a visible fraction of it, and that have a dense enough insider-trading record for the buying half to carry information - roughly the names with several reporting officers and a deal every year or two rather than a decade apart"
+weakens_when: "the buyer is a mega-cap, where any single deal is a rounding error against annual revenue and the ratio collapses toward zero for everyone; and through long blackout stretches, when insiders cannot trade at all and the second half stops distinguishing conviction from prohibition"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, and recorded only as the standard's EX-ANTE
+  reasoning: diagnosis_ladder.md section 3b measured the regime maps against the year-2 ladder
+  window and found they carry no information about it, so nothing here may be used to rank or
+  screen composites.
+  value_winter_2014_2020 '-': that stretch was a financed M&A wave, and serial acquirers and roll-ups
+  compounding through debt were among the rewarded names. The short side of this conjunction is
+  exactly the large relative acquirer, so the period runs against it, and the insider half is not
+  large enough to carry the pair on its own.
+  momentum_crash_2016 '0': the early-2016 reversal rewarded beaten-down levered names, which
+  includes the levered acquirers this pair is short; against that, insider buying clustered in the
+  February trough and those names rebounded hardest, so the insider half gains what the acquisition
+  half gives back and the net is not signed either way.
+  covid_2020 '0': announced M&A stopped in the first half of 2020, so the acquisition half goes
+  stale and near-constant while the insider half - very heavy buying in March - does the work. The
+  pair degrades toward one of its legs rather than losing money in one direction.
+  rate_shock_2022 '+': financing cost jumped and firms that had committed a large part of themselves
+  to an acquisition were repriced hardest, while insider buying again marked capitulation lows, so
+  both halves point the way the construction assumes.
+  COMBINER. mna_relative_deal_size_overreach is a bearish leg (sign -1), so [multiply] only: the
+  gate branch inverts a bearish leg (measured 2026-09-08, carried on newsneg_x_short and
+  transcriptneg_x_revision). Under multiply the bearish leg enters as (1 - group_rank(...)), so the
+  long side is small-or-no recent acquisition together with insider buying, and the short side is
+  the large relative acquisition with no insider buying - which is the direction Akbulut's test
+  reports.
+  DISTINCTNESS, checked not assumed. No other composite in forge/composites/ or
+  forge/composites/staged/ carries an acquisitions leg (grep of every families: line, 2026-09-09),
+  and news23 appears in no other leg in forge/hypotheses/ (grep -rl news23 returns this pair's leg
+  only) - the dataset is untouched by forge (0 rows with any nws23_ field in
+  state/layered/runs/forge.jsonl). The insider half is NOT untouched:
+  insider_significant_buying_drift already sits in five live composites (netcash_x_insider,
+  usa_insider_x_ivspread, usa_insider_x_ivspread_x_profitability,
+  usa_insider_x_profitability_x_accruals, usa_insider_x_short_x_profitability) and in seven staged
+  ones (corpaction, earningsnews, newsimpact, newsquarter, sidemention, spin, stalenews) -
+  re-counted 2026-09-09 from the legs: line of every file in forge/composites/ and
+  forge/composites/staged/. In every one of those twelve the other half is a news or transcript
+  tone, an option, a short-flow or an accounting construct; this is the only pair whose other half
+  is the size of a corporate transaction. This file is the thirteenth composite carrying the leg
+  and the seventh staged one whose other half is a News-category leg. The mechanism is distinct;
+  the PARTNER is not, and the self-correlation that follows is a measurement for the allocator, not
+  a claim here.
+  PARTNER CHOICE, stated for what it is. insider_significant_buying_drift was chosen because the
+  conjunction has its own published test (Akbulut 2013), which is the standard's requirement; the
+  allocation note that composites containing this leg cleared the 2022-2024 ladder window on 40 % of
+  rows with Sharpe >= 1.3 (n 204) is POST-HOC and was not the reason for the pairing.
+  CARRIED OPEN ITEM. The acquisition leg rests on an attribution that no document on file
+  establishes - that the nws23_acquiror_* rows are deals in which the LINKED company is the buyer.
+  The leg's notes state the evidence, the two candidates and the pre-registered consequence. If
+  that attribution is wrong this composite is not a weaker version of the hypothesis, it is a
+  different one, and it is dropped rather than re-argued. It also carries the leg's COVERAGE item:
+  USA/d1 coverage of all three news23 fields is 0.4494 (catalogue fact) and the acquisition leg is
+  a ratio of two of them. The platform's NaN-under-multiply behaviour is documented nowhere in this
+  repo, so 'a missing acquisition leg removes the name from the book, confining this composite to
+  names carrying a news23 acquiror row inside the 250-day backfill window' is SPECULATION, not a
+  mechanism. Sub-universe retention (binding at >= 0.433) is the first number to read off the first
+  rows.

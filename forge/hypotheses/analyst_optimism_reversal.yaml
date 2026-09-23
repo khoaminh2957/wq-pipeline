@@ -1,0 +1,26 @@
+id: analyst_optimism_reversal
+family: revisions
+category: Fundamental
+title: Analyst optimism about margins and sales reverses
+mechanism: >
+  Stocks for which analysts expect the most gross-margin and sales improvement are priced for
+  that optimism and disappoint on average. Short the names with the highest analyst-optimism
+  scores (the vendor marks these fields Descending).
+counterparty: Investors who extrapolate analyst growth expectations.
+sign: -1
+source: "EX-ANTE — La Porta 1996 (expectations and the cross-section of returns); Dechow & Sloan 1997 (analyst growth forecasts and the glamour effect)"
+datasets: [fundamental90, other401]
+signal:
+  fields: [fnd90_game_optimism_gma, fnd90_game_optimism_sale]
+template:
+  - "-group_rank(ts_backfill({signal}, {w}), {group})"
+  - "-group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

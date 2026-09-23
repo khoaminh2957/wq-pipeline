@@ -1,0 +1,82 @@
+id: net_cash_to_market_equity
+family: balance_sheet_cash
+category: Model
+title: Net cash on the balance sheet, priced against market equity
+mechanism: >
+  Cash and equivalents less debt, divided by the market value of equity, says how much of a firm's
+  price is a claim on its own net liquid assets rather than on its operations. A firm whose
+  operating cash flows move with the aggregate shock cannot raise outside money in the state where
+  it needs it, so it saves in advance; the aggregate-shock exposure that forces it to save is the
+  same exposure its equity holders carry, and they are paid for carrying it. Long the names with
+  the most net cash per unit of market value.
+counterparty: >
+  Drawdown-constrained institutions - pension funds and insurers - that will not hold the names
+  which fall hardest in market downturns, the measured property of high-cash firms in Simutin 2010
+  ("higher market betas and earn lower returns during market downturns"). The mandate is written
+  into the fund documents and does not lapse, so the discount those holders impose persists.
+sign: 1
+source: >
+  EX-ANTE - Penman, Richardson & Tuna 2007, Journal of Accounting Research 45(2), "The Book-to-Price
+  Effect in Stock Returns: Accounting for Leverage". Fetched https://api.openalex.org/works/doi:10.1111/j.1475-679x.2007.00240.x
+  (HTTP 200), verbatim: "The empirical analysis shows that enterprise book-to-price is positively
+  related to subsequent stock returns but, conditional upon enterprise book-to-price, the leverage
+  component is negatively associated with future stock returns." The leverage component of B/P is
+  net debt over market equity; the field used here is that quantity with the sign reversed, so its
+  expected sign is +1. Direction corroborated on a different scaler by Palazzo 2012, JFE 104(1)
+  162-185, fetched https://ideas.repec.org/a/eee/jfinec/v104y2012i1p162-185.html (HTTP 200),
+  verbatim: "This precautionary savings motive implies a positive relation between expected equity
+  returns and cash holdings."; and by Simutin 2010, Financial Management, fetched
+  https://api.openalex.org/works/doi:10.1111/j.1755-053x.2010.01109.x (HTTP 200), verbatim:
+  "I document a positive relationship between corporate excess cash holdings and future stock returns."
+datasets: [multi_horizon_alpha]
+signal:
+  fields:
+    - mid_term_net_cash_to_equity_2
+    - long_term_net_cash_to_equity_2
+    - short_term_net_cash_to_equity_2
+    - mid_term_net_cash_to_equity
+template:
+  - "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [21, 63, 126]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN PROVENANCE (RULE 0). The four fields carry label sign "+" with sign_source "description",
+  but the label's own why.sign is the regex 'net cash\b|cash minus debt|neg' - a keyword match on
+  the description text, NOT a return direction stated in the description. No description in this
+  dataset states a return direction. The +1 used here is taken from Penman-Richardson-Tuna 2007's
+  measured result on the exact construct (net debt / market equity), and it agrees with the label.
+  CONSTRUCT MATCH. PRT's leverage component is net debt over market equity - an exact match with the
+  sign reversed. Palazzo 2012 and Simutin 2010 scale cash by assets, not by market equity: they
+  corroborate the DIRECTION, they are not exact construct matches, and they are cited as such.
+  MECHANISM: CONTESTED, NOT ESTABLISHED HERE. A second literature points the other way for the same
+  observable: Jensen 1986 places the agency conflict precisely in firms with "more cash than
+  profitable investment opportunities", and Simutin measured that "high excess cash companies invest
+  considerably more in the future than do their low peers, but do not experience stronger future
+  profitability". Which of the two dominates on USA TOP3000 2014-2023 is UNKNOWN - no experiment in
+  this repo distinguishes them. That is this leg's pre-registered attenuation condition, and it is
+  what the composite netcash_x_insider conditions on.
+  FIELDS. All four grep in fetched/rc/fields/USA_TOP3000_d1.jsonl at region USA, delay 1, universe
+  TOP3000, type MATRIX, userCount 0, alphaCount 0, pyramidMultiplier 1.4, dateCreated 2026-02-01;
+  coverage 0.9275 / 0.8768 / 0.8768 / 0.8768, dateCoverage 0.9507. All are time=daily, so no
+  ts_backfill is required (typed.py H4), and all are sparsity medium/dense (coverage > 0.5), so no
+  density operator is required. kind=ratio, so group_rank is legal under H2 and no cross-unit
+  division is taken. They are alternatives for {signal}, not a blend: the factory expands one field
+  per candidate.
+  CONSIDERED AND DROPPED. (a) A horizon-spread construct - short_term minus long_term of the same
+  ratio - is the construct this dataset's name invites, but nothing in the descriptions says the
+  three horizon variants differ in cross-sectional ordering (they share identical text except the
+  horizon word, and identical coverage). Building on that difference would be SPECULATION, so it was
+  dropped. (b) mid_term_net_external_financing duplicates the existing debt_issuance_reversal /
+  equity_issuance_dilution construct (Bradshaw-Richardson-Sloan 2006). (c) The dataset's accruals,
+  short-interest and cash-flow-to-assets fields duplicate existing legs.
+  LABEL SLIP OBSERVED, NOT USED. mid_term_fixed_asset_turnover and mid_term_asset_turnover_change_rank_2
+  are labelled domain "short-flow" with sign "-", but their descriptions are asset-utilisation ratios
+  ("Ratio of sales to average fixed assets"); the domain regex matched the word "turnover". Reported,
+  not used, not edited.

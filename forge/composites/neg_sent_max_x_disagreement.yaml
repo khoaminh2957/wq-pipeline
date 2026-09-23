@@ -1,0 +1,30 @@
+id: neg_sent_max_x_disagreement
+title: Extreme negative news amplified by cross-article disagreement
+arm: new
+legs: [news_neg_sentiment_max_extreme, ai_news_score_disagreement]
+families: [tone_negative, disagreement]
+combiners: [multiply]
+mechanism: >
+  When the maximum negative sentiment is high AND the cross-event dispersion of sentiment scores is
+  also high, it indicates a situation where one extreme negative story exists alongside a wide
+  variance in how other stories interpret the same event. This combination suggests that the
+  negative story is not yet a consensus view but is being contested by other narratives, creating
+  uncertainty about the true fundamental impact. This uncertainty leads to slower price adjustment
+  because different investors weight the negative story differently, resulting in a persistent
+  drift as the market resolves the disagreement around the extreme negative signal.
+counterparty: discretionary fundamental analysts who are slow to reconcile conflicting news signals
+source: "EX-ANTE — Barber, Odean, and Zhu 2016, investor disagreement slows price discovery"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small-cap growth stocks with high news flow
+weakens_when: high market liquidity and low volatility
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter_2014_2020: + because value stocks often have lower analyst coverage, so news
+  disagreement persists longer. momentum_crash_2016: 0 because momentum crashes are driven by
+  forced selling, not news interpretation. covid_2020: + because the pandemic created extreme
+  uncertainty and high news flow, amplifying disagreement. rate_shock_2022: - because rate shocks
+  are macro-driven, and firm-specific news disagreement is less relevant when macro factors
+  dominate.

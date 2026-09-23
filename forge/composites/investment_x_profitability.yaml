@@ -1,0 +1,20 @@
+id: investment_x_profitability
+title: High profitability with low investment (the q-factor pair)
+legs: [profitability_classic_ratios, asset_growth_classic]
+families: [profitability, investment]
+combiners: [multiply, gate]
+mechanism: >
+  In the investment-based asset-pricing view expected returns rise with profitability and fall
+  with investment; firms that earn much and invest little are underpriced relative to firms that
+  grow their asset base fast on thin returns. Conditioning the profitability rank on the
+  low-asset-growth rank isolates the corner the q-factor model rewards, and managers who
+  empire-build while investors extrapolate growth supply the other side.
+counterparty: "Growth investors and index-tracking funds that pay for expansion, and empire-building managers who over-invest cheap capital"
+source: "EX-ANTE — Hou, Xue & Zhang 2015 (q-factor model: investment and profitability); Fama & French 2015; Cooper, Gulen & Schill 2008"
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "+", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: "mid-cap names with volatile capital budgets"
+weakens_when: "credit is abundant and expansion is rewarded regardless of returns (2020-2021)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

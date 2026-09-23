@@ -1,0 +1,31 @@
+id: sentiment_dispersion_confidence
+family: dispersion
+category: Sentiment
+title: Negative sentiment dispersion predicts reversal
+mechanism: >
+  High dispersion in negative sentiment scores indicates that market participants are not
+  converging on a single bearish view, reflecting ambiguity or lack of consensus on bad
+  news. This uncertainty prevents full price adjustment to negative information, leading to
+  continued underperformance as the lack of consensus fades and prices correct toward
+  fundamental value.
+counterparty: retail investors and momentum traders who struggle to resolve ambiguous negative news
+sign: -1
+source: "EX-ANTE — Tetlock 2007, media dispersion predicts downward pressure on prices"
+datasets: [sentiment21]
+signal:
+  fields: [snt21_4dts_gen_176]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field represents standard deviation of negative sentiment scores, a level of
+  dispersion. A daily gap implies no change in the distribution, so backfill is appropriate.

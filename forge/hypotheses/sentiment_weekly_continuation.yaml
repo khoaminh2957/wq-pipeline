@@ -1,0 +1,24 @@
+id: sentiment_weekly_continuation
+family: tone
+category: Sentiment
+title: Weekly-aggregated news sentiment continues
+mechanism: >
+  Daily news sentiment is noisy, but averaged over a week or more it predicts returns for months
+  because investors underreact to the accumulated tone. Long the names with the highest average
+  sentiment over the window.
+counterparty: Investors who underreact to slowly accumulating tone.
+sign: 1
+source: "EX-ANTE — Heston & Sinha 2017 (News vs. Sentiment: weekly aggregates predict returns up to 13 weeks)"
+datasets: [news_sentiment_transfer]
+signal:
+  fields: [primary_sentiment_average, sentiment_score_average, secondary_sentiment_average]
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

@@ -1,0 +1,112 @@
+id: stalenews_x_insider
+title: A price move made by re-published news, with the insiders trading against it
+arm: new
+legs: [news_stale_tone_reversal, insider_significant_buying_drift]
+families: [stale_news, insider]
+combiners: [multiply]
+mechanism: >
+  The stale-news leg identifies a price move that was produced without new information: the
+  items that moved the stock were repeats of what was already public, and Tetlock finds such moves
+  reverse within a week because individual investors trade re-published stories as if they were
+  new. The leg cannot tell, from the news archive alone, whether the underlying business also
+  changed that week; it reverses every stale move, including the ones that happened to coincide
+  with a real deterioration. The insider leg answers exactly that question from inside the firm.
+  Rozeff and Zaman measured that insider buying is greater after low stock returns and lower after
+  high ones, and read it as insiders trading against overreaction; an officer who buys with his
+  own money after a decline that the archive says was informationless is confirming, with the one
+  piece of information the reader of the news did not have, that nothing fundamental moved. The
+  conjunction therefore keeps the stale-news declines that an informed party is willing to fund
+  (long) and the stale-news rallies that no informed party is buying into (short), and drops the
+  stale moves where the insiders' behaviour says the move may have been deserved. Neither leg
+  says this alone: the insider leg buys after every decline including the informative ones, the
+  stale leg reverses every stale move including the deserved ones, and the product is the
+  intersection where both readings agree that the price left fundamentals. No paper tests this
+  specific pair; the two cited papers supply the halves, and whether the intersection is tighter
+  than either half is what the A/B measures.
+counterparty: >
+  Individual investors who trade a re-published story as if it were new, and the outside
+  shareholders and index funds on the other side of the insiders' purchases, which do not read
+  Form 4 filings and hold the stale-news mover at whatever price the repeat coverage set.
+source: >
+  EX-ANTE - Tetlock 2011, Review of Financial Studies 24(5), "All the News That's Fit to Reprint:
+  Do Investors React to Stale Information?", DOI 10.1093/rfs/hhq141, FETCHED
+  https://api.openalex.org/works/W3125011952 HTTP 200 (2026-09-09), verbatim (re-derived from the
+  raw abstract_inverted_index with curl): "a firm's return on the day of stale news negatively
+  predicts its return in the following week. Individual investors trade more aggressively on news
+  when news is stale." Insider half: Rozeff & Zaman 1998, Journal
+  of Finance 53(2), "Overreaction and Insider Trading: Evidence from Growth and Value Portfolios",
+  DOI 10.1111/0022-1082.275500, FETCHED https://api.openalex.org/works/W2101972982 HTTP 200
+  (2026-09-09), verbatim: "Insider buying also is greater after low stock returns, and lower after
+  high stock returns. These findings are consistent with a version of overreaction which says that
+  prices of value stocks tend to lie below fundamental values, and prices of growth stocks tend to
+  lie above fundamental values." The insider leg's own grounding (Lakonishok & Lee 2001; Jeng, Metrick
+  & Zeckhauser 2003; Cohen, Malloy & Pomorski 2012) is carried by insider_significant_buying_drift
+  and is not re-fetched here. Piotroski & Roulstone 2005 JAE (insider trades and contrarian beliefs)
+  was looked up, has no fetchable abstract at OpenAlex W2067154393, and is therefore NOT cited (Q14).
+regimes:
+  value_winter_2014_2020: "0"
+  momentum_crash_2016: "+"
+  covid_2020: "0"
+  rate_shock_2022: "0"
+strongest_in: >
+  Names in the lower half of TOP3000 by capitalization with above-average individual trading and
+  thin analyst coverage (the paper's own condition for the larger reversal), on stock-days whose
+  news flow is mostly repeats, and where the insider purchases are discretionary open-market buys
+  rather than scheduled plan purchases.
+weakens_when: >
+  Fresh-news days (novelty 1), where the leg is zero by construction and coverage thins; earnings
+  weeks, where an "update" linked to a story of the previous day carries genuinely new numbers
+  and the vendor's 24-hour link mislabels information as staleness; mega-caps, where arbitrage
+  capital removes a one-week reversal; insider purchases that are routine 10b5-1 plan buys, which
+  carry no read on the decline; and periods of low retail participation, when the counterparty
+  that produces the overreaction is absent.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, REASONED FOR THIS CONJUNCTION (diagnosis_ladder.md section 3b: regime maps are
+  measured NOT to predict the ladder window; these are the standard's reasoning only and must not
+  rank anything).
+  value_winter_2014_2020 "0": the stale leg is a one-week reversal with no style loading. The
+  insider half has a documented value tilt (Rozeff-Zaman: insider buying climbs as stocks move from
+  growth to value), which the value winter runs against. One neutral force and one mildly adverse
+  one; the honest entry is 0.
+  momentum_crash_2016 "+": the long side of the stale leg is recent stale-news losers and the
+  insider leg buys after declines; a momentum crash is a rally of recent losers, so both halves sit
+  on the side that rallied. The horizon is one week, so the exposure re-forms each week rather than
+  being held through the episode; the sign is reasoned, not measured.
+  covid_2020 "0": March 2020 met the mechanism's preconditions (repeated pandemic coverage, a surge
+  in individual trading, heavy insider buying) but a one-week reversal of stale negative moves was
+  swamped by market-wide selling until the trough and by market-wide rebounds after it;
+  neutralization removes the market but not the sector-wide co-movement. Two opposite forces,
+  neither measured: 0.
+  rate_shock_2022 "0": the reversal carries no duration for a discount-rate shock to reprice, and
+  the insider leg is neutral to the rate path; but retail participation fell from its 2021 peak,
+  thinning the counterparty. Nothing here says which dominates: 0.
+  COMBINER. news_stale_tone_reversal is a bearish leg (sign -1, template starts with '-'), so
+  [multiply] only: the compiler renders it as (1 - group_rank(...)), high where stale coverage was
+  most negative, and multiplies by the insider leg's group_rank, high where insiders bought most.
+  The gate branch inverts a bearish leg (measured 2026-09-08; carried on ai_disagreement_x_putpremium
+  and transcriptneg_x_revision). Both product operands are group_rank outputs in [0, 1].
+  DISTINCTNESS, CHECKED NOT ASSUMED. grep of legs: in forge/composites/*.yaml on 2026-09-09: the
+  insider composites are insider_x_accruals, netcash_x_insider, usa_insider_x_ivspread,
+  usa_insider_x_ivspread_x_profitability, usa_insider_x_profitability_x_accruals and
+  usa_insider_x_short_x_profitability; none pairs an insider leg with any news or tone leg, and
+  news104 appears in no leg or composite. The stale-news domain pair (news x insider) is new. The
+  partner was chosen from the PARTNER LEG CHOICE list by domain difference (POST-HOC allocation
+  knowledge used only for the choice of partner, never for a sign): sentiment_weekly_continuation
+  and social_twitter_sentiment_continuation share the news/tone domain with the new leg and were
+  excluded; option_call_put_iv_spread was excluded because IV-spread composites fail sub-universe
+  on 115/115 rows at the bar (01_origins section 1, MECHANISM UNKNOWN); usa_accruals_cashflow and
+  usa_profitability_ratios have no literature link to a stale-news move, whereas the insider leg
+  has Rozeff-Zaman's insiders-buy-after-declines result. Whether the resulting book is distinct
+  from the live book is a correlation measurement, not a claim made here.
+  TURNOVER, STATED AS A RISK. The stale leg re-forms over 3-5 days; the insider leg accumulates
+  over 20-120 days. The product's turnover follows the fast leg. Turnover above 0.30 raises the
+  ladder rung from 2.02 to 2.37 (diagnosis_ladder.md section 1). The decay grid (4, 8) is the only
+  valve declared here; if the measured turnover is above 0.30 the fix is a longer w on the stale
+  leg, not a claim that it is fine.
+  UNKNOWN. Whether the insider leg adds the "was the move deserved" read that the mechanism names,
+  or simply adds an independent forecast, is NOT established - no experiment here distinguishes
+  them. The A/B measures whether the conjunction predicts, not why.

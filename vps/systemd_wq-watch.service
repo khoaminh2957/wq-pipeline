@@ -1,0 +1,7 @@
+[Unit]
+Description=wq climb liveness check — runs OUTSIDE the loop it watches
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+ExecStart=/opt/wq/venv/bin/python /opt/wq/tools/watchdog.py --units

@@ -1,0 +1,7 @@
+[Unit]
+Description=wq forge daily regression tests (writes state/forge/tests_last.json)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+ExecStart=/bin/bash /opt/wq/wq-forge-tests.sh

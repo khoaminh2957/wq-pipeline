@@ -1,0 +1,27 @@
+id: finnews_negative_tone_drift
+family: tone
+category: Other
+title: Daily negative newswire tone, averaged over a week, continues
+mechanism: >
+  Negative tone in firm-specific newswire stories predicts lower earnings and returns, and the
+  market absorbs it slowly when the tone accumulates over several days. Short the names with the
+  highest average negative score over the window; a day without stories carries the last score
+  forward for five days.
+counterparty: Investors who underreact to accumulated negative coverage.
+sign: -1
+source: "EX-ANTE — Tetlock, Saar-Tsechansky & Macskassy 2008 (negative words predict low earnings and returns); Heston & Sinha 2017 (weekly aggregation)"
+datasets: [finnews_nlp_scores]
+signal:
+  fields: [average_negative_sentiment_score_1, average_negative_sentiment_score_4]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

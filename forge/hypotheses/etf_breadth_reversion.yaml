@@ -1,0 +1,30 @@
+id: etf_breadth_reversion
+family: etf_flow
+category: Other
+title: Broad ETF selling breadth predicts subsequent price recovery
+mechanism: >
+  The count of ETFs reducing positions captures passive, mandate-driven selling pressure that is
+  often unrelated to firm-specific fundamentals. When a large fraction of holding ETFs sell,
+  prices are depressed below intrinsic value; as these mechanical flows pause or reverse, the
+  temporary discount closes, driving positive future returns.
+counterparty: passive index and ETF managers executing rebalancing mandates
+sign: -1
+source: "EX-ANTE — Shleifer and Vishny 1997, limited arbitrage and temporary mispricing"
+datasets: [other580]
+signal:
+  fields: [negative_percent_change_count]
+  density: zero
+  density_window: 5
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  This is a count of ETFs with negative changes, so a zero value means no ETFs are selling,
+  which is a valid state and does not require backfilling.

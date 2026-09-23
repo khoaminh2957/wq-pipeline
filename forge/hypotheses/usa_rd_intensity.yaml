@@ -1,0 +1,26 @@
+id: usa_rd_intensity
+family: intangibles
+category: Fundamental
+title: R&D intensity earns a premium the book misses (USA Compustat fields)
+mechanism: >
+  R&D is expensed, so R&D-intensive firms look expensive on book measures and are underpriced;
+  the premium accrues over years. Long the names with the highest R&D relative to sales.
+counterparty: "Book-value investors and index funds that screen on unadjusted book ratios"
+sign: 1
+source: "EX-ANTE — Chan, Lakonishok & Sougiannis 2001; Lev & Sougiannis 1996"
+datasets: [fundamental6]
+signal:
+  fields: [rd_expense, fnd6_newqv1300_xrdq]
+signal2:
+  fields: [sales, fnd6_newqv1300_revtq]
+template:
+  - "group_rank(ts_backfill({signal} / {signal2}, {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [0, 1]

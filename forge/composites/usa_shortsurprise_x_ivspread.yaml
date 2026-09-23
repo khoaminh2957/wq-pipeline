@@ -1,0 +1,20 @@
+id: usa_shortsurprise_x_ivspread
+title: Short-interest surprise against the option market (USA Short Interest cell)
+legs: [short_interest_surprise, option_call_put_iv_spread]
+families: [short, options]
+combiners: [multiply, gate]
+mechanism: >
+  A short-interest reading above its forecast is bearish information from short sellers; a
+  call-over-put implied-volatility premium is bullish information from option traders. The
+  product of the low-surprise rank and the spread rank keeps the names both informed crowds
+  endorse, and holders who ignore short-interest releases and the option surface pay on the
+  other end.
+counterparty: "Retail holders who ignore short-interest releases and the option surface"
+source: "EX-ANTE — Asquith, Pathak & Ritter 2005; Rapach, Ringgenberg & Zhou 2016; Cremers & Weinbaum 2010"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with active short interest and listed options"
+weakens_when: "a short squeeze regime punishes crowded shorts (2021)"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.15

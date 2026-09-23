@@ -1,0 +1,70 @@
+id: auditfee_x_profitability
+title: Profits the auditor is not charging more to sign
+arm: new
+legs: [audit_fee_escalation, usa_profitability_ratios]
+families: [audit_pricing, profitability]
+combiners: [multiply]
+mechanism: >
+  The profitability leg is a bet that reported profits persist; the audit-fee leg is a forecast,
+  by the one outside party that has read the ledgers, that they will not. Stanley 2011 finds that
+  audit fees are inversely related to the one-year-ahead change in operating performance, that the
+  relation is stronger for declines than for improvements, and that the fees reflect changes in
+  earnings unaccounted for by analysts' forecasts — so the fee leg is a screen for exactly the
+  profitable names whose profits are about to fall in a way the consensus does not carry. The
+  product keeps, on the long side, high-profitability firms whose auditor did not raise its price
+  — profits the auditor found no new risk in — and on the short side low-profitability firms whose
+  auditor charged more, where the public ratio and the private risk pricing agree that the
+  deterioration continues. This is not two signals of profitability: the ratio comes from the
+  income statement everyone reads, the fee from a proxy-statement table that prices what the
+  income statement does not yet show, and the conjunction removes from the profitability premium
+  the names its own source is documented to mislead on.
+counterparty: "Sell-side analysts whose earnings forecasts omit the fee information (Stanley 2011), and the growth investors and index funds that pay for reported profitability off those forecasts without reading the proxy-statement fee disclosure"
+source: "EX-ANTE — Stanley 2011, Auditing: A Journal of Practice & Theory 30(3), 'Is the Audit Fee Disclosure a Leading Indicator of Clients' Business Risk?'. FETCHED https://api.openalex.org/works/W2136257352 HTTP 200 (2026-09-09; the publisher page https://doi.org/10.2308/ajpt-10049 returns HTTP 403 to a script and was NOT the source of this text). Verbatim from that abstract: 'Results also indicate that audit fees reflect changes in earnings that are unaccounted for by analysts' forecasts.' and 'the relation extends to more forward-looking changes (up to five years ahead) and is stronger for negative versus positive changes in performance.' — the conjunction's reasoning rests on these two sentences: the fee carries earnings information the forecast lacks, and it carries it mainly for declines, which is the side the profitability premium is exposed to. No paper on audit fees conditioned on profitability was found and fetched, so the conjunction itself has no cited evidence beyond this; Hribar, Kravet & Wilson 2013 (RAST, unexplained audit fees as an accounting-quality measure) was NOT fetchable (OpenAlex abstract null; Springer redirects to a login) and is not cited. The profitability leg is grounded by Novy-Marx 2013 and Fama & French 2015, carried by usa_profitability_ratios's own source line and not re-fetched here."
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with one audit engagement, 3-10 covering analysts and a Big-4 or national auditor that re-prices annually: the fee change is then the auditor's risk reading rather than scope, the consensus is thin enough to miss it, and the profitability ratio has a real quarterly history to rank against"
+weakens_when: "the fee change is scope rather than risk - the year of an acquisition, an auditor switch (first-year discount), or a first SOX 404 attestation - and in mega-caps where fees track multinational complexity; and when profitability itself is stale, the two quarters after an earnings shock the ratio's 126-day rank has not absorbed"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file, and per
+  diagnosis_ladder.md 3b these maps carry no measured information about the ladder — they are the
+  standard's reasoning only and must not rank composites.
+  value_winter_2014_2020 '+': neither leg is a cheapness bet. The long side is profitable firms
+  with stable audit pricing and the short side unprofitable firms whose auditor charges more; a
+  decade that ran against cheap stocks does not run against that.
+  momentum_crash_2016 '-': the early-2016 junk rally lifted the low-profitability names the short
+  side holds, and the fee leg updates once a year so it cannot exit; the conjunction gives back.
+  covid_2020 '0': the FY2019 fee was set before the shock and the profitability rank describes
+  pre-COVID quarters, so through 2020 both legs read a firm that no longer exists; the signal
+  degrades toward noise in both directions rather than losing in one.
+  rate_shock_2022 '+': 2022 repriced long-duration, unprofitable names; the short side is that
+  side, and the long side's profits are current, not promised.
+  COMBINER. audit_fee_escalation is a bearish leg (sign -1), so [multiply] only - the gate branch
+  inverts a bearish leg (Verifier note carried on newsneg_x_short and transcriptneg_x_revision,
+  2026-09-08; measured 2026-09-08).
+  PARTNER CHOICE, POST-HOC allocation knowledge used only to choose the partner: on rows with
+  Sharpe >= 1.3, composites carrying usa_profitability_ratios cleared the 2022-2024 ladder window
+  at 0.35 (n 206), below sentiment_weekly_continuation 0.42, insider_significant_buying_drift 0.40
+  and usa_accruals_cashflow 0.40. Profitability was chosen over the higher-rate partners because
+  the fetched abstract names the exact conjunction (earnings changes unaccounted for by analysts'
+  forecasts), which no fetched evidence supplies for tone, insiders or accruals; the accruals
+  pairing was also set aside because Frankel, Johnson & Nelson 2002 (FETCHED
+  https://api.openalex.org/works/W3125629515 HTTP 200: 'nonaudit fees are positively associated
+  with small earnings surprises and magnitude of discretionary accruals, while audit fees
+  negatively') gives audit fees the OPPOSITE association with accruals, so that conjunction's
+  direction is not established. Whether the 0.35 rate transfers is the measurement.
+  DISTINCTNESS, checked not assumed: no composite in forge/composites/ or forge/composites/staged/
+  carries an audit-pricing leg, and fundamental14 appears in no composite (02_dataset_map: tier U,
+  0 journal rows). The profitability leg is shared with 11 existing composites including the
+  family of the two ACTIVE alphas, so the book may correlate with the live book through that leg;
+  that is a correlation measurement, not a claim made here. The pair (audit_pricing,
+  profitability) duplicates no existing domain pair.
+  DATE COVERAGE. The fee fields carry dateCoverage 0.5559 against 0.95-1.0 for every dataset in a
+  current composite; the calendar meaning is UNKNOWN (see the leg's notes). A composite whose
+  bearish leg starts late has a partly empty 5-year window on every row; the canary reads it.
+  ORIENTATION. Rendered by forge/compose.py as multiply((1 - group_rank(audit leg)),
+  group_rank(profitability leg)); both operands are group_rank scores in [0, 1], so the product is
+  bounded (typed H3) and higher = long (H6). Checked 2026-09-09 with typed.judge structural=True
+  on the rendered USA/d1 formula: ok, no hard failure.

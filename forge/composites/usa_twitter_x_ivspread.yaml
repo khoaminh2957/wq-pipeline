@@ -1,0 +1,20 @@
+id: usa_twitter_x_ivspread
+title: Retail mood confirmed by the option market (USA Social Media cell)
+legs: [social_twitter_sentiment_continuation, option_call_put_iv_spread]
+families: [tone, options]
+combiners: [multiply, gate]
+mechanism: >
+  Filtered Twitter sentiment carries the mood of active retail traders into their next days of
+  trading; the mood is worth following where the option market, which charges for its view,
+  agrees — where calls trade above puts in implied volatility. Conditioning the mood rank on
+  the call-put spread keeps names where retail enthusiasm and informed option flow coincide;
+  late-arriving retail flow in the unconfirmed names supplies the other side.
+counterparty: "Late-arriving retail traders who follow social-media mood the option market does not confirm"
+source: "EX-ANTE — Sprenger, Tumasjan, Sandner & Welpe 2014; Renault 2017; Cremers & Weinbaum 2010"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "0"}
+strongest_in: "mid caps with active retail discussion and listed options"
+weakens_when: "meme-stock regimes detach mood from every fundamental (2021)"
+settings:
+  neutralization: [STATISTICAL, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.15

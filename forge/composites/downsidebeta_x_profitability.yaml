@@ -1,0 +1,95 @@
+id: downsidebeta_x_profitability
+title: Pay for crash exposure, not for a failing balance sheet that looks like crash exposure
+arm: new
+legs: [downside_beta_asymmetry_premium, usa_profitability_ratios]
+families: [downside_risk, profitability]
+combiners: [multiply]
+mechanism: >
+  The first leg is long the names that take more of the market on the way down than their everyday
+  beta implies, and the documented reason it is paid is that loss-averse, drawdown-constrained holders
+  will not carry that exposure. But the population with high down-market sensitivity is not one
+  population. It contains firms whose asymmetry is an exposure they are compensated for, and it
+  contains firms approaching failure, whose equity is a thin residual on a levered balance sheet and
+  therefore moves violently with the index in a decline for a reason that has nothing to do with a
+  risk premium. Campbell, Hilscher & Szilagyi measured that second group directly: firms with lower
+  profitability are more likely to fail, and the stocks near failure have LOWER returns while carrying
+  HIGHER volatility and HIGHER market betas. So the crash-sensitivity signal and the distress
+  anomaly overlap in exactly the names the first leg wants to buy, and they point opposite ways there.
+  The second leg is the variable that separates them, and it is the same variable the failure model
+  uses: operating profitability and return on equity. The conjunction is therefore not two agreeing
+  signals; it is one risk-premium signal with the population that inverts it removed. High asymmetry
+  AND high profitability is a name whose down-market exposure the market pays for. High asymmetry AND
+  low profitability is a name whose down-market exposure is a solvency problem, and the product sends
+  it to the short side rather than the long side, which is where the distress evidence puts it.
+counterparty: >
+  Drawdown-constrained institutions — pension funds run to a funded ratio, insurers under solvency
+  capital charges, and volatility-target funds that must cut on a decline — which underweight the
+  crash-sensitive name and hand over its premium; and, on the other side of the same trade, the retail
+  and momentum-trader flow that keeps holding low-profitability, high-beta names through the failure
+  process at prices the failure evidence says are too high.
+source: >
+  EX-ANTE — the conjunction's own evidence is Campbell, Hilscher & Szilagyi, "In Search of Distress
+  Risk", NBER w12362. FETCHED https://www.nber.org/papers/w12362 HTTP 200 (2026-09-09). Verbatim from
+  that abstract: "Firms with higher leverage, lower profitability, lower market capitalization, lower
+  past stock returns, more volatile past stock returns, lower cash holdings, higher market-book
+  ratios, and lower prices per share are more likely to file for bankruptcy, be delisted, or receive a
+  D rating." and "Since 1981, financially distressed stocks have delivered anomalously low returns.
+  They have lower returns but much higher standard deviations, market betas, and loadings on value and
+  small-cap risk factors than stocks with a low risk of failure." Those two sentences are what make
+  this a conjunction and not a paraphrase: the first names low profitability as a failure predictor,
+  the second says the failing names carry high market beta and low returns, so the profitability leg
+  removes a population that would otherwise sit on the crash-sensitivity leg's long side with the
+  wrong sign. The legs' own grounds are carried by their own files and are not re-argued here: Ang,
+  Chen & Xing NBER w11824 (FETCHED HTTP 200, "stocks that covary strongly with the market when the
+  market declines have high average returns ... The reward for bearing downside risk is not simply
+  compensation for regular market beta") and Chabi-Yo, Ruenzi & Weigert 2018 JFQA (FETCHED
+  https://api.crossref.org/works/10.1017/s0022109018000121 HTTP 200, "stocks with strong LTD have
+  higher average future returns than stocks with weak LTD") for the risk leg; Novy-Marx 2013 and Fama
+  & French 2015 for the profitability leg, carried by usa_profitability_ratios and NOT re-fetched, so
+  they are named as that leg's background, not as this conjunction's evidence.
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "-", rate_shock_2022: "0"}
+strongest_in: >
+  Mid and large caps with a full 252-day history and a real operating income: the down-market beta
+  needs enough days below the market's 252-day average to be estimated at all, and the profitability
+  ratio needs a denominator that is not a rounding error, which is where the distress separation the
+  conjunction depends on actually has power.
+weakens_when: >
+  The trailing year contains almost no down-market days, so the conditional beta is estimated on a
+  handful of observations and its rank difference from the full-sample beta is estimation noise rather
+  than asymmetry; and in a genuine market crash, when the risk leg is being asked to deliver the loss
+  it is paid to bear and the profitability filter only cushions it.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for THIS conjunction and for nothing else. They are the hypothesis standard's
+  EX-ANTE reasoning only: docs/harness5/round_2/diagnosis_ladder.md section 3b measured that regime
+  maps carry no information about the 2022-2024 ladder window and REFUTED them as a screen, so nothing
+  here may be used to rank this composite.
+  value_winter_2014_2020 "+": neither leg is a cheapness bet. The long side needs high profitability,
+  which is the side that led 2014-2020, and the risk leg is an asymmetry after the beta level is
+  ranked out, so the value winter does not run through it.
+  momentum_crash_2016 "-": the early-2016 reversal rewarded low-quality, high-beta names, which is
+  precisely the population this conjunction pushes to the short side; a junk rally is the state in
+  which the distress separation costs money instead of saving it.
+  covid_2020 "-": this is the honest sign for a risk premium. Q1 2020 is the state the long side is
+  paid to bear, so the long side loses most exactly then; the profitability filter cushions the
+  bankruptcy tail but does not change the direction.
+  rate_shock_2022 "0": 2022 was a long drawdown rather than a crash. The profitability side was
+  rewarded and the crash-sensitivity side punished, and nothing here says which dominates, so the
+  reasoned sign is 0 rather than a guess dressed as a call.
+  COMBINER. Both legs are bullish (sign +1), so the gate branch's bearish-leg inversion is not in
+  play; [multiply] is still the only combiner listed, per the standing preference. This is a
+  preference carried from a POST-HOC count (multiply rows at the bar reach fitness 1.0 at 130/355 vs
+  gate 6/184) and is NOT a mechanism.
+  DISTINCTNESS, checked not assumed. Every families: line in forge/composites/*.yaml was read: the
+  only risk/volatility family present is "volatility" in accruals_x_range_volatility, and no composite
+  pairs any risk-family leg with profitability. The dataset forward_beta_risk appears in no existing
+  composite, and its fields appear 0 times in state/layered/runs/forge.jsonl. Whether the resulting
+  book is actually distinct from the 45 existing composites is a prod/self-correlation measurement,
+  not a claim made here.
+  TYPE CHECK, run not assumed. forge.typed.judge(structural=True) on the combined formula
+  multiply(group_rank(ts_mean(group_rank(downside_market_beta, subindustry) -
+  group_rank(forward_looking_beta, subindustry), 5), subindustry), group_rank(ts_rank(operating_income
+  / assets, 126), subindustry)) returns ok=True, hard=[], soft 0.75, 9 operators against MAX_OPS 62.

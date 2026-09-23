@@ -1,0 +1,25 @@
+id: asset_growth_classic
+family: investment
+category: Fundamental
+title: Fast asset growth reverses
+mechanism: >
+  Firms that grow total assets fastest over a year over-invest and subsequently underperform;
+  the effect is among the strongest in the cross-section. Short the names with the highest
+  one-year asset growth (today's assets over assets a year ago).
+counterparty: Investors who extrapolate expansion into returns.
+sign: -1
+source: "EX-ANTE — Cooper, Gulen & Schill 2008 (asset growth and the cross-section of stock returns); Titman, Wei & Xie 2004"
+datasets: [fundamental7, fundamental72]
+signal:
+  fields: [fnd7_ointfund_qta, fnd72_s_pit_or_bs_q_bs_tot_asset]
+template:
+  - "-group_rank(ts_backfill({signal}, 63) / ts_delay(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

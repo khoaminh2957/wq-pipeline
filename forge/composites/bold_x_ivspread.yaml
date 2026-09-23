@@ -1,0 +1,158 @@
+id: bold_x_ivspread
+title: Bold estimates placed off the consensus, kept only where the option surface is positioned for the same revision
+arm: new
+legs: [analyst_bold_estimate_conviction, option_call_put_iv_spread]
+families: [analyst_boldness, options]
+combiners: [multiply]
+mechanism: >
+  The printed consensus mean is the number a consensus-tracking equity book marks its earnings
+  expectation to, and it changes only when the vendor reprints it. Both legs read information that
+  is already filed but is not yet in that number, in two venues that do not share a data feed. The
+  first leg counts, for the current quarter's EPS, the bold estimates placed ABOVE the standing
+  consensus net of those placed BELOW - the analysts who broke from the crowd instead of moving
+  toward it, whose private information Clement and Tse measure to be the accurate half of the file
+  and whom the mean averages away. The second leg reads the at-the-money call minus put implied
+  volatility, a deviation from put-call parity that Cremers and Weinbaum measure to precede a 50 bp
+  per week spread in the underlying. The middle link is the one Hayunga and Lung measure directly:
+  option investors trade in the correct direction of an upcoming consensus revision roughly three
+  days before it is announced, and over that window the options market leads the stock market - so a
+  call-rich surface is a dated bet on where the consensus is going, taken while the equity price is
+  still marked to the stale mean. The conjunction is therefore not two bullish opinions added
+  together: the product keeps a bold above-consensus lean only at names where option investors have
+  put capital on the same coming revision, and discards the bold lean that no one is trading, which
+  is the lean most likely to be an analyst's incentive rather than an analyst's information.
+  FORCE TAG (hypothesis_standard gate 1): institutional/funding-friction. The bearer is a mandate
+  - a consensus-tracking book marks to the printed mean and cannot mark to the bold tail or to the
+  option surface - not a bias that learning could erode. That is also why the counterparty is
+  classified persistent across 2014-2023.
+counterparty: >-
+  Index funds and consensus-tracking equity institutions that mark their earnings expectation to the
+  printed I/B/E/S mean and do not read the option surface: the mean averages the bold tail away, and
+  the put-call parity deviation is not in their data at all.
+source: >
+  EX-ANTE. CONJUNCTION (the pair's own evidence, not either leg's): Hayunga & Lung 2014, Journal of
+  Financial and Quantitative Analysis 49(3), "Trading in the Options Market around Financial
+  Analysts' Consensus Revisions". FETCHED https://api.crossref.org/works/10.1017/s0022109014000295
+  HTTP 200 (2026-09-09). Verbatim from that abstract: "The results demonstrate that options
+  investors trade in the correct direction of the upcoming revision approximately 3 days prior to
+  the announcement." and "Tests confirm that the options market leads the stock market before the
+  financial analysts' revision." CONSTRUCT CAVEAT, stated not hidden: their event is a revision in
+  the consensus RECOMMENDATION; this composite's first leg is bold quarterly EPS estimates. Adjacent
+  analyst output, not the identical construct - the transfer is assumed here, not measured.
+  NEW LEG SIDE: Clement & Tse 2005, Journal of Finance 60(1). FETCHED
+  https://api.crossref.org/works/10.1111/j.1540-6261.2005.00731.x HTTP 200 (2026-09-09), verbatim:
+  "bold forecasts are more accurate than herding forecasts" and "bold forecasts incorporate
+  analysts' private information more completely and provide more relevant information to investors
+  than herding forecasts". PARTNER SIDE: Cremers & Weinbaum 2010, JFQA 45(2). FETCHED
+  https://api.crossref.org/works/10.1017/s002210901000013x HTTP 200 (2026-09-09), verbatim: "stocks
+  with relatively expensive calls outperform stocks with relatively expensive puts by 50 basis
+  points per week". CONTRARY ON RECORD, fetched by the same route: Muravyev, Pearson & Broussard
+  2013, Journal of Financial Economics 107(2), "Is there price discovery in equity options?"
+  (https://api.crossref.org/works/10.1016/j.jfineco.2012.09.003 HTTP 200, no abstract in that
+  record; the same paper's SSRN record https://api.crossref.org/works/10.2139/ssrn.1683587 HTTP 200
+  carries it) states the opposite of the middle link, verbatim: "option price quotes do not contain
+  any information about future stock prices beyond what is already reflected in current stock
+  prices." Which of the two holds on this vendor's surface at USA/d1 is UNKNOWN and is what the
+  simulation decides.
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "0"}
+strongest_in: >-
+  Optionable mid- and large-caps with roughly 8-20 covering analysts and two-sided quotes on the
+  30/60-day at-the-money pair: enough analysts for a bold minority to exist and be counted at all,
+  and an option surface liquid enough that the call-minus-put spread is a price rather than a stale
+  quote. Pre-registered here, before any row of this composite has been simulated.
+weakens_when: >-
+  Coverage is thin, so no bold estimate is filed and (pos - neg)/(1 + pos + neg) is 0 for that name;
+  the revision has already printed, so the consensus mean has moved and the gap the conjunction
+  trades is already closed; a market-wide volatility event, when the call-put spread reflects
+  hedging demand rather than firm-specific information; and - named as a risk, not a hope - the
+  robust sub-universe, which is the liquid half of the book, is exactly where Cremers and Weinbaum's
+  own abstract says the parity deviation predicts least ("The degree of predictability is larger
+  when option liquidity is high and stock liquidity low").
+  Two more, named because neither is measured. (a) From the SAME Cremers and Weinbaum abstract,
+  quoted here because gate 4 is a decay screen: "The degree of predictability decreases over the
+  sample period." The paper was published in 2010, so its sample necessarily ends years before the
+  USA 2014-2023 window used here; nothing on file shows the parity deviation survived that decay.
+  (b) coverage 0.9968 says the four bold counts are REPORTED for almost every name, not that they
+  are NON-ZERO. If most names carry pos = neg = 0 the ratio is exactly 0, group_rank ties a large
+  block of the universe, and multiply returns a scaled copy of the IV leg across that block -
+  which would surface as CONCENTRATED_WEIGHT or as prod/self-correlation against the live IV
+  books, not as a low Sharpe. SPECULATION: no file on disk carries the value distribution
+  (fetched/rc/fields/USA_TOP3000_d1.jsonl has coverage/dateCoverage only) and RULE 1 forbids
+  simulating to find out; the sim decides.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for THIS conjunction and for these two horizons; not copied from another
+  file. They are the standard's EX-ANTE reasoning only: diagnosis_ladder.md section 3b measured the
+  regime maps to carry no information about the ladder outcome and REFUTED them as a screen, so
+  nothing here may be used to rank this composite against another.
+  value_winter_2014_2020 "0": neither leg is a book-to-market bet. Names are selected by the
+  estimate file and by the option surface, both refreshed within weeks, so the long value drought
+  neither funds nor drains the conjunction; no claim is made that it earned more.
+  momentum_crash_2016 "-": reasoned from the two legs' horizons, not from a 2016 PnL. The option leg
+  is a 5-20 day mean of a daily surface and re-prices within days of a reversal; the bold-estimate
+  leg is a quarterly count carried by ts_backfill over a 21-63 day window and does not. In a sharp
+  reversal the fast half unwinds while the slow half holds the pre-reversal names, so the product
+  stays long into it.
+  covid_2020 "0": guidance was withdrawn market-wide in Q1-Q2 2020, so bold estimates thin out and
+  the denominator (1 + pos + neg) pulls the first leg toward zero, while the option surface was
+  dominated by an index-level volatility shock in which the call-put spread is hedging demand rather
+  than firm-specific information. Both halves lose content rather than sign: noise, not a loss in
+  one direction.
+  rate_shock_2022 "0": two effects that do not obviously net, so no sign is claimed. The bet resolves
+  at the next quarterly print and carries little duration for a discount-rate shock to reprice
+  (helps); single-name surfaces in 2022 carried macro hedging flow from index overlays, which is not
+  firm-specific information (hurts). No measurement here separates them.
+  COMBINER: both legs are sign +1, so no bearish leg is inverted by a gate branch; [multiply] is
+  chosen anyway per the round-2 instruction (POST-HOC: multiply rows at the bar reach fitness 1.0 at
+  130/355 against 6/184 for gate).
+  DISTINCTNESS, checked not assumed (grep legs: over all 45 files in forge/composites/ and all 22 in
+  forge/composites/staged/, 2026-09-09): option_call_put_iv_spread is paired with AI-news
+  disagreement, short volume, insider buying, news sentiment, short-interest surprise, Twitter
+  sentiment and earnings-announcement imminence; no composite pairs it, or any other leg, with an
+  analyst-estimate leg from the analyst_boldness family, and analyst_bold_estimate_conviction
+  appears in no composite at all. Whether the resulting book is actually decorrelated from the live
+  IV-spread books is a prod/self-correlation measurement, not a claim made here.
+  WHY NOT THE INSIDER PARTNER, recorded because it was the first choice and was dropped on evidence:
+  insider_significant_buying_drift is a different domain, absent from any analyst pairing, and
+  carries a 0.39-0.40 window rate - but the one paper found that studies this exact conjunction,
+  Hsieh, Ng & Wang, "How Informative Are Insider Trades and Analyst Recommendations?" (FETCHED
+  https://api.crossref.org/works/10.2139/ssrn.687584 HTTP 200, published Journal of Banking &
+  Finance 2023, https://api.crossref.org/works/10.1016/j.jbankfin.2023.106787 HTTP 200), states
+  verbatim "insiders in aggregate purchase more shares following analyst downgrades and sell more
+  shares following upgrades" and "analyst recommendations are informative only when insiders exhibit
+  more sales than buys or when they do not trade". A multiply combiner selects the both-high corner,
+  which is the corner that abstract calls the uninformative one for the analyst half. The pairing
+  was therefore not written.
+  WHAT I RE-DERIVED MYSELF from state/layered/runs/forge.jsonl (28,195 rows pulled 2026-09-09 20:03
+  local; 13,670 distinct USA/d1 COMPLETE alphas, last row per alpha id; every binding check present
+  on every row). (i) The sub-universe limit is 0.433 x the row's own Sharpe: n 4,368 rows with
+  Sharpe >= 1, median limit/Sharpe 0.433, range 0.429-0.437. (ii) Rows at the 1.58 bar that contain
+  option_call_put_iv_spread: 583, of which 493 FAIL LOW_SUB_UNIVERSE_SHARPE (85%), 445 fail fitness,
+  382 fail the ladder. This is the leg's measured death stage and this composite inherits it - it is
+  the single largest reason this file may produce nothing. (iii) And the opposite fact, from the same
+  file: all 19 rows that PASS every binding check on USA/d1 contain option_call_put_iv_spread (18
+  options_x_short, plus usa_insider_x_ivspread_x_profitability alpha Vk67oQ5V created 2026-09-09
+  04:17 ET - Sharpe 1.67, fitness 1.03, sub-universe 0.77 against a 0.72 limit, ladder 2.18 at year
+  2, turnover 0.1234), which is a passing route that does not use the short-volume leg. (iv) In
+  4,428 distinct USA/d1 rows from composites containing neither option_call_put_iv_spread nor
+  short_volume_ratio_informed (a row counts once per leg it contains, so the five per-leg counts
+  below sum to 8,678, more than the sample itself, and the sample also carries legs not listed
+  here), the highest Sharpe ever recorded is 1.48 and no row reached 1.58:
+  usa_profitability_ratios 4,199 rows best 1.48, social_twitter_sentiment_continuation 2,489 best
+  1.41, usa_accruals_cashflow 1,040 best 1.25, sentiment_weekly_continuation 500 best 0.82,
+  insider_significant_buying_drift 450 best 1.25. That is why the partner is this leg and not one of
+  the four cleaner-looking alternatives. MECHANISM: UNKNOWN for all four facts. Candidates that no
+  experiment in this repo separates: the IV leg supplies most of the cross-sectional signal; the
+  loop allocated its sims to the pairs that were already working (selection, not signal); the option
+  fields' coverage differs on the sub-universe; Cremers and Weinbaum's own liquidity condition. The
+  first correction I made to my own count belongs here too (RULE 0 point 5): counting a row as a
+  pass when its binding checks were not FAIL gave 33 phantom passes for news_ravenpack_composite_tone
+  and 51 for short_volume_ratio_informed; requiring every binding check to read PASS gives 19, which
+  matches diagnosis_ladder.md's 18 plus the one created this morning.
+  NOT MEASURED HERE: whether either leg predicts anything at USA/d1 - the new leg has never been
+  simulated (analyst_revision_horizons alphaCount 0, userCount 0 on all four fields, read from
+  fetched/rc/fields/USA_TOP3000_d1.jsonl) - and whether the option surface leads the equity for THIS
+  vendor's fields rather than for Hayunga and Lung's OptionMetrics sample.

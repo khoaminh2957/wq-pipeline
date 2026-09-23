@@ -1,0 +1,139 @@
+id: sidemention_x_insider
+title: Good news about someone else that names this firm, with this firm's insiders buying
+arm: new
+legs: [news_side_mention_spillover, insider_significant_buying_drift]
+families: [indirect_news, insider]
+combiners: [multiply]
+mechanism: >
+  The side-mention leg finds information that reached the market while attention was on another
+  firm: a story whose subject was a customer, supplier, competitor or partner, in which this firm
+  was named in passing. Cohen and Frazzini find such related-firm news is incorporated late. But
+  the archive records only that the two firms appeared together; it does not record the
+  relationship, and the relationship sets the sign. Good news about a customer is good news for
+  its supplier; the same good news about a competitor is bad news for this firm; a mention in a
+  list of peers may be nothing. Read on its own, the side-mention leg is long the story's tone
+  for all three, and the competitor cases pull against it. The insider leg resolves exactly that
+  ambiguity, because the one party who knows which relationship this firm has with the headline
+  firm - and whether its news matters - is this firm's own management. Insiders are documented to
+  buy when attention to their stock diminishes, which is the attention state the side-mention
+  leg isolates, and an officer who buys with his own money after a story about another firm named
+  his is saying that the story was good for his firm. The product therefore keeps positive
+  side-mention coverage that the informed party treated as positive and drops side-mention
+  coverage that no insider acted on - the competitor stories, the list mentions, the links that
+  carry nothing. It is not two bullish signals agreeing: it is one public signal whose sign for
+  this firm is ambiguous, sign-resolved by the party that knows the link. Neither leg says this
+  alone: the insider leg buys after every decline including uninformative ones, the side-mention
+  leg goes long every co-mention including the adverse ones, and the product is the intersection.
+counterparty: >
+  Outside shareholders who read news by ticker - index funds, retail holders and mandate-driven
+  institutions whose feed shows only stories about their own firm - and the sellers on the other
+  side of the insiders' open-market purchases, who do not read Form 4 filings and hold the
+  side-mentioned firm at a price that has not yet absorbed the story about its neighbour.
+source: >
+  EX-ANTE - news half: Cohen & Frazzini 2008, Journal of Finance 63(4), "Economic Links and
+  Predictable Returns", DOI 10.1111/j.1540-6261.2008.01379.x, FETCHED
+  https://api.openalex.org/works?search=Economic%20Links%20and%20Predictable%20Returns (record
+  https://openalex.org/W2164320228) HTTP 200 (2026-09-09), verbatim (re-derived from the raw
+  abstract_inverted_index with curl): "in the presence of investors subject to attention
+  constraints, stock prices do not promptly incorporate news about economically related firms,
+  generating return predictability across assets." Insider-attention half: Mansi, Peng, Qi & Shi
+  2025, Journal of Financial and Quantitative Analysis 60(5), 2293-2333, "Investor Attention and
+  Insider Trading", DOI 10.1017/s0022109024000450 (authors and pages read from the OpenAlex record
+  https://api.openalex.org/works/W4407003637?select=authorships,biblio HTTP 200), FETCHED
+  https://api.openalex.org/works?search=insider%20trading%20customer%20news%20attention%20economically%20linked
+  (record https://openalex.org/W4407003637) HTTP 200 (2026-09-09), verbatim: "Insiders are more
+  likely to sell their company's stock during periods of heightened retail attention and more
+  inclined to buy when attention diminishes." - this grounds the claim that insider buying and the
+  low-attention state the news leg isolates go together; it does NOT test the conjunction. NO
+  paper testing this exact pair (insider purchases x tone of co-mention news) was found with a
+  fetchable abstract. Alldredge & Cicero 2015, Journal of Financial Economics 115(1), "Attentive
+  insider trading" (DOI 10.1016/j.jfineco.2014.09.005), the paper about insiders trading on public
+  information about economically linked firms, was the first choice for the conjunction and was
+  DROPPED: its abstract is null at OpenAlex W3121494306, Semantic Scholar and Crossref (all HTTP
+  200), and the publisher DOI (HTTP 302 to linkinghub.elsevier.com) returned only a "Redirecting"
+  page; it is therefore NOT cited as evidence (Q14). The claim that insider buying resolves the
+  link's sign is EX-ANTE reasoning from the two fetched results, untested. The insider leg's own
+  grounding (Lakonishok & Lee 2001; Jeng, Metrick & Zeckhauser 2003; Cohen, Malloy & Pomorski
+  2012) is carried by insider_significant_buying_drift and is not re-fetched here.
+regimes:
+  value_winter_2014_2020: "0"
+  momentum_crash_2016: "+"
+  covid_2020: "0"
+  rate_shock_2022: "0"
+strongest_in: >
+  Names in the lower half of TOP3000 by capitalization that are frequently named in stories about
+  larger customers, suppliers or competitors but carry little headline coverage of their own (the
+  paper's effect sits in the smaller party to the link), on stock-days whose items are mostly side
+  mentions, where the insider purchases are discretionary open-market buys rather than scheduled
+  plan purchases.
+weakens_when: >
+  Mega-caps, which are side-mentioned in everyone's stories and for which attention is not scarce;
+  days on which the firm is itself the headline (relevance 1), where the leg is zero by
+  construction; a vendor relevance scale whose sub-1 values sit close to 1, so neither threshold
+  fires and the leg is empty; market-wide insider-buying waves such as March 2020, when a purchase
+  says "the market fell" rather than "that story was good for us"; routine 10b5-1 plan purchases,
+  which carry no read on the story; and periods of low retail participation, when the inattentive
+  holder who prices the story late is scarce.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, REASONED FOR THIS CONJUNCTION (diagnosis_ladder.md section 3b: regime maps are
+  measured NOT to predict the 2022-2024 ladder window; these are the standard's reasoning only
+  and must not rank anything).
+  value_winter_2014_2020 "0": the side-mention leg has no style loading - a co-mention is as
+  likely in a growth story as in a value one. The insider half has a documented value tilt
+  (insiders buy after declines), which a growth-led period runs against. One neutral force and one
+  mildly adverse one: 0.
+  momentum_crash_2016 "+": the insider leg's long side had accumulated into the 2015-16 decline,
+  and a momentum crash is a rally of recent losers; the side-mention leg is not a momentum bet, so
+  it does not put the product on the losing side. Reasoned from the insider half, not measured.
+  covid_2020 "0": in March 2020 every story named every firm as a party to the pandemic, tone was
+  uniformly negative and insider buying was market-wide; both legs described the market rather
+  than the firm, so the cross-section is noise-dominated in both directions.
+  rate_shock_2022 "0": the spillover resolves over weeks and carries no duration for a
+  discount-rate shock to reprice; the insider leg is neutral to the rate path; but retail
+  participation fell from its 2021 peak, thinning the inattentive counterparty. Nothing here says
+  which dominates: 0.
+  COMBINER. Both legs are bullish (sign 1), so both product operands are group_rank outputs in
+  [0, 1] as written; [multiply] is chosen over gate because, POST-HOC on the journal, multiply rows
+  at the bar reach fitness 1.0 at 130/355 against 6/184 for gate (allocation knowledge, not a
+  mechanism claim).
+  TYPE VERIFICATION, run not assumed (2026-09-09). forge.compose.combine of a rendered
+  side-mention leg (nws104_sentiment / nws104_relevance, k 0.5, w 10, subindustry) with a rendered
+  insider leg (directional_indicator_2, w 60, subindustry) under multiply gives 17 operators
+  (cap 62) and passes forge.typed.judge in structural mode - the mode the live pre-sim gate runs
+  (forge/runner.py). Full mode reports one hard reason, "H5 directional_indicator_2 has no stated
+  sign but stands in a directional role": that is the insider leg's own field label, identical for
+  every live composite that carries insider_significant_buying_drift, and nothing this file adds.
+  DISTINCTNESS, CHECKED NOT ASSUMED. grep of legs: in forge/composites/*.yaml on 2026-09-09
+  (live): the insider composites are insider_x_accruals, netcash_x_insider, usa_insider_x_ivspread,
+  usa_insider_x_ivspread_x_profitability, usa_insider_x_profitability_x_accruals and
+  usa_insider_x_short_x_profitability; none pairs the insider leg with a news or tone leg, and
+  news104 appears in no live leg or composite. FLAG FOR THE ORCHESTRATOR: in
+  forge/composites/staged/ this round, stalenews_x_insider and earningsnews_x_insider (other
+  researchers) ALSO pair a news leg with insider_significant_buying_drift. If all three are
+  promoted, one insider leg sits in three new composites - the pattern that put
+  short_volume_ratio_informed in 9 of 45 composites. This file does not decide that; it names it.
+  PARTNER CHOICE (POST-HOC allocation knowledge used only for the choice of partner, never for a
+  sign). From the allowed list: sentiment_weekly_continuation and social_twitter_sentiment_continuation
+  share the news/tone domain with the new leg and were excluded; option_call_put_iv_spread was
+  excluded because a news x IV-spread pair is already live (usa_sentiment_x_ivspread) and
+  IV-spread composites fail sub-universe on 115/115 rows at the bar (01_origins section 1,
+  MECHANISM UNKNOWN); usa_accruals_cashflow was excluded because a news x accruals pair is already
+  live (prtone_x_accruals); usa_profitability_ratios because news x profitability is live twice
+  (headline_x_profitability, multiwire_x_profitability; tone_x_profitability is earnings-call tone
+  and usa_twitter_x_profitability is social tone, both read from their legs: lines). The insider
+  leg is the only allowed partner whose domain pair with a news leg is not live, and it is the only
+  one with a mechanism role in this conjunction (it resolves the sign of the link). Whether the
+  resulting book is distinct from the live book is a correlation measurement, not a claim made here.
+  TURNOVER, STATED AS A RISK. The side-mention leg sums over 10-20 days; the insider leg
+  accumulates over 20-120 days. Turnover above 0.30 raises the ladder rung from 2.02 to 2.37
+  (diagnosis_ladder.md section 1). The decay grid (4, 8) is the only valve declared here; if the
+  measured turnover is above 0.30 the fix is the longer w on the news leg, not a claim that it is
+  fine.
+  UNKNOWN. Whether the insider leg adds the "which relationship is this" read that the mechanism
+  names, or simply adds an independent forecast, is NOT established - no experiment here
+  distinguishes them, and the only fetched insider-attention evidence is about attention level,
+  not about linked-firm news. The A/B measures whether the conjunction predicts, not why.

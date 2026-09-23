@@ -1,0 +1,112 @@
+id: etfflow_x_insider
+title: Mandated ETF demand is buying the name, and the people who can see inside are not
+arm: new
+legs: [etf_holdings_accumulation_reversal, insider_significant_buying_drift]
+families: [etf_flow, insider]
+combiners: [multiply]
+mechanism: >
+  An ETF creation is filled with the whole index basket pro rata: the fund buys the constituent
+  because money arrived at the fund, not because anything about the constituent was learned. The
+  breadth of ETFs adding a stock is therefore a demand shock carrying no firm-specific information
+  (Brown, Davies & Ringgenberg), and the price move it causes has to be given back — unless
+  something about the firm did change, in which case the move was not pressure at all. The second
+  leg is the only party positioned to know which of the two it was. Khan, Kogan & Serafeim measure
+  this exact pair on the mutual-fund version of the same flow: inflow-driven institutional buying
+  identifies overvalued equity, and insider SALES rise significantly in the four quarters after
+  that buying pressure — the best-informed party trades AGAINST the flow, not with it. So the
+  product does not short mandated accumulation as such. It shorts mandated accumulation that the
+  firm's own officers are declining to buy into, and it holds names carrying no such pressure whose
+  officers are buying. FORCE, tagged once for the composite: institutional/funding-friction — a
+  tracking mandate must buy every constituent at whatever price prevails. The insider leg is a
+  conditioner on whether that pressure met information; it is not a second premium being harvested,
+  which is why the conjunction is a claim neither leg makes alone.
+counterparty: >
+  Index-tracking ETFs and their authorized participants, and behind them the flow-chasing end
+  investor whose subscription forced the creation: a passive fund's mandate is to hold the index
+  basket, so on an inflow it buys every constituent at the prevailing price and cannot decline the
+  one that is temporarily expensive, and the arbitrageur closing the ETF-NAV gap has no view on the
+  constituent either. That same end investor is on the other side of the officer's sale when the
+  pressure has pushed the name above value (Khan, Kogan & Serafeim's measured response). The
+  mandate is structural, is written into the fund's prospectus, and has grown rather than been
+  arbitraged away across ten years of rising passive share — that is the persistence reason, and it
+  is a mandate/limits-to-arbitrage bearer, matching the institutional-friction tag.
+source: "EX-ANTE — THE CONJUNCTION: Khan, Kogan & Serafeim 2012, Journal of Finance 67(4), 'Mutual Fund Trading Pressure: Firm-Level Stock Price Impact and Timing of SEOs'. FETCHED https://api.crossref.org/works/10.1111/j.1540-6261.2012.01750.x HTTP 200 (2026-09-09). Verbatim: 'We use price pressure resulting from purchases by mutual funds with large capital inflows to identify overvalued equity. This is a relatively exogenous overvaluation indicator as it is associated with who is buying-buyers with excess liquidity-rather than what is being purchased.' and 'we document substantial stock price impact associated with purchases by high-inflow mutual funds, and find the probability of a seasoned equity offering (SEO), insider sales, and the probability of a stock-based acquisition increase significantly in the four quarters following the mutual fund buying pressure. These results provide new evidence that firm managers are able to identify and exploit overvalued equity.' This is the conjunction's own evidence: flow pressure on one axis, the insider's response on the other. SUPPORTING, that insider trades read mispricing rather than only future cash flow: Jenter 2005, Journal of Finance 60(4), 'Market Timing and Managerial Portfolio Decisions'. FETCHED https://api.crossref.org/works/10.1111/j.1540-6261.2005.00783.x HTTP 200 (2026-09-09). Verbatim: 'This paper provides evidence that top managers have contrarian views on firm value. Managers' perceptions of fundamental value diverge systematically from market valuations, and perceived mispricing seems an important determinant of managers' decision making. Insider trading patterns shows that low valuation firms are regarded as undervalued by their own managers relative to high valuation firms.' ETF-FLOW SIDE, re-fetched here rather than taken from the leg file: Brown, Davies & Ringgenberg 2021, Review of Finance 25(4). FETCHED https://api.crossref.org/works/10.1093/rof/rfaa027 HTTP 200 (2026-09-09). Verbatim: 'We show theoretically and empirically that creation and redemption activities (ETF flows) provide signals of non-fundamental demand shocks. A portfolio that is short high-flow ETFs and long low-flow ETFs earns excess returns of 1.1-2.0% per month, consistent with non-fundamental demand distorting asset prices away from fundamental values.' INSIDER SIDE: Lakonishok & Lee 2001 and Jeng, Metrick & Zeckhauser 2003, carried by insider_significant_buying_drift's own source line; named as background here and NOT re-fetched. NOT FETCHABLE, and therefore not used: Piotroski & Roulstone 2005 JAE ('Do insider trades reflect both contrarian beliefs and superior knowledge about future cash flow realizations?') would be the closer conjunction cite; crossref https://api.crossref.org/works/10.1016/j.jacceco.2004.01.003 HTTP 200 and https://ideas.repec.org/a/eee/jaecon/v39y2005i1p55-81.html HTTP 200 both return the record with NO abstract ('No abstract is available for this item'), so no sentence of it is quoted."
+regimes: {value_winter_2014_2020: "-", momentum_crash_2016: "+", covid_2020: "0", rate_shock_2022: "-"}
+strongest_in: "mid caps that sit in many baskets at once - a broad index, a size index and two or three sector or thematic funds - so the count of funds that changed shares held is large enough for the breadth ratio to mean something, and that also have officers who actually file: the conjunction needs both axes to be measured on the same name, and a stock held by four ETFs with one insider filing a year supplies neither"
+weakens_when: "the denominator is thin or the flow is scheduled. Days when almost no ETF changed shares held leave (P - N) / (P + N) reading a one-fund rounding difference. A name-day on which NO ETF changed shares held at all gives P + N = 0, so the leg is 0/0 = NaN and under multiply that name drops out of the book entirely (nanHandling is OFF); with the insider leg at coverage 0.7642-0.7716 this is the pre-registered route to a thin book and a SUB_UNIVERSE retention failure at the 0.433 bar. Frequency UNMEASURED - the risk is on record from docs/harness5/round_1/audit_staged.md line 272, 'is 0/0 on a day no ETF changed - unmeasured', and no experiment in this repo has measured it. Index reconstitution and quarterly rebalance weeks are the case where mandated demand is public weeks in advance, pre-traded by the arbitrageurs, and has no reversal left to give. It also weakens through the insider axis: in the blackout window before an earnings release officers cannot trade, so the ts_sum decays toward a stale reading and the conjunction degrades to the ETF leg alone"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  SEMANTICS CHECK, arithmetic before prose. forge/compose.positive_form turns the etf leg's
+  '-group_rank(...)' into '(1 - group_rank(...))', so the compiled product is
+  multiply((1 - group_rank(ts_mean((P - N)/(P + N), w), g)), group_rank(ts_sum(<insider>, w), g)),
+  where <insider> is the leg's own density-zero wrapper add(<field>, 0, filter=true). Verbatim from a
+  dry compose.expand on USA/TOP3000/d1, seed 23, cell Insiders (nothing simulated):
+  'multiply((1 - group_rank(ts_mean((positive_percent_change_count_5d - negative_percent_change_count_5d)
+  / (positive_percent_change_count_5d + negative_percent_change_count_5d), 10), subindustry)),
+  group_rank(ts_sum(add(directional_significant_value_1, 0, filter=true), 20), industry))'.
+  Highest score = LOW net ETF accumulation breadth AND HIGH accumulated insider buying (the long).
+  Lowest score = HIGH ETF accumulation AND LOW insider buying (the short). That is the mechanism's
+  own two corners and not a third thing; checked against the compiled string, not assumed.
+  COMBINER. etf_holdings_accumulation_reversal is bearish (sign -1), so [multiply] only - the gate
+  branch inverts a bearish leg (Verifier note carried on newsneg_x_short and transcriptneg_x_revision,
+  2026-09-08). It is also the preferred combiner independently.
+  CONSTRUCT GAPS, stated before any result. (1) Khan-Kogan-Serafeim measure MUTUAL FUND inflow-driven
+  purchases; this leg measures the breadth of ETFs changing shares held. Both are flow-driven
+  institutional buying whose cause is on the buyer's side, but an ETF creation is a pro-rata basket
+  the fund cannot shape while a high-inflow mutual fund manager chooses which names to buy. Whether
+  the KKS result transfers to ETF creation breadth is NOT established by that paper.
+  (2) KKS's insider variable is insider SALES in the four quarters AFTER the pressure; this composite
+  reads accumulated insider activity over 20/60/120 days CONTEMPORANEOUSLY with the ETF window. The
+  relation at a daily, same-day frequency is UNKNOWN - no experiment in this repo has measured it.
+  (3) MECHANISM UNKNOWN, carried from the leg: the dataset reports the change in shares held and does
+  not say whether a given change came from a creation/redemption or from an index reweight. Both are
+  mandated, but the decomposition is not established, and the reweight case is precisely the one
+  named in weakens_when.
+  (4) What KKS does NOT establish, and the composite is claiming: that the flow-pressure names
+  underperform CONDITIONAL on the insider axis. KKS establishes the overvaluation identification and
+  the managerial response to it. The incremental return prediction of the conjunction is this file's
+  claim and is unmeasured.
+  REGIME SIGNS, reasoned for THIS conjunction from its own two legs, not copied - and per
+  diagnosis_ladder.md 3b the maps are MEASURED not to predict the ladder, so this is the standard's
+  ex-ante reasoning and must not be used to rank anything.
+  value_winter_2014_2020 '-': both halves lean against it. 2014-2020 is the decade of one-way passive
+  inflows, so the names ETFs kept adding kept being added, and a bet that mandated accumulation
+  reverts is the wrong side of a flow that never turned; separately, insider buying is a contrarian,
+  value-tilted signal and the value winter is the regime that punished contrarian entry. Two '-'
+  halves, so '-'. Caveat recorded: the leg ranks within subindustry/industry/sector and the composite
+  is neutralized, which removes part of the mega-cap concentration this argument leans on.
+  momentum_crash_2016 '+': the February-March 2016 reversal is the give-back of the crowded,
+  flow-supported trade, which is the etf leg's own event; and insider buying clustered in the
+  January-February 2016 selloff in exactly the names that led the rebound. Both halves point the
+  same way.
+  covid_2020 '0': reasoned as a genuine cancellation, not a shrug. In Feb-May 2020 creations and
+  redemptions moved almost every constituent together, so the cross-sectional breadth ratio collapses
+  toward a market-wide common term and the flow half carries little ranking information; the insider
+  half, by contrast, was unusually strong (officers bought the March lows). One half toward noise and
+  one half favourable, with no ex-ante reason either dominates, is a '0'.
+  rate_shock_2022 '-': in a year of persistent equity-fund outflows the names still being ADDED are
+  the ones gaining index weight through relative strength - 2022's momentum winners - so the short
+  corner is a short of momentum in the year momentum paid; and insider buying in 2022 concentrated in
+  the long-duration names that had already fallen and kept falling through Q3. Both halves against.
+  DISTINCTNESS, checked not assumed (grep of legs: over 45 files, forge/composites/*.yaml plus
+  staged/, 2026-09-09). No composite anywhere in the library carries an etf_flow leg, so the domain
+  pair etf_flow x insider is new. The nearest existing object is usa_insider_x_short_x_profitability
+  (short-volume flow x insider x profitability): that one reads a flow measure its own citation
+  (Boehmer, Jones & Zhang) calls INFORMED, this one reads flow its citation calls NON-FUNDAMENTAL -
+  opposite information content - and it is a triple. Whether the two books actually correlate is a
+  measurement after simulation, not a claim made here.
+  PARTNER CHOICE is POST-HOC allocation knowledge, used only to pick who to pair with and never for a
+  sign: insider_significant_buying_drift clears the 2022-01-03..2024-01-02 ladder window on 0.40 of
+  composite rows with Sharpe >= 1.3 (n 204, diagnosis_ladder.md 3a). Whether that rate transfers to a
+  new partner is UNKNOWN; 01_origins records that insider books have never produced an all-binding
+  pass (usa_insider_x_ivspread, 40 rows >= bar, 0 passes).
+  FIELDS AND CROWDING, re-derived from fetched/rc/fields/USA_TOP3000_d1.jsonl (2026-09-09), not taken
+  from the leg files. All six etf fields MATRIX, coverage 1.0, alphaCount 0, userCount 0. All five
+  insider fields MATRIX, coverage 0.7642-0.7716, alphaCount 0-10, userCount 0-3. Standard gate 4's
+  'every leg has alphaCount >= 200' is nowhere near tripped, and no field is in state/banned_fields.json
+  (74 entries, 0 hits). G8: 0 rows for 'positive_percent_change_count' in the VPS journal
+  state/layered/runs/forge.jsonl (28,228 rows, read-only ssh grep 2026-09-09), 0 hits in
+  state/*targets*.json.

@@ -1,0 +1,27 @@
+id: news_positive_tone_drift
+family: tone
+category: News
+title: Directional financial tone, aggregated over a week, continues
+mechanism: >
+  Directional (up/positive) financial tone in firm-specific news carries information that prices
+  absorb slowly when it is aggregated over several stories and days. Long the names with the
+  highest average directional tone over the window.
+counterparty: Investors who underreact to the accumulated tone of many small stories.
+sign: 1
+source: "EX-ANTE — Heston & Sinha 2017 (weekly-aggregated news sentiment predicts returns for up to 13 weeks); Tetlock, Saar-Tsechansky & Macskassy 2008"
+datasets: [news73]
+signal:
+  fields: [nws73_globalsent_finupscore, nws73_globalsent_positivescore]
+  vector: vec_avg
+  density: backfill
+  density_window: 20
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

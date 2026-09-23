@@ -1,0 +1,26 @@
+id: pro_customer_vol_imbalance_noto
+family: option_flow
+category: Option
+title: Professional customer option volume imbalance predicts equity drift
+mechanism: >
+  The normalized difference between bullish and bearish trade volumes for professional customers captures informed institutional positioning in the options market. When professionals are net long calls or short puts, they are expressing a directional view that is not yet fully reflected in the underlying equity price, as options markets are more efficient but the underlying equity lags due to higher transaction costs and slower diffusion of information. This leads to a predictable drift in the underlying stock as the market gradually incorporates the informed view.
+counterparty: retail investors who are slower to react to options flow signals
+sign: 1
+source: "EX-ANTE — Easley et al. 2012, informed trading in options markets predicts subsequent equity returns"
+datasets: [order_flow_imb]
+signal:
+  fields: [pro_customer_vol_imbalance_noto]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  A score/score field where a gap means "no change" in the normalized imbalance, so backfill is appropriate.

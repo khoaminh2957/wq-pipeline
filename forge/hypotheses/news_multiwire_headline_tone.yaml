@@ -1,0 +1,27 @@
+id: news_multiwire_headline_tone
+family: tone_multiwire
+category: News
+title: Per-headline sentiment across wires (five models), averaged per day, predicts drift
+mechanism: >
+  Each headline is scored by several sentiment models; the field descriptions state that higher
+  means more positive. Averaging the day's headline scores per stock gives a tone measure that
+  diffuses slowly into prices. Long the most positive daily tone. VECTOR stream read through
+  vec_avg; a day without headlines is zero (no news, not missing).
+counterparty: "Slow-diffusion investors; retail holders who react to headlines with a lag"
+sign: 1
+source: "EX-ANTE — Tetlock 2007 JF; Tetlock, Saar-Tsechansky & Macskassy 2008 JF"
+datasets: [news92]
+signal:
+  fields: [mws92_bbgnews_score_m5, mws92_inferess_v2_score_m3, mws92_bbgnews_score_m3]
+  vector: vec_avg
+  density: zero
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [3, 5, 10]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

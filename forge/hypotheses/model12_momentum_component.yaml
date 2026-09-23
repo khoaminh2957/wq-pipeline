@@ -1,0 +1,25 @@
+id: model12_momentum_component
+family: momentum_model
+category: Model
+title: Percentile momentum and seasonality components (stock-selection model) as a confirming gate
+mechanism: >
+  The model's momentum component is a 1-100 percentile of recent price momentum; its description
+  states that higher scores suggest momentum that might persist. Momentum is a confirming
+  condition for news-based signals (news with momentum drifts, news against momentum does not),
+  so this leg is used only as the GATE of a composite, never as a traded signal on its own.
+counterparty: "Retail investors and institutions that under-react to news that confirms the trend"
+sign: 1
+source: "EX-ANTE — Jegadeesh & Titman 1993 JF (momentum); Chan 2003 JFE (price reaction to news vs no-news: drift after news)"
+datasets: [model12]
+signal:
+  fields: [mdl12_factor_momentum_component, mdl12_seasonality_component]
+template: "group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [STATISTICAL, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]

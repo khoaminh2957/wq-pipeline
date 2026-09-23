@@ -1,0 +1,26 @@
+id: capex_intensity_value_trap
+family: investment
+category: Fundamental
+title: High capital expenditure intensity relative to sales predicts future underperformance
+mechanism: >
+  A high capital expenditure to sales ratio signals that the firm is deploying heavy cash outflows to sustain its revenue base, often indicating diminishing marginal returns on investment or competitive pressure. Because capital expenditures are sunk costs that must be recouped over time, these firms face higher financial flexibility risks and potential value destruction if the investments do not generate sufficient future cash flows, leading to a slow drift in stock prices as the market adjusts to the lower quality of earnings and higher risk.
+counterparty: Value-oriented institutional investors who screen for low investment intensity
+sign: -1
+source: "EX-ANTE — Fama and French 1992, firms with high investment intensity tend to underperform those with low investment intensity"
+datasets: [other466]
+signal:
+  fields: [oth466_rt_capex_sales_q]
+  density: backfill
+  density_window: 5
+template: "-group_rank(ts_backfill(ts_mean({signal}, {w}), 60), {group})"
+params:
+  w: [5, 20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is quarterly and has coverage of 0.89, so a gap means no new data and backfill is appropriate. The sign is -1 as per the FIELDS table, indicating that higher capex intensity is associated with lower future returns.

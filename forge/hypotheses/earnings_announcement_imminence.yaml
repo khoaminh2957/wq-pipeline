@@ -1,0 +1,95 @@
+id: earnings_announcement_imminence
+family: announcement_timing
+category: Earnings
+title: Days since the last earnings release, i.e. how close the next scheduled report is
+mechanism: >
+  The vendor's previous-earnings-release date changes only when a company reports, so the number of
+  days since that value last changed is the company's position in its quarterly reporting cycle:
+  near zero just after a report, largest just before the next scheduled one. Firms scheduled to
+  report earn abnormally high returns in the announcement window (Savor & Wilson: an annualized
+  abnormal return of 9.9%; Frazzini & Lamont: prices rise around scheduled announcement dates).
+  Force: the literature documents two candidates with the SAME sign and neither is established on
+  this data - a risk premium (Savor & Wilson: announcers carry the spike in covariance between firm
+  and market cash-flow news and are paid for bearing it) or behavioural attention buying (Frazzini
+  & Lamont: small-investor buying when the announcement catches their attention). Long the names
+  furthest along their cycle, whose scheduled report is nearest; short the names that have just
+  reported and whose next report is a quarter away.
+counterparty: >
+  Under the risk reading, risk-averse holders and equity market makers who cut exposure to
+  announcers into the event and pay the premium to whoever carries the announcement-day jump; under
+  the attention reading, retail investors whose attention-driven buying arrives at the announcement
+  and whose sellers were positioned before them. Both recur: the quarterly reporting cycle repeats
+  every ~63 trading days and neither side can cancel the event.
+sign: 1
+source: >-
+  EX-ANTE — Savor & Wilson 2016, Journal of Finance 71(1), "Earnings Announcements and Systematic
+  Risk". FETCHED https://api.openalex.org/works/W2697337584 HTTP 200 (2026-09-09; the record lists
+  doi 10.1111/jofi.12361). Verbatim from that abstract: "Firms scheduled to report earnings earn an
+  annualized abnormal return of 9.9%." and "The announcement premium is persistent across stocks,
+  and early (late) announcers earn higher (lower) returns." Frazzini & Lamont 2007, NBER Working
+  Paper 13090, "The Earnings Announcement Premium and Trading Volume". FETCHED
+  https://api.openalex.org/works/W2120958969 HTTP 200 and https://www.nber.org/papers/w13090
+  (WebFetch returned the abstract; 2026-09-09). Verbatim: "On average, stock prices rise around
+  scheduled earnings announcement dates." and "the premium is driven by buying by small investors
+  when the announcement catches their attention." SOURCE — the platform's own operator
+  documentation (fetched/rc/operator_docs/days_from_last_change.json, lastModified 2026-03-01)
+  gives this exact construction as its worked example: "Last_earnings_date =
+  days_from_last_change(ern2_earnrelease_d1_calendar_prev)".
+datasets: [earnings2]
+signal:
+  fields: [ern2_earnrelease_d1_calendar_prev, ern2_earnconfcall_d1_calendar_prev]
+template:
+  - "group_rank(days_from_last_change({signal}), {group})"
+  - "group_rank(days_from_last_change(ts_backfill({signal}, {w})), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. forge/labels.py records ern2_earnrelease_d1_calendar_prev and
+  ern2_earnconfcall_d1_calendar_prev as domain "profitability", sign "+", sign_source
+  "domain-prior" (Novy-Marx 2013) - a label slip already noted in docs/harness5/02_dataset_map.md
+  (the coarse regex put DATE fields under profitability). The descriptions are "Previous earnings
+  release date" and "Previous earnings conference call date": a date has no return sign, so the
+  label prior is NOT used. The sign here is attached to the DERIVED quantity "days since the date
+  last changed" and comes from the announcement-premium literature above (EX-ANTE); the two fields
+  are two records of the same event (the release and the call that accompanies it).
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, delay 1, USA TOP3000, dataset earnings2,
+  category Earnings, pyramidMultiplier 1.3): ern2_earnrelease_d1_calendar_prev MATRIX coverage
+  0.9651 userCount 181 alphaCount 335; ern2_earnconfcall_d1_calendar_prev MATRIX coverage 0.9136
+  userCount 131 alphaCount 218. Both dense (>= 0.5), labels time "event" (not quarterly/annual), so
+  neither a density operator nor ts_backfill is required by typed.py H4; the second template's
+  ts_backfill fills short vendor gaps with the last recorded date, which is the correct fill for a
+  "previous date" and registers no change in days_from_last_change.
+  CONSTRUCTION. days_from_last_change needs only that the stored value changes when a new release
+  is recorded; it does not depend on how the date is encoded. The *_next fields (next release /
+  estimated next release) were NOT used: ranking a date VALUE cross-sectionally would require the
+  stored number to be monotone in calendar time, which the description does not state, so "days
+  until the next report" is not built. For a regular quarterly reporter "days since the last" is
+  the complement of "days until the next"; for an irregular one it is not (see limitation).
+  TIMING, EX-ANTE description not a measurement: at delay 1 the previous-release date updates only
+  after the release is recorded, so the announcement-day return is earned while the name still
+  ranks as "about to report"; the next day the clock resets to ~0 and the name moves to the short
+  side, where this construction assigns no sign to the post-announcement drift (PEAD is
+  conditional on the surprise sign, which this leg does not read).
+  KNOWN LIMITATION, pre-registered: a name whose previous-release date stops updating (irregular
+  reporter, reporting halt, vendor gap longer than w) ranks as "imminent" without any event coming.
+  The composite's option leg does not remove this. Whether it contaminates the long side is a
+  measurement, not a claim.
+  TYPED JUDGE, run not assumed (2026-09-09): forge.typed.judge on the rendered leg
+  "group_rank(days_from_last_change(ern2_earnrelease_d1_calendar_prev), subindustry)" - structural
+  mode (the live pre-sim gate, runner.py structurally_ok): ok, hard []. Full mode reports H6
+  "orientation unknown" because days_from_last_change yields kind count / sign 0; the full mode is
+  not the gate in use, and the sign is declared here (+1) on the literature, not on the label.
+  HISTORY, checked: no hypothesis in forge/hypotheses/ or forge/composites/ uses earnings2; no
+  ern2_ id appears in any state/*targets*.json; one random typed-grammar row
+  (state/layered/runs/fw_1786688414.jsonl) divided two ern2 dates inside an 8-leg formula (Sharpe
+  0.0) - not a test of this construction. 02_dataset_map.md lists earnings2 as tier U (0 journal
+  rows) and judged it "usable only as a timing gate" - which is what this leg is.
+  MECHANISM: UNKNOWN between the risk-premium and the attention-buying readings; no experiment in
+  this repo separates them, and the sign is the same under both. Nothing here has been simulated.

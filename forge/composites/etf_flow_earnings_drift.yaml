@@ -1,0 +1,28 @@
+id: etf_flow_earnings_drift
+title: ETF selling breadth amplified by earnings surprise drift
+arm: new
+legs: [etf_negative_flow_breadth, earnings_eps_surprise_drift]
+families: [etf_flow, earnings_surprise]
+combiners: [multiply]
+mechanism: >
+  This conjunction isolates stocks where passive fund flows are pushing prices down while the recent earnings
+  surprise remains positive. The negative ETF breadth creates a temporary liquidity-driven discount, but the
+  positive earnings surprise confirms that the fundamental quality has improved. The combination signals a
+  dislocation where the marginal passive seller is unaware of or indifferent to the positive fundamental news,
+  leading to a stronger reversion than either signal alone as the price aligns with the new earnings baseline.
+counterparty: passive index funds and mandate-driven institutions
+source: "EX-ANTE — Bernard and Thomas 1989, post-earnings-announcement drift persists for months after the release"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: mid-cap stocks with low institutional ownership
+weakens_when: during periods of extreme market-wide liquidity stress where all flows are correlated
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  value_winter: positive because value stocks often face passive selling but attract fundamental attention.
+  momentum_crash: neutral because momentum crashes are driven by broad deleveraging, not specific ETF/earnings dislocations.
+  covid_2020: positive because the initial panic selling by passive funds was followed by rapid re-rating in firms with
+  resilient earnings.
+  rate_shock_2022: negative because rising rates caused fundamental re-rating that aligned with passive selling,
+  reducing the "dislocation" component of the signal.

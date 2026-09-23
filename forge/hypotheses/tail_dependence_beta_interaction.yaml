@@ -1,0 +1,29 @@
+id: tail_dependence_beta_interaction
+family: tail_risk
+category: Model
+title: High downside tail dependence predicts low returns due to hedging demand
+mechanism: >
+  Stocks with high lower-tail dependence to the market act as insurance against systemic crashes,
+  creating persistent demand from hedgers and risk-averse institutions. This structural buying
+  pressure is not fully arbitraged away because the risk premium is tied to liquidity constraints
+  and risk aversion, causing these stocks to underperform relative to their fundamental value.
+counterparty: risk-averse institutional investors and market makers hedging portfolios
+sign: -1
+source: "EX-ANTE — Ang et al. 2006, tail risk and the cross-section of stock returns"
+datasets: [forward_beta_risk]
+signal:
+  fields: [downside_tail_dependence, downside_tail_dependence_fast_d1]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.1
+regions: [USA]
+delays: [1]
+notes: >
+  The field is a daily score with 0.80 coverage, so no density rule is required. The negative sign
+  reflects that high tail dependence (high joint downside risk) is associated with lower future
+  returns as investors demand a premium to hold this risk.

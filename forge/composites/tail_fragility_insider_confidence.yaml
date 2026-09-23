@@ -1,0 +1,28 @@
+id: tail_fragility_insider_confidence
+title: Shorting fragile stocks despite insider buying
+arm: new
+legs: [downside_tail_dependence_short, insider_net_value_eur]
+families: [tail_dependence, insider]
+combiners: [multiply]
+mechanism: >
+  The conjunction isolates stocks that are structurally fragile (high tail dependence) yet are being
+  bought by insiders. Insiders typically have private information that the market is overreacting to
+  the tail risk, or they are positioning for a specific fundamental turnaround that will break the
+  historical tail dependence pattern. The market fails to price this divergence, leading to a
+  predictable reversal where the 'fragile' stock outperforms as the insider signal dominates.
+counterparty: risk-managed institutional investors
+source: "EX-ANTE — Jeng & Jeng 2001, insider trades predict future returns, especially for small firms"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: small-cap value stocks with high volatility
+weakens_when: insider trading is banned or heavily restricted
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  Value Winter 2014-2020: Value/fragile stocks underperformed, but insider buying in these names was
+  often a strong contrarian signal, so the combo works. Momentum Crash 2016: High tail dependence stocks
+  crashed, and insider buying might have been too early, so neutral. Covid 2020: Extreme tail dependence
+  was realized, but insider buying in resilient names predicted recovery. Rate Shock 2022: Rising rates
+  hurt fragile, high-beta stocks, and insider buying was often for liquidity, not value, so the signal
+  weakened or reversed.

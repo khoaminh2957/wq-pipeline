@@ -1,0 +1,26 @@
+id: short_pressure_notional_momentum
+family: short
+category: Short Interest
+title: Short notional pressure predicts continued underperformance
+mechanism: >
+  High short notional value signals active, capital-intensive bearish positioning that is costly to unwind. When short pressure is elevated, the market price reflects the persistent selling demand from shorts covering and new shorts entering, creating a drift as the high cost of carry and potential short squeezes keep prices suppressed until the position unwinds.
+counterparty: short sellers
+sign: -1
+source: "EX-ANTE — Desjardins 2008, short interest predicts future returns"
+datasets: [shortinterest29]
+signal:
+  fields: [shrt29_monthly_truemonth_data2]
+  density: backfill
+  density_window: 21
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is monthly, so ts_backfill is required. High short notional is bearish, hence the negative sign in the template.

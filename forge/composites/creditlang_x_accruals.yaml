@@ -1,0 +1,17 @@
+id: creditlang_x_accruals
+title: "Safe credit language with high earnings quality"
+arm: new
+legs: [credit_language_safety, usa_accruals_cashflow]
+families: [credit_language, accruals]
+combiners: [multiply, gate]
+mechanism: >
+  Filings whose language reads as credit-safe, from firms whose earnings are cash-backed, are the quality names that distress-averse and accrual-naive investors under-price; the product of the credit-safety rank and the low-accruals rank isolates them from safe-but-accrual-heavy and cash-rich-but-distressed firms.
+counterparty: "Yield-seeking retail holders of distressed equity; institutions that extrapolate accrual-driven earnings"
+source: "EX-ANTE — Campbell, Hilscher & Szilagyi 2008 JF; Sloan 1996 TAR"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "small and mid caps where credit language varies most"
+weakens_when: "credit booms when distress is not priced"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

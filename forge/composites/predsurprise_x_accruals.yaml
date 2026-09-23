@@ -1,0 +1,45 @@
+id: predsurprise_x_accruals
+title: A predicted beat, minus the one thing analysts are documented not to look at
+arm: new
+legs: [starmine_predicted_surprise_gap, usa_accruals_cashflow]
+families: [predicted_surprise, accruals]
+combiners: [multiply]
+mechanism: >
+  The first leg is a forecast made by analysts; the second leg is the variable analysts are
+  documented to leave out of that forecast. Bradshaw, Richardson & Sloan show sell-side earnings
+  forecasts do not incorporate the predictable earnings declines that follow high accruals, so a
+  predicted beat is not one signal of uniform quality: at a low-accrual firm the accuracy-weighted
+  analysts are ahead of the printed consensus on a number that operating cash will actually deliver,
+  while at a high-accrual firm the same predicted beat is produced inside the analysts' known blind
+  spot and is met by the accrual reversal instead. The conjunction is therefore not two informed
+  parties agreeing; it is one signal corrected for the specific omission its producers are known to
+  make, and the product keeps only predicted beats that the cash flow can pay for.
+counterparty: "Retail investors and mandate-driven institutions that trade the headline beat against the printed I/B/E/S mean and price reported earnings without decomposing them into cash and accruals"
+source: "EX-ANTE — Bradshaw, Richardson & Sloan 2001, Journal of Accounting Research 39(1), 'Do Analysts and Auditors Use Information in Accruals?'. FETCHED https://api.openalex.org/works/W2076947889 HTTP 200 (2026-09-09; the publisher page https://doi.org/10.1111/1475-679x.00003 returns HTTP 403 to a script and was NOT the source of this text). Verbatim from that abstract: 'We show that analysts' earnings forecasts do not incorporate the predictable future earnings declines associated with high accruals.' and 'Overall, our evidence indicates that analysts and auditors do not alert investors to the future earnings problems associated with high accruals, thus corroborating previous findings that investors do not appear to anticipate these problems.' — this is the conjunction's own evidence, not either leg's. The analyst leg is grounded by Clement & Tse 2005 JF, FETCHED https://api.openalex.org/works/W2057285392 HTTP 200: 'bold forecasts are more accurate than herding forecasts'. Sloan 1996 grounds the accrual leg and is carried by usa_accruals_cashflow's own source line; it is not re-fetched here."
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "-", covid_2020: "0", rate_shock_2022: "+"}
+strongest_in: "mid caps with 5-15 covering analysts and a clean quarterly cash-flow statement: enough spread among forecasts for the accuracy weighting to move the SmartEstimate off the mean, and a real accrual number to condition on"
+weakens_when: "the accuracy weighting has nothing to weight - mega-caps where every analyst has already refreshed to the same number, so the predicted surprise collapses toward zero - and quarters when guidance is withdrawn market-wide and both the consensus and the last accrual reading stop describing the firm"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file.
+  value_winter_2014_2020 '+': neither leg is a cheapness bet. The long side is a cash-backed firm
+  whose better-informed analysts expect a beat, which is the quality side that led 2014-2020, and the
+  short side is accrual-heavy names, so the value winter does not run against it.
+  momentum_crash_2016 '-': the early-2016 reversal rewarded low-quality, high-accrual names; the
+  accrual leg is short exactly those, so the conjunction gives back in a junk rally.
+  covid_2020 '0': estimates were withdrawn or suspended en masse in Q1-Q2 2020, so the accuracy
+  weighting has little to weight and the last accrual reading describes a pre-COVID firm - the signal
+  degrades toward noise in both directions rather than losing money in one.
+  rate_shock_2022 '+': the bet resolves at the next announcement, so it carries little duration for a
+  discount-rate shock to reprice, and cash-backed earnings were the rewarded side in 2022.
+  COMBINER. usa_accruals_cashflow is a bearish leg (sign -1), so [multiply] only - the gate branch
+  inverts a bearish leg (Verifier note carried on newsneg_x_short and transcriptneg_x_revision,
+  2026-09-08).
+  DISTINCTNESS, checked not assumed: no composite in forge/composites/ pairs an analyst-estimate leg
+  with an accruals leg (the eleven accrual composites pair it with credit language, insiders, PR
+  tone, profitability, quality, sentiment, short flow, capex, investment and intangibles), and
+  predictive_starmine appears in no existing composite. Whether the resulting book is actually
+  distinct is a correlation measurement, not a claim made here.

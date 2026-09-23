@@ -1,0 +1,20 @@
+id: usa_twitter_x_profitability
+title: Filtered Twitter sentiment confirmed by profitability (USA Social Media cell)
+legs: [social_twitter_sentiment_continuation, usa_profitability_ratios]
+families: [tone, profitability]
+combiners: [multiply, gate]
+mechanism: >
+  Relevance-filtered Twitter sentiment carries the mood of active retail traders into their next
+  days of trading, but the mood is worth following only where the business is profitable; in
+  unprofitable names the same mood is a pump. Conditioning the sentiment rank on the profitability
+  rank keeps the names where retail enthusiasm has fundamentals behind it, and late-arriving
+  retail flow in the promoted, unprofitable names supplies the other side.
+counterparty: "Late-arriving retail traders who follow social-media mood in unprofitable names"
+source: "EX-ANTE — Sprenger, Tumasjan, Sandner & Welpe 2014; Renault 2017; Novy-Marx 2013"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "0"}
+strongest_in: "mid caps with active retail discussion"
+weakens_when: "meme-stock regimes detach mood from fundamentals (2021)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08

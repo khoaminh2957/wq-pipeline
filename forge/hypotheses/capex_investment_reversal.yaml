@@ -1,0 +1,27 @@
+id: capex_investment_reversal
+family: investment
+category: Fundamental
+title: Heavy capital expenditure relative to assets reverses
+mechanism: >
+  Abnormal capital investment is followed by low returns: managers over-invest when capital is
+  cheap and investors extrapolate. Short the names with the highest capex-to-assets ratio
+  relative to their own history.
+counterparty: Investors who reward empire building.
+sign: -1
+source: "EX-ANTE — Titman, Wei & Xie 2004 (capital investments and stock returns); Anderson & Garcia-Feijóo 2006"
+datasets: [fundamental7, fundamental72]
+signal:
+  fields: [fnd7_ointfund_qxpac, fnd72_s_pit_or_cf_q_cf_cap_expend_prpty_add]
+signal2:
+  fields: [fnd7_ointfund_qta, fnd72_s_pit_or_bs_q_bs_tot_asset]
+template:
+  - "-group_rank(ts_rank({signal} / {signal2}, {w}), {group})"
+params:
+  w: [126, 252]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

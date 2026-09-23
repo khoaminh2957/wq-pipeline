@@ -1,0 +1,30 @@
+id: news_neg_sentiment_max_extreme
+family: tone_negative
+category: Sentiment
+title: Extreme negative news magnitude predicts short-horizon underperformance
+mechanism: >
+  The maximum negative sentiment score captures the single most negative story in the day's flow,
+  and because this is an extreme value rather than a mean, it signals a discrete shock to the firm's
+  fundamental outlook that is not yet fully absorbed by the marginal buyer. The investors who
+  immediately mark down the price are not the same agents who hold the position for the next week,
+  so the initial drop is an underreaction to the true magnitude of the bad news, leading to
+  continued downward drift as the information diffuses to slower-moving participants.
+counterparty: algorithmic liquidity providers who overreact to headline shocks
+sign: -1
+source: "EX-ANTE — Tetlock 2007, negative media tone predicts downward pressure on prices"
+datasets: [sentiment23]
+signal:
+  fields: [snt23_4neg_max_112]
+template: "-group_rank(ts_mean({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  sign -1 overrides the field's source sign of +(domain-prior) because the field measures negative
+  sentiment magnitude, and high magnitude predicts lower future returns (underperformance).

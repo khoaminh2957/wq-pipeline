@@ -1,0 +1,26 @@
+id: cashflow_growth_discounted
+family: cashflow
+category: Model
+title: Discounted change in operating cash flow predicts post-announcement drift
+mechanism: >
+  The difference between the current trailing 12-month operating cash flow per share and that from four quarters ago, scaled by price, measures the fundamental improvement in the firm's cash generation. This quantity is a lagging indicator of operational health that is not fully incorporated into prices immediately because institutional investors rely on quarterly accounting earnings which are subject to manipulation, leading to a slow drift as the cash flow reality reconciles with the market price.
+counterparty: institutional value investors who underweight cash flow signals relative to GAAP earnings
+sign: 1
+source: "EX-ANTE — Fama and French 1992, size and book-to-market predict returns, extended to cash flow quality"
+datasets: [model230]
+signal:
+  fields: [mdl230_us5000_cusip_pfcoghc]
+  density: backfill
+  density_window: 5
+template: "group_rank(ts_backfill({signal}, {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field is annual cadence, so it is wrapped in ts_backfill to handle the gaps between reporting dates.

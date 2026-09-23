@@ -1,0 +1,20 @@
+id: quality_x_accruals_composites
+title: Vendor quality composite confirmed by accounting-quality accruals
+legs: [quality_profitability_composites, accruals_accounting_quality]
+families: [profitability, accruals]
+combiners: [multiply, gate]
+mechanism: >
+  A vendor quality composite summarises profitability and earnings stability, but it is built
+  from reported figures; an independent accounting-quality accrual measure tells whether those
+  figures are cash-backed. Requiring both isolates genuinely high-quality firms from firms that
+  merely report well, and quality-minus-junk investors who trust the reported composite alone
+  keep paying for the difference.
+counterparty: "Quantitative quality funds that rank on reported composites, and retail investors who buy well-reported names"
+source: "EX-ANTE — Asness, Frazzini & Pedersen 2019 (quality minus junk); Dechow & Dichev 2002 (accrual quality); Sloan 1996"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "+", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "large global names where both composites have full coverage"
+weakens_when: "junk rallies on liquidity (2020 Q2-Q4)"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08

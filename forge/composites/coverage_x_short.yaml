@@ -1,0 +1,45 @@
+id: coverage_x_short
+title: "Debt-service coverage checked against the informed short tape"
+arm: new
+legs: [usa_debt_service_coverage, short_volume_ratio_informed]
+families: [coverage, short]
+combiners: [multiply]
+mechanism: >
+  Debt-service coverage is a quarterly accounting ratio that every screen already sees, so on its
+  own it says which firms are fragile, not which fragile firms are mispriced; a thin ratio that has
+  been on the tape for three months is old news and is in the price. Daily short-sale volume is the
+  opposite kind of number: a timely flow from traders who are informed on average. The conjunction
+  separates the two cases the coverage ratio alone cannot. Where coverage is thin and short sellers
+  are absent, the leverage is stale and priced. Where coverage is thin and shorting is heavy, the
+  informed flow is currently working on a deterioration in debt service that the last balance sheet
+  does not yet show, and the equity is the residual claim being handed to creditors. Symmetrically,
+  ample coverage with no informed selling is the low-distress-cost exposure that carries a premium
+  with nobody betting against it. The product keeps that corner long and the thin-and-shorted corner
+  short.
+counterparty: "Index funds and equity-only institutions that hold thin-coverage firms at market weight and watch neither the covenant schedule nor the daily short tape, plus retail buyers of levered equity as a cheap call on recovery"
+source: "EX-ANTE — George & Hwang 2010 JFE 96(1) 56-79 (https://ideas.repec.org/a/eee/jfinec/v96y2010i1p56-79.html, HTTP 200): 'The return premiums to low leverage and low distress are significant in raw returns, and even stronger in risk-adjusted returns.'; Boehmer, Jones & Zhang 2008 JF 63(2) 491-527, 'Which Shorts Are Informed?' (https://ideas.repec.org/a/bla/jfinan/v63y2008i2p491-527.html, HTTP 200), heavily shorted stocks underperform about 1.16% risk-adjusted over 20 trading days."
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "-", covid_2020: "-", rate_shock_2022: "+"}   # Verifier 2026-09-09: covid "+" -> "-", reasoning in notes
+strongest_in: "levered mid-caps with a real debt stock and a liquid borrow, where coverage varies across peers and short sellers can actually take the position"
+weakens_when: "credit spreads compress and the thin-coverage, heavily shorted names squeeze, and in near-debt-free firms where the coverage ratio explodes on a tiny denominator and carries no information"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned per sub-regime by the Verifier (docs/harness5/round_1/audit_staged.md,
+  2026-09-09). As staged the map carried no reasoning and covid_2020 was "+" with no stated reason.
+  Every sign below is EX-ANTE from the two fetched abstracts and the compiled construct (long = high
+  coverage AND low short share; short = a name failing either); nothing here reads a PnL curve.
+  value_winter_2014_2020 "0": two forces, neither measured. Cheap and abundant credit made thin
+  coverage cheap to carry, so the distress-cost premium George & Hwang describe had little to bind
+  on; against that, the high-coverage long book is the low-leverage, cash-generative side. 0 rather
+  than a guess. momentum_crash_2016 "-": the short book is by construction levered AND heavily
+  shorted, the bucket a junk rally (Feb-Mar 2016) squeezes first. covid_2020 "-": George & Hwang's
+  own mechanism - "When in distress, low-leverage firms suffer more than high-leverage firms" - says
+  the long book's premium is compensation for an exposure that arrives in a low state, and March
+  2020 IS the low state; the Apr-Aug 2020 rebound then lifts the thin-coverage, heavily shorted
+  short book. Both halves point the same way. rate_shock_2022 "+": rising rates raise debt service
+  directly for thin-coverage firms (the covenant channel the mechanism names) while high-coverage
+  firms carry no refinancing exposure, and the informed short flow is positioned in the levered
+  names. COLLISION RECORD: the staged map {0,-,+,+} was identical to ai_disagreement_x_putpremium's
+  (the grep of 2026-09-09); the map above follows from the reasoning, not from the collision.

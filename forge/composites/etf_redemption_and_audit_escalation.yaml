@@ -1,0 +1,23 @@
+id: etf_redemption_and_audit_escalation
+title: ETF De-accumulation and Auditor Pricing Signal
+arm: new
+legs: [etf_redemption_pressure_60d, audit_fee_escalation]
+families: [etf_flow, audit_pricing]
+combiners: [multiply]
+mechanism: >
+  The conjunction of sustained ETF de-accumulation and a recent increase in audit fees identifies stocks where mechanical selling pressure coincides with a fundamental red flag. The audit fee escalation serves as a costly signal from the auditor that the financial reporting risk has increased, or the complexity of the audit has risen, suggesting potential future earnings restatements or lower quality. When this fundamental concern is amplified by non-fundamental ETF selling pressure, the stock becomes significantly undervalued. The ETF selling provides a catalyst for the price drop, while the audit signal ensures that the drop is not fully justified by market sentiment, creating a large mispricing that corrects over time.
+counterparty: Passive index funds and mandate-driven institutions
+source: "EX-ANTE — Dechow 2011, showed that audit fee changes predict future financial restatements and earnings quality issues"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "-"}
+strongest_in: Small-cap stocks with complex financial structures
+weakens_when: In periods of high liquidity where ETF flows are ignored, or when audit fee increases are standard across the sector
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  The regime signs are reasoned as follows: 
+  - value_winter_2014_2020: "+" Because value stocks were out of favor, the mispricing from ETF selling and audit signals was larger and corrected more strongly.
+  - momentum_crash_2016: "0" In a momentum crash, all selling is indiscriminate, and the specific signal of audit fees may be drowned out by broad market deleveraging.
+  - covid_2020: "+" The initial panic selling by ETFs was extreme, and the audit signals helped distinguish stocks with real fundamental issues from those merely hit by liquidity crunches, leading to strong recovery in the latter.
+  - rate_shock_2022: "-" Rising rates increased the cost of capital and made the "value" of undervalued stocks less attractive if their earnings were unstable (as hinted by audit fees), weakening the reversion effect.

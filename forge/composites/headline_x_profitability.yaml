@@ -1,0 +1,17 @@
+id: headline_x_profitability
+title: "Positive headline tone on profitable firms"
+arm: new
+legs: [news_headline_tone_benzinga, usa_profitability_ratios]
+families: [tone, profitability]
+combiners: [multiply, gate]
+mechanism: >
+  Positive headlines drift when the underlying firm is profitable, because the news confirms fundamentals that growth-chasing investors under-weight; positive tone on unprofitable names is noise. The product of the tone rank and the profitability rank keeps the confirming cases.
+counterparty: "Growth investors who pay for stories and ignore profits; slow-diffusion holders"
+source: "EX-ANTE — Tetlock 2007 JF; Novy-Marx 2013 JFE (gross profitability); Tetlock, Saar-Tsechansky & Macskassy 2008 JF"
+regimes: {value_winter_2014_2020: "+", momentum_crash_2016: "0", covid_2020: "+", rate_shock_2022: "+"}
+strongest_in: "mid and large caps with regular coverage"
+weakens_when: "earnings seasons when tone is dominated by the numbers"
+settings:
+  neutralization: [STATISTICAL, INDUSTRY, SUBINDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08

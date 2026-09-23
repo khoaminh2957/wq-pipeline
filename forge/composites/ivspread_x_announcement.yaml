@@ -1,0 +1,110 @@
+id: ivspread_x_announcement
+title: Bullish option positioning that a scheduled earnings report is about to test
+arm: new
+legs: [option_call_put_iv_spread, earnings_announcement_imminence]
+families: [options, announcement_timing]
+combiners: [multiply]
+mechanism: >
+  The call-minus-put implied-volatility spread is read as informed positioning in the option market
+  (Cremers & Weinbaum). On its own it is measured on every day of the quarter, and on most of those
+  days there is no event that would reveal what the positioning knows. Jin, Livnat & Zhang measure
+  that volatility spreads taken immediately before earnings announcements predict the short-term
+  event return better than the same measure taken in a more dated window or before a randomly chosen
+  pseudo-event: the option market's edge is concentrated where a scheduled information release is
+  about to settle it. The second leg is the clock that says how close that release is. The product
+  therefore keeps the option market's bullish reading only where the scheduled resolution is near,
+  and drops the mid-quarter readings whose information has either expired or not yet formed. It is
+  not two bullish signals agreeing; it is one informed signal restricted to the window in which its
+  information is about to be made public - the same window in which scheduled announcers earn the
+  announcement premium (Savor & Wilson) and in which anomaly returns in general are six times higher
+  (Engelberg, McLean & Pontiff).
+counterparty: >
+  Equity-only institutions and retail investors who buy or hold into a scheduled earnings report on
+  attention and do not read the option surface, and equity market makers who supply liquidity
+  asymmetrically into announcements. They stay on the other side because equity-only mandates
+  exclude options and the scheduled quarterly cycle recurs.
+source: >-
+  EX-ANTE — conjunction evidence: Jin, Livnat & Zhang 2012, Journal of Accounting Research 50(2),
+  "Option Prices Leading Equity Prices: Do Option Traders Have an Information Advantage?". FETCHED
+  https://api.openalex.org/works/doi:10.1111/j.1475-679X.2012.00439.x (record
+  https://openalex.org/W3124606526) HTTP 200 (2026-09-09). Verbatim from that abstract: "Recent
+  evidence shows that option volatility skews and volatility spreads between call and put options
+  predict equity returns." and "we find that the option measures immediately before these events
+  have higher predictive ability for short-term event returns than they do in a more dated window or
+  before a randomly selected pseudo-event." and, on the post-event window, "this predictive ability
+  holds only for unscheduled corporate announcements". Announcement-window concentration in general:
+  Engelberg, McLean & Pontiff 2018, Journal of Finance 73(5), "Anomalies and News". FETCHED
+  https://api.openalex.org/works/W2895704686 HTTP 200 (2026-09-09). Verbatim: "anomaly returns are
+  50% higher on corporate news days and six times higher on earnings announcement days" and "Our
+  results are most consistent with the idea that anomaly returns are driven by biased expectations,
+  which are at least partly corrected upon news arrival." Timing leg: Savor & Wilson 2016 JF
+  (https://api.openalex.org/works/W2697337584, HTTP 200) and Frazzini & Lamont 2007 NBER w13090
+  (https://api.openalex.org/works/W2120958969, HTTP 200), carried on earnings_announcement_imminence's
+  own source line. Option leg: Cremers & Weinbaum 2010, carried on option_call_put_iv_spread's own
+  source line and not re-fetched here. DROPPED, not cited: Atilgan 2014, Journal of Banking &
+  Finance 38, "Volatility spreads and earnings announcement returns" (doi
+  10.1016/j.jbankfin.2013.10.007) was the first choice for the conjunction; OpenAlex W3121750481,
+  Crossref and Semantic Scholar all answer HTTP 200 with a null abstract (Q14: an abstract that
+  cannot be fetched is dropped).
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "0", covid_2020: "-", rate_shock_2022: "0"}
+strongest_in: >
+  large and mid caps with actively traded at-the-money options whose scheduled quarterly report
+  falls within the next two to three weeks - the spread is measured from liquid options and there
+  is a dated event to settle it (Jin, Livnat & Zhang: the option measures immediately before the
+  event carry the predictive ability)
+weakens_when: >
+  (a) mid-quarter, where the clock leg is low for most names and the product is near zero by
+  construction, so the book is carried by the few names close to a report; (b) market-wide
+  volatility events such as March 2020, when put demand is index hedging and the spread reads
+  market fear rather than firm information; (c) names whose previous-release date stops updating
+  (irregular reporters, vendor gaps), which rank as imminent without an event; (d) unscheduled
+  news, where Jin, Livnat & Zhang find the option measures predict returns AFTER rather than before
+  the event, which a scheduled-report clock cannot time
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction, not copied from another file. Regime maps are
+  measured NOT to predict the 2022-2024 ladder window (docs/harness5/round_2/diagnosis_ladder.md
+  section 3b); they are the standard's reasoning only and must not be used to rank this composite.
+  value_winter_2014_2020 "0": neither leg is a cheapness, size or growth bet; the long side is a
+  name with bullish option positioning days before its own scheduled report, which the growth-led
+  period neither rewards nor punishes as a style.
+  momentum_crash_2016 "0": the option spread is a firm-specific reading and the clock is a
+  calendar, so neither leg was on the losing side of a trend reversal; no directional call.
+  covid_2020 "-": Q1-Q2 2020 reports were postponed and guidance withdrawn, so the previous-release
+  clock mis-states how close the next report is, and single-name put demand was dominated by
+  market-wide hedging, so the spread read market fear rather than firm information; both legs
+  degrade at once, and the existing IV-spread composites pre-register the same weakness.
+  rate_shock_2022 "0": the bet resolves within days at the report and carries little duration; no
+  reason for either sign was found, so none is claimed.
+  COMBINER. Both legs are bullish (sign +1), so multiply and gate both keep the orientation;
+  [multiply] is the confirmation reading (both must be high) and is the round brief's stated
+  preference on POST-HOC allocation knowledge (multiply rows at the bar reach fitness 1.0 at
+  130/355 vs gate 6/184) - cited from the brief, not measured here.
+  WHAT THE PRODUCT IS, EX-ANTE: rank(IV spread) x rank(days since last report). A name with a
+  bullish spread three days before its report is near the top; the same spread three days after
+  its report is near zero. The turnover this implies (every name crosses the whole clock rank once
+  a quarter) is a measurement, as is whether the product survives the ladder's turnover-0.30 line.
+  DISTINCTNESS, checked not assumed: no composite in forge/composites/ or forge/composites/staged/
+  carries a timing or calendar family, and earnings2 appears in no composite and in no forge
+  journal row by a hand-written hypothesis (02_dataset_map tier U). option_call_put_iv_spread sits
+  in 9 of the 49 composite files (including staged) - the same count as the short-volume leg the
+  round brief says to avoid - but the brief lists it as an allowed partner with the 2022-2024 window
+  cleared on 0.37 of rows >= 1.3, n 1,251 (POST-HOC allocation knowledge, used only to choose the
+  partner, never for a sign). No existing composite pairs options with a timing family, so the
+  domain pair is new. Rejected partners: usa_accruals_cashflow (the accruals family is in the two
+  ACTIVE alphas' composites, so the self-correlation line is the risk; Sloan's announcement-window
+  concentration would have been the conjunction evidence and was not fetched); insider_significant_
+  buying_drift (insiders are in a blackout before a scheduled report, so "insider buying x imminent
+  report" selects the rare pre-announcement trade and is incoherent with that leg's 20-120-day sum);
+  sentiment_weekly_continuation and social_twitter_sentiment_continuation (no fetched evidence for
+  the conjunction); usa_profitability_ratios (in 12 composites; only the general Engelberg et al.
+  result would carry it). Whether the resulting book is distinct from the live book is a
+  correlation measurement, not a claim made here.
+  CELLS: the Earnings cell (3/0) and the Option cell (4/0) on USA/d1 are both full; the composite
+  fills neither empty cell and is supply for the submission count, not for a pyramid unlock.
+  Nothing here has been simulated. MECHANISM of the premium itself: UNKNOWN (risk premium vs
+  attention buying, see the leg); the conjunction claim rests on Jin, Livnat & Zhang's measured
+  pre-event concentration, not on a mechanism established here.

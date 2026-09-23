@@ -1,0 +1,154 @@
+id: volspread_x_accruals
+title: "Earnings the cash cannot pay for, on names whose options charge little for the volatility already delivered"
+arm: new
+legs: [option_realized_implied_vol_spread, usa_accruals_cashflow]
+families: [vol_risk_premium, accruals]
+combiners: [multiply]
+mechanism: >
+  Two fetched abstracts place these legs in different explanatory categories, and that difference is
+  the conjunction's content. TAGGED in the standard's gate-1 vocabulary, taken from those abstracts
+  and not invented: the volatility leg is RISK-PREMIUM — the authors call the spread "a proxy for
+  volatility risk" (Bali & Hovakimian); the accrual leg is BEHAVIORAL-MISPRICING — the authors
+  conclude "investors misvalue the accrual characteristic" (Hirshleifer, Hou & Teoh). The tag of the
+  CONJUNCTION is not settled by tagging its legs and is left open below. Bali and Hovakimian
+  measure the realized-minus-implied volatility spread
+  on individual US stocks, report a negative and significant cross-sectional relation to expected
+  returns, and read it as a proxy for volatility risk — the price option writers charge for risk the
+  name is already delivering; the same abstract states that the volatility LEVELS from the physical
+  and risk-neutral distributions cannot predict returns, only the spread between them can.
+  Hirshleifer, Hou and Teoh test the accrual effect against the risk explanation directly and find
+  that it is the accrual characteristic, not the loading on an accrual factor, that predicts returns,
+  which they read as investors misvaluing the characteristic. One leg therefore selects names where
+  the option market's price of volatility sits below what the stock delivered; the other selects
+  names whose reported earnings are not backed by operating cash and whose holders are documented to
+  misvalue exactly that. The product keeps only the corner where both readings point the same way:
+  the short side is an accrual-heavy firm priced on reported EPS on which the option market is also
+  charging little for the volatility it is already realising, and the long side is a cash-backed firm
+  whose options are dear relative to delivered volatility. WHY the co-occurrence should predict
+  better than either leg alone is NOT established here. Candidate readings, none tested: (a) two
+  prices set by different agent classes — equity holders reading EPS, dealers writing at-the-money
+  volatility — are wrong on the same name at once, so the product is a cleaner selection than either
+  rank; (b) the spread leg is a risk premium on its authors' own reading, so the product merely
+  stacks a risk exposure on top of a mispricing; (c) the pair adds nothing over the accrual leg.
+  MECHANISM: UNKNOWN — the round's rows, not this file, separate them.
+counterparty: >
+  Option dealers and market makers who write 20- and 60-day at-the-money volatility below what the
+  name is already delivering, and the retail holders and index funds that price reported earnings as
+  if they were cash-backed.
+  PERSISTENCE: the option-dealer side is a standing inventory constraint and is claimed persistent;
+  the accrual side is NOT — Green, Hand & Soliman (fetched, HTTP 200) document its hedge return
+  decaying to no longer reliably positive, so the accrual leg is carried as an allocation partner
+  (diagnosis_ladder.md §3a, y2pass 0.40 on 184 rows) and not as a persistence claim.
+source: >
+  EX-ANTE — one fetched citation per side; no citation was found for the conjunction itself and none
+  is invented here. VOLATILITY SIDE: Bali & Hovakimian 2009, 'Volatility Spreads and Expected Stock
+  Returns', Management Science 55(11) 1797-1812; re-fetched by this author 2026-09-09,
+  https://econpapers.repec.org/RePEc:inm:ormnsc:v:55:y:2009:i:11:p:1797-1812 HTTP 200, verbatim:
+  "Although the levels of volatilities from the physical and risk-neutral distributions cannot
+  predict future returns, there is a significant relation between volatility spreads and expected
+  stock returns. Portfolio level analyses and firm-level cross-sectional regressions indicate a
+  negative and significant relation between expected returns and the realized-implied volatility
+  spread that can be viewed as a proxy for volatility risk." ACCRUAL SIDE: Hirshleifer, Hou & Teoh
+  2012, 'The Accrual Anomaly: Risk or Mispricing?', Management Science 58(2) 320-335; fetched
+  2026-09-09, https://econpapers.repec.org/RePEc:inm:ormnsc:v:58:y:2012:i:2:p:320-335 HTTP 200,
+  verbatim: "our tests indicate that it is the accrual characteristic rather than the accrual factor
+  loading that predicts returns. These findings suggest that investors misvalue the accrual
+  characteristic and cast doubt on the rational risk explanation." DECAY EVIDENCE, fetched and used
+  in weakens_when rather than hidden: Green, Hand & Soliman 2011, 'Going, Going, Gone? The Apparent
+  Demise of the Accruals Anomaly', Management Science 57(5) 797-816,
+  https://econpapers.repec.org/RePEc:inm:ormnsc:v:57:y:2011:i:5:p:797-816 HTTP 200, verbatim: "the
+  hedge returns to Sloan's ... accruals anomaly appear to have decayed in U.S. stock markets to the
+  point that they are, on average, no longer reliably positive". Sloan 1996 and Hribar & Collins 2002
+  ground the accrual leg's own sign and are carried by forge/hypotheses/usa_accruals_cashflow.yaml;
+  they are not re-fetched here. NOT USED: 'Anomalies and optionability' (Review of Derivatives
+  Research, doi 10.1007/s11147-026-09242-x) would speak to the optionable-universe caveat, but the
+  page returned no machine-readable abstract at HTTP 200, so it is dropped rather than cited.
+regimes:
+  value_winter_2014_2020: "0"
+  momentum_crash_2016: "-"
+  covid_2020: "0"
+  rate_shock_2022: "+"
+strongest_in: >
+  Optionable US mid caps with a populated 20- and 60-day OptionMetrics surface and a clean quarterly
+  cash-flow statement: large enough that both an at-the-money implied volatility and a reported
+  accrual exist every day, small enough that the accrual characteristic still has holders who price
+  reported EPS. Both cited effects are stated on the overpriced side, but under this combiner the
+  both-agree corner is the LONG half: multiply((1 - rank_a), (1 - rank_b)) is high only when BOTH
+  ranks are low, while a low product is reached by either rank alone being high. MEASURED (arithmetic
+  on 3,000 independent uniform ranks, no sim, re-derived by two authors 2026-09-09): of the 100
+  most-short names 100/100 have at least one rank > 0.90 — forced, not sampled, since a product below
+  the 100th-lowest cut (0.0044 at seed 0, 0.0054 analytically) requires min(1 - rank) <= sqrt of that
+  cut, i.e. some rank > 0.93 — while only 60/100 have BOTH ranks > 0.75 (51-60 across 7 seeds;
+  analytic 0.555). Names bad on both legs sit a median 0.021 further short than names bad on exactly
+  one (both thresholds at rank > 0.90, whole book, n 35 vs 541), against a long-side weight range of
+  0.729 on the same demeaned scale: the short tail is saturated, the long tail is not. The
+  pre-registered strongest half is therefore the LONG half — low spread AND cash-backed. The short
+  book is a union, not the conjunction, and a post-sim diagnostic must be read that way. The
+  uniform-independent draw is an idealisation; real ranks are correlated, which moves the counts but
+  not the forced 100/100 or the direction.
+weakens_when: >
+  Pre-registered flips, not caveats. (1) Green, Hand & Soliman: the accrual hedge return had already
+  decayed to "no longer reliably positive" in US markets as hedge-fund capital entered the extreme
+  accrual deciles; if that persists the composite reduces to the volatility-spread leg alone.
+  (2) Market-wide volatility shocks (February 2018, March 2020) push realized above trailing implied
+  for nearly every name at once, so the cross-sectional rank of the spread stops separating firm-level
+  premia and starts ranking which names' options repriced last — the leg then measures option-quoting
+  speed, not the quantity the paper measured. (3) Bali & Hovakimian's own reading is that the spread
+  proxies volatility RISK; if that reading is right the short side is being paid for bearing an
+  exposure rather than for a correction, and it can lose exactly when that exposure is realised.
+  (4) The universe is restricted to names with a listed option surface, which is the liquid half —
+  the same half where Green et al. document arbitrage capital arriving — and it is also the half the
+  sub-universe retention check grades, so a composite that survives only in illiquid names cannot
+  clear that check.
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  REGIME SIGNS, reasoned for this conjunction and for nothing else. They are the standard's gate-4
+  reasoning only: docs/harness5/round_2/diagnosis_ladder.md §3b measured regime maps against the
+  ladder's 2022-2024 window and found no information ('+' composites clear it as often as '0' ones),
+  so these signs must not be used to rank anything.
+  value_winter_2014_2020 "0": neither leg is a cheapness bet, so the value winter does not run
+  against the book; but Green, Hand & Soliman date the accrual decay to before this window, so a "+"
+  would be a claim their fetched abstract contradicts. No sign is honestly available.
+  momentum_crash_2016 "-": the early-2016 reversal bid up low-quality, accrual-heavy names, which is
+  precisely the composite's short half. The volatility-spread leg gives no reasoned direction in a
+  junk rally, so this sign is carried by the accrual side alone.
+  covid_2020 "0": the last accrual reading described a pre-COVID firm and the February-March
+  volatility jump moved realized above implied nearly everywhere at once, so both legs degrade toward
+  noise. Which way the residual ranking pointed is not something reasoning settles, so "0", not "-".
+  rate_shock_2022 "+": when the discount rate jumps, earnings that operating cash has already
+  delivered are worth relatively more than earnings that still have to convert, which is the accrual
+  leg's long side. The volatility leg carries no reasoned direction through a rate shock; the "+" is
+  the accrual side's, not the pair's.
+  COMBINER. Both legs are bearish (sign -1 each), so [multiply] only — the gate branch inverts a
+  bearish leg (Verifier note carried on newsneg_x_short and transcriptneg_x_revision, 2026-09-08).
+  Under forge/compose.py each `-group_rank(...)` becomes `(1 - group_rank(...))`, so the product is
+  long the names low on BOTH ranks. The names high on both do carry the lowest product, but the short
+  book is not confined to them: a name extreme on one leg alone reaches the same floor (measured in
+  strongest_in above). The conjunction named in the mechanism is resolved on the LONG side only. This
+  is a property of forge/compose.py positive_form + multiply and is invariant to leg signs, so it
+  holds for every multiply-combined candidate in the library — all 67 composite files list multiply
+  among their combiners (47 multiply-only, 20 multiply+gate; counted 2026-09-09). It is arithmetic,
+  not a claim, and it is not a reason to change compose.py.
+  DISTINCTNESS, checked not assumed. `grep legs: forge/composites/*.yaml forge/composites/staged/*.yaml`
+  on 2026-09-09: no composite pairs an option-surface leg with an accruals leg. The nearest existing
+  pair is accruals_x_range_volatility (usa_accruals_cashflow x range_volatility_arbitrage_cost), and
+  it is a different construct on the fetched evidence: that leg is a volatility LEVEL (normalized
+  average true range) used as an arbitrage holding cost, while Bali & Hovakimian state that the
+  physical and risk-neutral volatility LEVELS cannot predict returns and only the SPREAD between them
+  can. This composite makes no limits-to-arbitrage claim and must not be read as a second copy of
+  that one. Whether the two books are actually distinct is a correlation measurement, not a claim
+  made here.
+  WHY THIS SPECIFIC INTERACTION IS NOT ALREADY CROWDED: UNKNOWN. No fetched source measures crowding
+  of the realized-implied-spread x accruals conjunction. The library-distinctness grep above is about
+  this repo, not about the market.
+  PARTNER CHOICE IS POST-HOC ALLOCATION, NOT A SIGN. usa_accruals_cashflow was chosen because
+  diagnosis_ladder.md §3a measures a 0.40 y2pass rate on rows with Sharpe >= 1.3 across 184 rows
+  containing that leg, and because it is the only leg on the harness's allowed partner list whose
+  domain is not already paired with an option leg. That is an allocation regularity; it says nothing
+  about this conjunction's sign, which comes from the two fetched abstracts above.
+  LEG STATUS. option_realized_implied_vol_spread was audited in docs/harness5/round_1/audit_staged.md
+  §5 (option40; four MATRIX fields, coverage 0.984; the 30/90-day variants refused by a unit-label
+  slip, disclosed in the leg file) and had no composite until this one. The leg file is unchanged.

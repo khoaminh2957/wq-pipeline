@@ -1,0 +1,24 @@
+id: etf_redemption_pressure_60d
+family: etf_flow
+category: Other
+title: Persistent ETF Position De-accumulation Pressure
+mechanism: >
+  A high count of ETFs reducing their holdings of a stock over 60 days indicates sustained, mandate-driven selling pressure that is not yet fully reflected in the price. Because these flows are non-fundamental and often executed mechanically, they create a temporary liquidity vacuum and forced selling that depresses the price below its intrinsic value. As the mandatory selling pressure subsides or the market recognizes that the de-accumulation is not driven by new negative information, the price reverts to its fair value, generating positive future returns for those who buy the undervalued stock.
+counterparty: Passive index funds and mandate-driven institutions
+sign: -1
+source: "EX-ANTE — Chordia 2022, showed that ETF flows create short-term price pressure that reverses"
+datasets: [other580]
+signal:
+  fields: [negative_change_count_60d]
+template: "rank({signal})"
+params:
+  w: [5, 20, 60]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  The field `negative_change_count_60d` has a negative sign in the FIELDS table, indicating that a higher count of negative changes (de-accumulation) is associated with lower future returns. However, the economic logic of forced selling suggests that de-accumulation should lead to *higher* future returns (reversion). The table's sign likely reflects the raw correlation of the flow with past returns or a specific definition where the 'count' is of stocks experiencing pressure. I am maintaining the sign as -1 per the table to comply with Rule 4, but the mechanism describes the reversion logic. If the table's sign implies that high counts predict *lower* returns, it may be capturing a different dynamic (e.g., correlated with bad news). I will proceed with the sign -1 as mandated.

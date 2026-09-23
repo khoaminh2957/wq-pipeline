@@ -1,0 +1,105 @@
+id: opleverage_x_sentiment
+title: The news is the revenue revision; the cost base is the multiplier that turns it into profit
+arm: new
+legs: [operating_leverage_cost_base, sentiment_weekly_continuation]
+families: [operating_leverage, tone]
+combiners: [multiply]
+mechanism: >
+  Accumulated news tone is a running revision to the market's expected revenue path. Operating
+  leverage is the coefficient that converts a revenue revision into an operating-income revision.
+  Those are not two forecasts of the same quantity agreeing - one leg is the news, the other is the
+  transmission coefficient from news to profit - which is why the product is the bet and neither
+  leg alone is. The same week of accumulating positive tone implies a far larger earnings revision
+  at a firm that has to cover a large operating cost base off a small asset base, because its profit
+  is only the residual left after that base is met; at a firm whose cost base is small relative to
+  its assets the identical revenue news barely reaches the operating line. The two inputs arrive on
+  completely different clocks and through different channels: the tone arrives daily, in headlines
+  and sentiment scores that anyone can read, while the cost structure arrives four times a year
+  inside a filing that has to be divided by the balance sheet before it says anything. So the
+  documented underreaction to accumulated tone is largest exactly where the multiplier on it is
+  largest, and the product keeps the names where an accumulating upward revision to demand meets the
+  cost structure that magnifies it - while the bottom of the book is simply the names where neither
+  condition holds. multiply(rank, rank) is a one-corner confirmation operator: for two independent
+  uniform rank legs the deepest short decile of the product has mean leverage rank 0.202, with only
+  0.142 of that decile above leverage rank 0.5, and the low-tone x high-leverage corner this file
+  previously called 'the short side' (tone rank < 0.2, leverage rank > 0.8) sits at mean book
+  percentile 0.289 - not at the short extreme. DERIVED 2026-09-09, two ways. Closed form:
+  E[U | UV <= t] = (1 - t/2)/(1 - ln t) and P(U > 0.5 | UV <= t) = ln2/(1 - ln t), at the decile cut
+  t = 0.020451 solving t - t ln t = 0.1, give 0.2024 and 0.1418; the corner by integrating the
+  product's own CDF F(p) = p - p ln p over u in (0.8, 1), v in (0, 0.2) gives 0.2891. Monte Carlo on
+  200,000 independent uniform pairs gives 0.200, 0.138 and 0.291. The bet is the long corner; no
+  claim is made for the short side.
+counterparty: "Retail investors and headline-driven institutional traders who act on a daily sentiment score uniformly across names, without conditioning on a cost structure that is only visible once a quarter and only after the filing is scaled by the balance sheet; and the sell-side analysts who revise the revenue line on the news while holding the modelled cost structure fixed, so the earnings revision they publish is too small precisely at the firms whose cost base magnifies the revenue change"
+source: "EX-ANTE — the leverage half is carried by two abstracts fetched for this composite's new leg: Garcia-Feijoo & Jorgensen 2010, Financial Management 39(3), FETCHED https://api.crossref.org/works/10.1111/j.1755-053X.2010.01106.x HTTP 200 (2026-09-09), verbatim 'we find a positive association between BE/ME and the degree of operating leverage (DOL), between DOL and stock returns, and between DOL and systematic risk'; and Novy-Marx, 'Operating Leverage', Review of Finance, FETCHED https://api.openalex.org/works/doi:10.1093/rof/rfq019 HTTP 200 (2026-09-09), verbatim 'Operating leverage also explains why the value premium is weak and non-monotonic across industries, but strong and monotonic within industries.' The tone half is carried by sentiment_weekly_continuation's own source line (Heston & Sinha 2017, weekly aggregated sentiment predicts returns for up to 13 weeks); that paper was NOT re-fetched here and is named as the partner leg's evidence, not as this composite's. NO CITATION FOR THE CONJUNCTION ITSELF WAS FOUND AND FETCHED: a Crossref bibliographic search for operating leverage against earnings-response / return-sensitivity to news returned nothing usable (one record reported NO significant operating-leverage effect on returns in its own sample), so nothing is cited for the interaction. The interaction argument above is EX-ANTE arithmetic - an earnings revision is a revenue revision times the transmission coefficient of the cost structure - and it is a PREDICTION, not a documented result."
+regimes: {value_winter_2014_2020: "0", momentum_crash_2016: "0", covid_2020: "-", rate_shock_2022: "+"}
+strongest_in: "mid caps inside subindustries where cost structures genuinely differ from firm to firm - retail, distribution, transport, restaurants, capital goods - and in weeks when the accumulated news flow is about unit demand (traffic, volumes, bookings, order books) rather than about financing, litigation or governance: there the tone revises the revenue line and the cost base decides how much of the revision reaches operating income"
+weakens_when: "the peer group has no cost-structure variation to rank - banks, insurers, REITs and regulated utilities, where operating expense over assets measures a regulated balance sheet rather than a firm's own fixed-cost choice - and in weeks when the tone is about balance-sheet, legal or governance events, which move equity value without moving the revenue line the leverage multiplies. It also weakens where operating income is near zero or negative, because the multiplier the mechanism rests on is then undefined in sign, and in a demand shock fast enough that a weekly tone average is still describing the world before it"
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [4, 8]
+  truncation: 0.08
+notes: >
+  STANDING CAVEAT ON THE REGIME MAP. docs/harness5/round_2/diagnosis_ladder.md 3b measured every
+  composite's rate_shock_2022 sign against its year-2 ladder value and REFUTED the map as a screen:
+  the '0' group cleared the 2022-2024 window as often as the '+' group. The four signs below are the
+  hypothesis standard's EX-ANTE reasoning for this conjunction and must not be used to rank it.
+  value_winter_2014_2020 '0': the fetched Garcia-Feijoo & Jorgensen abstract puts DOL positively
+  associated with BE/ME, so the leverage leg carries a value tilt and the 2014-2020 value winter runs
+  against it; the fetched Novy-Marx abstract says the value premium is weak across industries but
+  'strong and monotonic within industries', and every template here ranks and neutralizes WITHIN
+  subindustry / industry. Those two pull opposite ways and no experiment here separates them, so the
+  sign is 0 rather than a guess dressed as a forecast.
+  momentum_crash_2016 '0': the early-2016 reversal rewarded beaten-down high-cost-base cyclicals,
+  which is the leverage leg's long side, and punished tone continuation, which is the sentiment leg's.
+  The two halves offset and the product's net sign is not determined by either.
+  covid_2020 '-': a demand stop is precisely the state in which a large operating cost base destroys
+  equity value, and the conjunction is long the names where positive accumulated tone meets that cost
+  base. The shock also arrived faster than a 5-20 day tone average could revise, so the long book was
+  still holding the pre-shock names when the multiplier turned against them.
+  rate_shock_2022 '+': the profit this conjunction bets on resolves in near-term demand rather than in
+  terminal growth, so it carries little duration for a discount-rate shock to reprice, and the value
+  side that the leverage leg loads on (per the fetched BE/ME-DOL association) was the rewarded side
+  in 2022.
+  FORCE, named because the two halves do not carry the same tag. The leverage leg alone is tagged
+  RISK PREMIUM (its fetched abstract says 'a risk-based explanation'). The CONJUNCTION argued here is
+  behavioral-mispricing - an underreaction to accumulated tone that is not conditioned on a cost
+  structure visible only once a quarter - and its counterparty (retail, headline-driven traders,
+  revenue-only analyst revisions) is the behavioral one. The conjunction does NOT inherit the leg's
+  tag. No experiment here distinguishes a risk premium from a mispricing; MECHANISM UNKNOWN for which
+  one the product actually pays.
+  COMBINER. Both legs render bullish (sign +1), so no leg needs inverting; [multiply] is used anyway
+  per the round's standing preference - POST-HOC, multiply rows at the bar reach fitness 1.0 at
+  132/393 (33.6%) against gate 6/215 (2.8%). RE-DERIVED 2026-09-09 from state/layered/runs/forge.jsonl
+  (28,195 lines, the local snapshot; the VPS copy is 28,220): COMPLETE rows at USA/d1 with
+  |Sharpe| >= 1.58, classified by the string compose.combine actually renders - formula starting
+  'multiply(' against formula starting 'if_else(greater('. The 130/355 vs 6/184 previously written
+  here reproduces under no filter I tried; the order-of-magnitude conclusion it drew is unchanged.
+  DISTINCTNESS, checked not assumed (2026-09-09 21:05 local: the legs, families and leg datasets of
+  all 45 live plus all 17 staged composites enumerated; forge/composites/*.yaml = 45,
+  forge/composites/staged/*.yaml = 17; the staged directory keeps growing during the round, so this
+  count is stated with the timestamp at which it was taken).
+  fundamental13 appears in no live composite. sentiment_weekly_continuation is currently paired with
+  short flow (short_x_sentiment), the option IV spread (usa_sentiment_x_ivspread,
+  usa_sentiment_x_ivspread_x_profitability) and profitability+accruals
+  (usa_sentiment_x_profitability_x_accruals) and, in staged, the ex-day dividend cycle
+  (exdaycycle_x_sentiment) and the EPS surprise drift (epssurprise_x_sentiment) - never with a
+  cost-structure or risk leg. No composite
+  in the library carries an operating_leverage family. The nearest domain pair is tone x profitability
+  (tone_x_profitability, headline_x_profitability, multiwire_x_profitability, usa_twitter_x_profitability),
+  and this one is deliberately NOT that: the new leg is arithmetically DECREASING in operating margin
+  (see the leg's notes), so it sits on the opposite side of the margin dimension from every
+  profitability leg in the library. Whether the resulting book is actually distinct is a correlation
+  measurement, not a claim made here.
+  PARTNER CHOICE, and what it is and is not evidence of. sentiment_weekly_continuation was chosen from
+  the allocation table in the round brief - composites containing it cleared the 2022-2024 ladder
+  window on 0.42 of rows with Sharpe >= 1.3 (n 247), the highest rate on that table - and because its
+  fields carry alphaCount 0-1 (primary_sentiment_average 1, sentiment_score_average 1,
+  secondary_sentiment_average 0), so the standard's crowding gate is not tripped by either leg
+  (the new leg's fields carry 429 / 460 / 590, all below the 750 hard line). That 0.42 is POST-HOC
+  allocation knowledge about EXISTING composites; it says nothing about whether the rate transfers to
+  a partner it has never been paired with, and it is not evidence for this conjunction.
+  WHAT WOULD REFUTE THIS. If the product's rows are indistinguishable from the sentiment leg's own
+  rows, the multiplier added nothing and the conjunction is decoration. If the leverage leg alone
+  comes back as a short-profitability book (its arithmetic identity permits exactly that), then what
+  is being traded is the margin dimension and not operating leverage, and this composite should be
+  dropped rather than re-argued.

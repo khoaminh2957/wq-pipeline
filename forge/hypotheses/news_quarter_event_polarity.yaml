@@ -1,0 +1,147 @@
+id: news_quarter_event_polarity
+family: news_flow_quarter
+category: News
+title: A quarter of news, netted — the share of a firm's non-neutral news events that were positive
+mechanism: >
+  The vendor counts every non-neutral news event it detects for a firm over a rolling 91 days and
+  reports the share of them that were positive. That number is not today's headline and it is not a
+  tone score: it is the accumulated public record of the quarter, one level per name per day. Heston
+  and Sinha measure the property that makes such an accumulation tradeable rather than already
+  priced — a single day's news is impounded in one or two days, while news aggregated over a longer
+  window still predicts returns a quarter ahead, with the positive side arriving fast and the
+  negative side arriving late and largely at the next earnings announcement. The leg ranks firms on
+  that accumulated polarity inside their group and holds the high end long, so its short side is the
+  firm whose quarter of news has been mostly negative and whose price, on the same evidence, has not
+  finished absorbing it. Force: behavioural mispricing — slow diffusion of already-published soft
+  information, asymmetric in the direction that requires an investor to sell.
+  MECHANISM of WHY the negative side is the slow one: UNKNOWN here. Frazzini's disposition-effect
+  account (holders who ride losses do not sell into bad news) is the candidate named in the source
+  line and supplies the counterparty below; it is one candidate, not a result reproduced by this
+  leg, and no experiment here separates it from the alternatives (short-sale costs on the bad-news
+  names, or slower analyst revision downward than upward).
+counterparty: "Individual investors who ride losses and delay realising them, so a firm's accumulated bad news is sold into the market weeks after it was published (Frazzini 2006); and the buyers on the other side of that late selling, who take the stock before the drift is over"
+sign: 1
+source: >-
+  EX-ANTE — Heston & Sinha, "News versus Sentiment: Predicting Stock Returns from News Stories",
+  Finance and Economics Discussion Series 2016-048 (the working-paper version of Financial Analysts
+  Journal 73(3), 2017). FETCHED https://api.crossref.org/works/10.17016/feds.2016.048 HTTP 200
+  (2026-09-09, both by curl on the raw JSON and by WebFetch on the same URL; the publisher page was
+  NOT fetched and is not the source of this text). Verbatim from that abstract: "We find that daily
+  news predicts stock returns for only 1 to 2 days, confirming previous research. Weekly news,
+  however, predicts stock returns for one quarter. Positive news stories increase stock returns
+  quickly, but negative stories have a long delayed reaction. Much of the delayed response to news
+  occurs around the subsequent earnings announcement." — this is the horizon evidence: aggregation
+  over a longer window is what carries the predictability past a couple of days, which is the whole
+  reason a 91-day rolling aggregate is the field to use rather than a daily tone score.
+  The counterparty is grounded by Frazzini 2006, Journal of Finance 61(4) 2017-2046, "The
+  Disposition Effect and Underreaction to News". FETCHED
+  https://api.crossref.org/works/10.1111/j.1540-6261.2006.00896.x HTTP 200 (2026-09-09, curl and
+  WebFetch). Verbatim from that abstract: "This paper tests whether the "disposition effect," that
+  is the tendency of investors to ride losses and realize gains, induces "underreaction" to news,
+  leading to return predictability." and "I show that post-announcement price drift is most severe
+  whenever capital gains and the news event have the same sign."
+  CONSTRUCT CORRESPONDENCE, stated rather than glossed: Heston & Sinha aggregate news over a WEEK
+  and predict a QUARTER; this field aggregates over a QUARTER and is used to predict weeks. The
+  direction (continuation, positive polarity long) and the finding that aggregation is what buys
+  horizon are the paper's; that the effect survives at 91-day aggregation is NOT established by the
+  paper and is the thing the simulation measures. Their sentiment is a Thomson-Reuters neural
+  network score; this field is a count-based ratio of events the vendor classified non-neutral, so
+  the measurement channel differs and only the construct — accumulated net news polarity — matches.
+datasets: [news48, news50]
+signal:
+  fields: [nws48_aes, positive_event_ratio_score]
+  vector: vec_avg
+  density: backfill
+  density_window: 22
+template:
+  - "group_rank(ts_mean({signal}, {w}), {group})"
+  - "group_rank(ts_mean({signal}, {w}) - ts_mean({signal}, 250), {group})"
+params:
+  w: [5, 10, 22]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  FIELDS (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1, category News / News Sentiment,
+  pyramidMultiplier 1.2). nws48_aes — dataset news48, VECTOR, coverage 1.0, userCount 15,
+  alphaCount 17, dateCreated 2023-07-01, description "Aggregate score (0-100) of positive event
+  ratio vs. all non-neutral events for an entity over a 91-day rolling window".
+  positive_event_ratio_score — dataset news50, MATRIX, coverage 1.0, userCount 2, alphaCount 2,
+  dateCreated 2025-11-01, description "Granular 0-100 score: ratio of positive to total non-neutral
+  events over a rolling 91-day window within a package; ESS>50 positive, ESS<50 negative, ESS=50
+  excluded". The two are the same vendor construct in two packages, one VECTOR and one dense MATRIX;
+  they are listed as ALTERNATIVES (factory.eligible_fields returns one candidate per field), not
+  combined. news50 is NOT the dataset assigned to this researcher (news48 is); it is included
+  because it carries the identical 91-day definition in MATRIX form, and because a second package of
+  the same construct is the cheapest robustness the leg can have. If another researcher this round
+  claims news50, the news50 field should be dropped and the leg still stands on nws48_aes.
+  SIGN SOURCE. Read from the description: the score IS the ratio of positive events to non-neutral
+  events, so a larger value is a more positive quarter. forge/labels.py leaves nws48_aes at sign
+  "unstated" (its News / News Sentiment description does not trip a description-sign rule and the
+  coarse domain "news" carries no DOMAIN_SIGN prior); the same construct in news50,
+  positive_event_ratio_score, IS labelled "+" from its description. There is no prior to disagree
+  with on nws48_aes — the label is absent, not opposed. Consequence, stated so it is not a surprise
+  later: the pre-sim gate (runner.py calls typed.judge with structural=True) applies H1 / H2 /
+  H4-vector / H4-density only, so the unstated label does not refuse the formula; a FULL judge()
+  call raises H5 on nws48_aes and not on positive_event_ratio_score.
+  TYPE RULES. Both fields are scores in 0-100, so no division and no ts_delta touches them (H2
+  forbids a change operator on a score; template 2 uses subtract, which is not a change operator,
+  and subtracts a score from a score so H1 holds). nws48_aes is VECTOR and is read only through
+  vec_avg, which is in its vec_reducers list for vec_role event-value; positive_event_ratio_score is
+  MATRIX and factory._leg leaves it alone. USA/d1 coverage is 1.0 on both, so no density operator is
+  REQUIRED; ts_backfill(., 22) is declared anyway because a rolling 91-day aggregate that is missing
+  for a day means "no new event", i.e. the quarter's ratio has not changed — the "backfill" case in
+  the DENSITY note — and because the canary measured that a signal which goes NaN ranks into a tiny
+  book and fails CONCENTRATED_WEIGHT. If the coverage figure is right the backfill is a no-op.
+  TWO TEMPLATES, TWO BASELINES, not two mechanisms. Template 1 removes the firm's baseline
+  cross-sectionally (group_rank inside subindustry / industry / sector); template 2 removes it from
+  the firm's OWN history (the level minus its 250-day mean) before the same group rank, because a
+  firm whose news is habitually classified positive would otherwise rank high forever. Which
+  baseline the signal survives is a measurement, not a claim made here. Template 2's difference
+  is type-indeterminate to the judge. MEASURED 2026-09-09: a full typed.judge() call on the
+  positive_event_ratio_score rendering returns exactly "H6 orientation is unknown, not +1 (higher =
+  long)"; on the nws48_aes rendering H5 (unstated sign) fires first and H6 is never reached, because
+  judge() evaluates H6 only when no hard reason has already fired. The unit algebra cannot see that
+  both operands are the same field and so cannot sign a - b. The pre-sim gate the runner actually
+  applies (structural=True) does not
+  check H6, and all four rendered formulas pass it with no hard reason. Nothing is disabled
+  here to make that true; it is written down so the H6 line is not read later as a defect.
+  HISTORY CHECK, run not assumed. Neither field is in state/banned_fields.json (2 top-level keys;
+  the banned_fields list itself is 74 entries) or state/climb/spent_fields.json (75 entries). Five
+  rows in state/resim_results.jsonl (78,319 lines)
+  mention them, all from the old climb pipeline: each is a 4-7 term weighted blend carried by a pv1
+  close/open + close/vwap pair, and each reads the field through vec_stddev, vec_count, vec_max or
+  vec_range — dispersion, count and order statistics, none of which is the LEVEL this leg ranks.
+  OBSERVATION, not evidence for this leg: one of the five (vec_max(nws48_aes), weight 0.9, inside
+  that pv1 blend) read sharpe 2.10, fitness 1.37, IS_LADDER_SHARPE PASS 2.65, and failed
+  LOW_SUB_UNIVERSE_SHARPE 0.75 vs 0.91; another read sharpe -0.28. Attributing either number to the
+  field would be exactly the rationalization RULE 0 forbids: the carrier and five other terms are in
+  both formulas and no experiment separates them. MECHANISM: UNKNOWN; the rows are noted so that
+  nobody later re-discovers them and calls them a precedent.
+  DISTINCTNESS, checked not assumed. No leg in the LOADED library (forge/hypotheses/*.yaml,
+  non-recursive) uses news48 or news50 (grepped). One STAGED leg does: news_earnings_coverage_tone
+  reads news48's nws48_ber / nws48_bee (earnings-release tone scores, not this 91-day polarity
+  ratio) and is paired with the same partner in forge/composites/staged/earningsnews_x_insider.yaml.
+  Same dataset and same partner, different fields and different construct; whether the two are
+  empirically distinct is a correlation measurement, not a claim here.
+  The library's news legs are all daily or weekly TONE scores (news_ravenpack_composite_tone on
+  news46's mean SSC, news_headline_tone_benzinga, news_multiwire_headline_tone, news_pr_event_tone,
+  news_negative_tone_nlp, finnews_negative_tone_drift), plus one attention leg
+  (sentiment_abnormal_coverage_reversal, today's article count over its own trailing mean). This leg
+  is neither: it is a count-based polarity RATIO accumulated over 91 days, the one construct in
+  news48 that no existing leg reads. Whether it is empirically distinct from those legs is a
+  correlation measurement, not a claim here — and news46 is the SAME vendor as news48, so a high
+  correlation with news_ravenpack_composite_tone is the outcome that would kill this leg.
+  COUNTER-CLAIM ON FILE, recorded not resolved: news_earnings_coverage_tone's own notes reject
+  nws48_aes on the ground that it is "the general-tone construct that sentiment_weekly_continuation
+  and news_ravenpack_composite_tone (news46, the same vendor's other feed) already trade". That is an
+  EX-ANTE argument, not a measurement; this file's counter is that a count-based 91-day polarity
+  RATIO is not a mean tone score. Neither position has been measured. MECHANISM: UNKNOWN.
+  TURNOVER, POST-HOC and not a reason for the construct: a 91-day aggregate moves slowly, and
+  docs/harness5/round_2/diagnosis_ladder.md §1 reports that every ladder PASS row on USA/d1 sits at
+  turnover 0.06-0.30, where the platform's 0.85x discount drops the bar to 2.02. That is an
+  observed regularity about the gate, not a mechanism, and it did not choose the field.

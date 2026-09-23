@@ -1,0 +1,26 @@
+id: option_customer_orderflow_informed
+family: options
+category: Option
+title: Customer option order imbalance is informed
+mechanism: >
+  Customer-initiated option volume reflects private information; the bullish-minus-bearish
+  imbalance, normalised by total directional volume and averaged over the window, predicts the
+  underlying's return. Long the names with the most bullish customer order flow.
+counterparty: Market makers and dealers who absorb the flow.
+sign: 1
+source: "EX-ANTE — Pan & Poteshman 2006 (customer-initiated option volume predicts stock returns); Hu 2014 (option order imbalance)"
+datasets: [order_flow_imb]
+signal:
+  fields: [customer_bullish_vol, firm_bullish_vol, customer_bullish_vol_otm]
+signal2:
+  fields: [customer_bearish_vol, firm_bearish_vol, customer_bearish_vol_otm]
+template: "group_rank(ts_mean(({signal} - {signal2}) / ({signal} + {signal2}), {w}), {group})"
+params:
+  w: [5, 10, 20]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY]
+  decay: [4, 8]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

@@ -1,0 +1,26 @@
+id: quality_profitability_composites
+family: profitability
+category: Model
+title: Quality and profitability composites earn a premium
+mechanism: >
+  Profitable firms with stable, certain earnings and strong cash generation are underpriced
+  relative to junk; the premium accrues slowly. Long the names with the highest quality,
+  profitability, earnings-certainty and cash-flow-efficiency composites.
+counterparty: Investors who overpay for junk with lottery-like payoffs.
+sign: 1
+source: "EX-ANTE — Novy-Marx 2013 (gross profitability); Asness, Frazzini & Pedersen 2019 (quality minus junk); Piotroski 2000"
+datasets: [model16]
+signal:
+  fields: [fscore_quality, fscore_profitability, earnings_certainty_rank_global, cashflow_efficiency_rank_global, fscore_bfl_quality]
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_rank(ts_backfill({signal}, 63), {w}), {group})"
+params:
+  w: [5, 21]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: any
+delays: [0, 1]

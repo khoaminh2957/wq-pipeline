@@ -1,0 +1,98 @@
+id: earnings_eps_surprise_drift
+family: earnings_surprise
+category: Other
+title: The reported EPS surprise, carried on the stock, is still drifting weeks after the release
+mechanism: >
+  The vendor's event feed reads each earnings release and stores the percentage by which the
+  reported earnings per share differed from what the release was measured against, then carries
+  that number on the stock until the next release - INFERRED, not read from the description: a
+  value set only on announcement days would cover roughly one day in sixty-three, and the
+  catalogue gives coverage 0.8994 / dateCoverage 0.9507, which is a carried series. MECHANISM of
+  the vendor's fill rule: UNKNOWN. That number is the one moment per quarter at
+  which realised profitability is set against an expectation. Reading it is free and it is in the
+  price within a day; what the post-earnings-announcement-drift literature measures is a FURTHER
+  move in the direction of the surprise over the following weeks, because investors do not carry
+  the current quarter's surprise into their expectation of the next quarters' earnings. Force:
+  behavioural mispricing (incomplete extrapolation of a published number), not a risk premium
+  claim - the literature also contains a liquidity/arbitrage-risk reading of the same drift and
+  this leg does not distinguish them. MECHANISM of why the drift survives: UNKNOWN here; two
+  candidates stand. Long the names with the largest positive reported surprise inside the peer
+  group, short the largest misses.
+counterparty: "Retail investors and screen-driven quant managers who price the beat on the day it prints and stop revising, plus the index funds and passive holders who do not revise at all; the population is replenished every quarter because the reporting cycle recurs"
+sign: 1
+source: >-
+  EX-ANTE — Livnat 2003, "Post-Earnings-Announcement Drift: The Role of Revenue Surprises and
+  Earnings Persistence". FETCHED https://api.crossref.org/works/10.2139/ssrn.416302 HTTP 200
+  (2026-09-09; Crossref record for doi 10.2139/ssrn.416302, deposited abstract). Verbatim from that
+  abstract: "This study explores an additional factor that is associated with differential levels of
+  the post-earnings-announcement drift (henceforth drift) - the contemporaneous surprise in
+  revenues." and "this study shows that the earnings drift is stronger when the revenue surprise is
+  in the same direction as the earnings surprise. Moreover, the study provides direct evidence that
+  the drift is stronger when the earnings persistence is greater." Bernard & Thomas 1989, Journal of
+  Accounting Research 27, is the canonical drift paper and is named as BACKGROUND ONLY: its Crossref
+  record (doi 10.2307/2491062, fetched 2026-09-09) carries NO abstract field, so under Q14 it is not
+  cited as evidence here and no sentence of it is quoted.
+datasets: [other326]
+signal:
+  fields: [oth326_epssurprisepct]
+  vector: vec_avg
+template:
+  - "group_rank(ts_backfill({signal}, {w}), {group})"
+  - "group_rank(ts_mean(ts_backfill({signal}, {w}), 5), {group})"
+params:
+  w: [21, 63]
+  group: [subindustry, industry, sector]
+settings:
+  neutralization: [SUBINDUSTRY, INDUSTRY, STATISTICAL]
+  decay: [8, 16]
+  truncation: 0.08
+regions: [USA]
+delays: [1]
+notes: >
+  SIGN SOURCE. Read from the DESCRIPTION, which is the whole of it: "Earnings-per-share surprise
+  expressed as a percentage". A surprise is actual minus expected, so a larger value is a larger
+  beat; that is the quantity's sign and it is not in dispute. The RETURN direction is supplied by
+  the cited literature, not by the field. forge/labels.py independently gives this field sign '+'
+  from a domain prior (domain earnings-event, sign_source domain-prior); label and description
+  AGREE, so there is nothing to overrule.
+  WHAT THE DESCRIPTION DOES NOT SAY, stated rather than filled in: it does not say what the
+  expectation is - analyst consensus or the same quarter a year earlier. Both readings are covered
+  by the drift literature (Livnat & Mendenhall 2006 compare surprises built from analyst and from
+  time-series forecasts) and BOTH carry the same sign for this leg, so the orientation does not
+  depend on which one the vendor used. Which it is: UNKNOWN.
+  FIELD (fetched/rc/fields/USA_TOP3000_d1.jsonl, USA delay 1 TOP3000, dataset other326
+  "Intermediate Data from Events", category Other / subcategory Event Data): oth326_epssurprisepct,
+  type VECTOR, coverage 0.8994, dateCoverage 0.9507, userCount 3, alphaCount 3, pyramidMultiplier
+  1.5, dateCreated 2022-10-01. The label file's dataset attribution agrees with the catalogue here.
+  TYPE RULES (forge/typed.py). H4 VECTOR: read only through vec_avg, which is declared in
+  signal.vector, so the factory wraps the field before the template. H4 density: coverage 0.8994 is
+  far above the 0.5 line, so no density operator is required and none is declared; ts_backfill still
+  sits in both templates because the underlying quantity is set once a quarter and a gap means "no
+  new report", i.e. no change. H2: group_rank on a return/ratio kind is allowed (only flag and code
+  are non-rankable). H1: nothing is added, subtracted or divided, so no unit can be crossed. H6: the
+  template renders the bullish quantity directly and sign is +1.
+  WHY ONE FIELD AND NOT TWO-TO-FOUR. The dataset has 53 USA/d1 fields and exactly one of them is an
+  earnings surprise. The other candidates for a second expression of the SAME quantity are not that:
+  oth326_spe is the EPS level (not a surprise), oth326_netincome / oth326_operatingincome /
+  oth326_grossincome / oth326_revenue are announced currency levels (a size, and a margin built from
+  them would duplicate the library's operating_margin_change and profitability legs), and the
+  regression trio for each line item (mean_aspe/bspe/espe, mean_neta/netb/nete, mean_reva/revb/reve)
+  cannot be signed at all: the descriptions name an "alpha", a "beta" and a "square root of sum of
+  squares for error" without saying what was regressed on what, so calling the beta a growth trend
+  would be invention. They are left out rather than padded in. The headline-score fields
+  (mean_score1..5, nscore, ascore, vscore) are a news-tone construct, which the library already
+  carries six times.
+  LEDGER CHECK, run not assumed. oth326_epssurprisepct appears in no state/banned_fields.json and no
+  state/climb/spent_fields.json entry; the only state files naming it are the field catalogues
+  state/forum_datasets_fields.jsonl and state/all_fields_usa_top1000_d1.jsonl, which are inventories,
+  not ledgers. No hypothesis in forge/hypotheses/ or forge/hypotheses/staged/ uses dataset other326.
+  TURNOVER, EX-ANTE arithmetic and not a measurement. The carried value changes only when a firm
+  reports, so on a random day roughly one name in sixty-three updates and the cross-sectional rank
+  is close to unchanged. The ladder's turnover discount applies below 0.30 (diagnosis_ladder.md
+  section 1: every USA/d1 all-binding passer sits at turnover 0.06-0.30), so a slow signal is on the
+  right side of that line. Whether THIS formula lands there is a measurement that has not been made.
+  OVERLAP TO WATCH, not a claim. starmine_predicted_surprise_gap trades the analysts' PREDICTED
+  surprise before the announcement; this leg trades the REPORTED surprise after it. They are
+  different constructs on different sides of the event, but if the vendor's benchmark is the analyst
+  consensus the two will share the consensus term. If the measured correlation with that leg is
+  high, this hypothesis has not added a distinct mechanism and should be dropped, not re-argued.
