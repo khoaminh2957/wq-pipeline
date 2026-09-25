@@ -1,0 +1,163 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(days_from_last_change(ern2_earnrelease_d1_calendar_prev),50),rank($1),add(multiply(rank($1),0.5),0.25))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 4,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "NONE",
+  "horizon": "NONE",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": null,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "add",
+   "days_from_last_change",
+   "greater",
+   "if_else",
+   "multiply",
+   "rank"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "ern2_earnrelease_d1_calendar_prev"
+ ],
+ "evidence": null,
+ "groups": [],
+ "id": "Ffa3625746f8e",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (if_else docs; the shrink rank*0.5+0.25 keeps order and the 0.5 centre, so only the late-cycle names carry full amplitude)"
+    },
+    "family": "event-window",
+    "field": "template",
+    "function": "pre-announcement emphasis: full weight on a predicted-surprise score in the last weeks before the next release, half weight otherwise",
+    "id": "NF02",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "always-on book (no NaN branch), so no coverage gap; the emphasis is per stock, so the platform's daily rescale does not undo it"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "a surprise forecast is worth most just before the surprise is revealed"
+    },
+    "ref": "line 2",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "ml-prediction",
+       "earnings-event",
+       "analyst-revision"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "score",
+       "ratio",
+       "return"
+      ],
+      "pool_size_in_cell": 11035,
+      "role": "forward-looking score about the coming report",
+      "sign": [
+       "+"
+      ],
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(days_from_last_change(ern2_earnrelease_d1_calendar_prev),#),rank($1),add(multiply(rank($1),#),#))",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "ml-prediction",
+     "earnings-event",
+     "analyst-revision"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "score",
+     "ratio",
+     "return"
+    ],
+    "sign": [
+     "+"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ],
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "forward-looking score about the coming report",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(days_from_last_change(ern2_earnrelease_d1_calendar_prev),50),rank($1),add(multiply(rank($1),0.5),0.25))",
+ "version": 1,
+ "windows": []
+}

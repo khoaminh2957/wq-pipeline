@@ -1,0 +1,220 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(group_rank(ts_mean(subtract(implied_volatility_call_60,implied_volatility_put_60),5),subindustry),0.5),group_rank(ts_mean($1,5),industry),0)",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "SINGLE.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "DAYS",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 5,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "greater",
+   "group_rank",
+   "if_else",
+   "subtract",
+   "ts_mean"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "HIGH"
+ },
+ "cond_fields": [
+  "implied_volatility_call_60",
+  "implied_volatility_put_60"
+ ],
+ "evidence": {
+  "caveats": [
+   "C1 fill counts measure allocation, not durability",
+   "C2 corpora are selected samples",
+   "C3 fills were not drawn at random",
+   "C4 settings vary within a cell and are partly unknown"
+  ],
+  "cells": {
+   "USA/d0": {
+    "corpus_groups": {
+     "forge": 2
+    },
+    "d24_rate": 0.0,
+    "d24_wilson_lo95": 0.0,
+    "ge_0p8_rate": 0.0,
+    "ge_0p8_wilson_lo95": 0.0,
+    "limits": {
+     "2.69": 2
+    },
+    "n_complete": 2,
+    "n_d24": 0,
+    "n_datasets": 1,
+    "n_fills": 1,
+    "n_ge_0p8": 0,
+    "n_rows": 2,
+    "n_with_limit": 2,
+    "ratio_median": 0.4926,
+    "settings_top": [
+     [
+      "TOP3000|STATISTICAL|4|0.15",
+      1
+     ],
+     [
+      "TOP3000|SUBINDUSTRY|4|0.15",
+      1
+     ]
+    ],
+    "turnover_median": 0.3177
+   },
+   "USA/d1": {
+    "corpus_groups": {
+     "forge": 9
+    },
+    "d24_rate": 0.0,
+    "d24_wilson_lo95": 0.0,
+    "ge_0p8_rate": 1.0,
+    "ge_0p8_wilson_lo95": 0.7009,
+    "limits": {
+     "1.58": 9
+    },
+    "n_complete": 9,
+    "n_d24": 0,
+    "n_datasets": 2,
+    "n_fills": 6,
+    "n_ge_0p8": 9,
+    "n_rows": 9,
+    "n_with_limit": 9,
+    "ratio_median": 0.943,
+    "settings_top": [
+     [
+      "TOP3000|STATISTICAL|4|0.15",
+      4
+     ],
+     [
+      "TOP3000|STATISTICAL|8|0.15",
+      2
+     ],
+     [
+      "TOP3000|SUBINDUSTRY|8|0.15",
+      2
+     ]
+    ],
+    "turnover_median": 0.3293
+   }
+  },
+  "evidence_version": 1,
+  "label": "POST-HOC",
+  "n_fills": 6,
+  "n_rows": 11,
+  "reliability": {
+   "method": null,
+   "rounds": [],
+   "verdict": "UNMEASURED"
+  },
+  "source": {
+   "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/canonical/rows_framed.jsonl",
+   "sha256": "ffc469471c1fd7d4df97619cf3b5e4a6148478723a52c362197d78b76ce1bceb",
+   "spec": "FRAME SPEC v1"
+  }
+ },
+ "groups": [
+  "subindustry",
+  "industry"
+ ],
+ "id": "Fc83350c121a7",
+ "notes": "",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "mined",
+  "sources": [
+   {
+    "kind": "discovery",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/quant/out/q4_candidates.csv",
+    "ref": "row 59",
+    "row": {
+     "C1_top10": "True",
+     "C2": "True",
+     "C3": "True",
+     "C4": "True",
+     "candidate": "True",
+     "d24": "0",
+     "day_share": "1.0",
+     "day_testable": "True",
+     "days": "5",
+     "eb_p_above": "0.9993854446507774",
+     "eb_post": "0.7500385553711066",
+     "eb_post_allframe_prior": "0.7954724611880725",
+     "eb_post_sd": "0.06430606235439218",
+     "eb_rank_all_frames": "764.0",
+     "field_share": "1.0",
+     "field_testable": "True",
+     "late_mean": "0.8200259077900829",
+     "lofo_evaluable": "121.0",
+     "lofo_share_test_above": "1.0",
+     "mean": "0.8109997351145601",
+     "n_fill": "6",
+     "p_luck": "0.0018649906750466247",
+     "pass_share_rows": "0.3333333333333333",
+     "passes": "3.0",
+     "rand_share": "1.0",
+     "rows": "9",
+     "rr_post": "4.202152182354743",
+     "shape_key": "if_else(greater(group_rank(ts_mean(subtract(implied_volatility_call_60,implied_volatility_put_60),#),subindustry),#),group_rank(ts_mean($1,#),industry),#)"
+    },
+    "sha256": "267186e1782a90ff432f59e12d5a6ce24f90e11a579b97eb7a4a7b531981aea6"
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "n_modal": 5,
+  "n_rows": 11,
+  "neutralization": "STATISTICAL",
+  "source": "canonical-modal",
+  "truncation": 0.15,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(group_rank(ts_mean(subtract(implied_volatility_call_60,implied_volatility_put_60),#),subindustry),#),group_rank(ts_mean($1,#),industry),#)",
+ "slots": [
+  {
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_mean",
+     0
+    ]
+   ],
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(group_rank(ts_mean(subtract(implied_volatility_call_60,implied_volatility_put_60),5),subindustry),0.5),group_rank(ts_mean($1,5),industry),0)",
+ "version": 1,
+ "windows": [
+  [
+   "ts_mean",
+   5
+  ],
+  [
+   "ts_mean",
+   5
+  ]
+ ]
+}

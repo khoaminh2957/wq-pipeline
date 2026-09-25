@@ -1,0 +1,181 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(less(days_from_last_change($1),10),group_rank(ts_backfill($1,60),industry),add(multiply(group_rank(ts_backfill($1,60),industry),0.5),0.25))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "SLOT",
+  "conditioning": "IF_ELSE",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "QUARTER",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 60,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "add",
+   "days_from_last_change",
+   "group_rank",
+   "if_else",
+   "less",
+   "multiply",
+   "ts_backfill"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [],
+ "evidence": null,
+ "groups": [
+  "industry"
+ ],
+ "id": "Fb2d1899db078",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (days_from_last_change docs: 'the age of the current value')"
+    },
+    "family": "freshness",
+    "field": "template",
+    "function": "self-clocked freshness: full weight for 10 days after the field's own last change, half weight afterwards",
+    "id": "NF35",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "for daily-changing fields the gate is always open and the frame collapses to plain group_rank"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "a fresh update has not been fully priced"
+    },
+    "ref": "line 35",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "analyst-revision",
+       "analyst-rating",
+       "analyst-coverage"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 3944,
+      "role": "irregularly updated field (estimates, ratings)",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 2,
+  "neutralization": "SUBINDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(less(days_from_last_change($1),#),group_rank(ts_backfill($1,#),industry),add(multiply(group_rank(ts_backfill($1,#),industry),#),#))",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "analyst-revision",
+     "analyst-rating",
+     "analyst-coverage"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "days_from_last_change",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "irregularly updated field (estimates, ratings)",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(less(days_from_last_change($1),10),group_rank(ts_backfill($1,60),industry),add(multiply(group_rank(ts_backfill($1,60),industry),0.5),0.25))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_backfill",
+   60
+  ],
+  [
+   "ts_backfill",
+   60
+  ]
+ ]
+}

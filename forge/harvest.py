@@ -43,13 +43,40 @@ def quarantine_key(hypothesis, region, delay, category, field) -> str:
     return "%s|%s|%s|%s|%s" % (hypothesis, region, delay, category, field)
 
 
+#: D36 (Khoa 2026-09-23 ~17:20, design Q4 option a): the generated branch's quarantine is keyed (cell, field), cell
+#: = region/delay (D28). Keyed on (hypothesis, ...) as above, a generated row's hypothesis is its fingerprint family
+#: (gen:<family>), which the grammar almost never repeats, so the rule could not fire: architecture round 4 m22
+#: re-ran it, 4 FAIL rows of one field under 4 families gave dead keys [] (design §5.1 calls that a DELETION).
+#: A (cell, field) key is dead when >= min_n GENERATED rows naming the field failed with no alpha and NO forge row
+#: naming it landed there (library rows count as landed only, so the library's own rule is unchanged). A failure is
+#: charged to EVERY field the row names (row_fields; round 3 m19: two of the first-leg-only keys named fields that
+#: landed in other formulas of the cell). The generated prefix is written out, not imported from forge.gen: this
+#: module is in the scorer's import closure (D42) and forge/gen is not.
+GEN_PREFIX = "gen:"
+
+
+def field_quarantine_key(region, delay, field) -> str:
+    return "field|%s|%s|%s" % (region, delay, field)
+
+
+def row_fields(row) -> list:
+    """Every field a row or candidate names: the generator's meta.legs[*].fields, else meta.field and meta.field2."""
+    m = row.get("meta") or {}
+    out = {f for leg in m.get("legs") or [] if isinstance(leg, dict) for f in leg.get("fields") or [] if isinstance(f, str)}
+    if not out:
+        out = {f for f in (m.get("field"), m.get("field2")) if isinstance(f, str) and f}
+    return sorted(out)
+
+
 def quarantine(path=JOURNAL, out=QUARANTINE, min_n=QUARANTINE_MIN) -> list:
     """(hypothesis, cell, field) triples the platform refuses outright (status FAIL/ERROR, no
     alpha, every time). Measured 2026-09-04: fnd90_game_optimism_gma on JPN/d0 returned FAIL with
     an empty message for every child while its sibling field landed — a FIELD with no data there,
     not a dead hypothesis. Re-simulating it costs quota and teaches nothing, so the planner skips
-    these keys. Rewritten on every harvest from the whole journal."""
+    these keys. Rewritten on every harvest from the whole journal. Also the D36 (cell, field) keys of
+    generated rows (field_quarantine_key, above), in the same list."""
     seen = collections.defaultdict(lambda: [0, 0])          # key -> [failed, landed]
+    by_field = collections.defaultdict(lambda: [0, 0])      # D36 (cell, field) key -> [failed, landed]
     for r in read_jsonl(path):
         m = r.get("meta") or {}
         if not m.get("forge") or r.get("status") in (None, "PARENT-POSTED"):
@@ -60,7 +87,14 @@ def quarantine(path=JOURNAL, out=QUARANTINE, min_n=QUARANTINE_MIN) -> list:
             seen[k][1] += 1
         elif r.get("status") in ("FAIL", "ERROR", "FAILED"):
             seen[k][0] += 1
-    dead = sorted(k for k, (f, ok) in seen.items() if f >= min_n and ok == 0)
+        generated = str(m.get("hypothesis") or "").startswith(GEN_PREFIX)
+        for f in row_fields(r):
+            fk = field_quarantine_key((r.get("settings") or {}).get("region"), (r.get("settings") or {}).get("delay"), f)
+            if r.get("alpha"):
+                by_field[fk][1] += 1
+            elif generated and r.get("status") in ("FAIL", "ERROR", "FAILED"):
+                by_field[fk][0] += 1
+    dead = sorted(k for k, (f, ok) in list(seen.items()) + list(by_field.items()) if f >= min_n and ok == 0)
     pathlib.Path(out).parent.mkdir(parents=True, exist_ok=True)
     pathlib.Path(out).write_text(json.dumps(dead))
     return dead

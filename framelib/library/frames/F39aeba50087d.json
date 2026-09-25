@@ -1,0 +1,207 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(rank(adv20),0.5),rank($1),rank($2))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 3,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "NONE",
+  "horizon": "NONE",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": null,
+  "n_legs": 2,
+  "n_slots": 2,
+  "operators": [
+   "greater",
+   "if_else",
+   "rank"
+  ],
+  "slot_kinds": "MATRIX*2",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "adv20"
+ ],
+ "evidence": null,
+ "groups": [],
+ "id": "F39aeba50087d",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (if_else docs)"
+    },
+    "family": "segment-routing",
+    "field": "template",
+    "function": "liquidity-segment routing: one leg in the more liquid half by adv20, another in the less liquid half",
+    "id": "NF56",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "aimed at LOW_SUB_UNIVERSE_SHARPE"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "NF18 keyed on liquidity rather than size"
+    },
+    "ref": "line 56",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 23907,
+      "role": "liquid-half leg",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     },
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 23907,
+      "role": "illiquid-half leg",
+      "slot": "$2",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 3,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "EUR": "TOP2500"
+  }
+ },
+ "shape": "if_else(greater(rank(adv20),#),rank($1),rank($2))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "liquid-half leg",
+   "slot": "$1"
+  },
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "illiquid-half leg",
+   "slot": "$2"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(rank(adv20),0.5),rank($1),rank($2))",
+ "version": 1,
+ "windows": []
+}

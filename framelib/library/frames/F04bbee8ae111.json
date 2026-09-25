@@ -1,0 +1,175 @@
+{
+ "approval": null,
+ "canonical_key": "trade_when(greater(ts_zscore(ts_sum(vec_count(nws12_allz_provider),5),60),2),rank(ts_backfill(vec_avg($1),5)),reverse(1))",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "FIXED",
+  "conditioning": "TRADE_WHEN",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "SINGLE.TRADE_WHEN.LEVEL",
+  "grouping": "NONE",
+  "horizon": "QUARTER",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 60,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "greater",
+   "rank",
+   "reverse",
+   "trade_when",
+   "ts_backfill",
+   "ts_sum",
+   "ts_zscore",
+   "vec_avg",
+   "vec_count"
+  ],
+  "slot_kinds": "VECTOR*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "nws12_allz_provider"
+ ],
+ "evidence": null,
+ "groups": [],
+ "id": "F04bbee8ae111",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (nws12_allz_provider is an event-code stream labelled 'index of name of the news provider', one entry per news item, so vec_count = items per day; trade_when docs)"
+    },
+    "family": "event-dispersion",
+    "field": "template",
+    "function": "news-surge repositioning: refresh on the tone of an event stream when the 5-day news-item count is 2 sigma above its 60-day norm",
+    "id": "NF33",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "rare triggers; the tone stream must cover the surging names"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "a burst of events is when the tone is newly informative"
+    },
+    "ref": "line 33",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "score",
+       "ratio",
+       "return"
+      ],
+      "pool_size_in_cell": 5990,
+      "role": "event stream whose average is the tone",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "VECTOR",
+      "vec_reducers_all": [
+       "vec_avg",
+       "vec_max",
+       "vec_min"
+      ],
+      "vec_role": [
+       "event-value"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 0,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "trade_when(greater(ts_zscore(ts_sum(vec_count(nws12_allz_provider),#),#),#),rank(ts_backfill(vec_avg($1),#)),reverse(#))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "score",
+     "ratio",
+     "return"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "VECTOR"
+    ],
+    "vec_reducers_all": [
+     "vec_avg",
+     "vec_max",
+     "vec_min"
+    ],
+    "vec_role": [
+     "event-value"
+    ]
+   },
+   "context": "VECTOR",
+   "positions": [
+    [
+     "vec_avg",
+     0
+    ]
+   ],
+   "role": "event stream whose average is the tone",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "trade_when(greater(ts_zscore(ts_sum(vec_count(nws12_allz_provider),5),60),2),rank(ts_backfill(vec_avg($1),5)),reverse(1))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_zscore",
+   60
+  ],
+  [
+   "ts_sum",
+   5
+  ],
+  [
+   "ts_backfill",
+   5
+  ]
+ ]
+}

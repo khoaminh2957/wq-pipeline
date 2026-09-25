@@ -10,10 +10,13 @@ from __future__ import annotations
 
 import argparse
 import collections
+import fcntl
+import hashlib
 import json
 import os
 import pathlib
 import random
+import socket
 import sys
 import time
 
@@ -55,6 +58,107 @@ class Catalogues:
         return self._idx[key]
 
 
+#: D58 (Khoa 2026-09-24 ~02:20; architecture round 4 S4): "the runner reads the journal with bounded memory".
+#: MEASURED 2026-09-24 on the Mac journal copy (36,855 lines, 32,662 distinct alphas, 116 MB) and on a 2x synthetic
+#: of it (every alpha id of the second copy suffixed), peak RSS of main() planning one dry round under the live
+#: FORGE_ARGS ("--mode composites --order USA/d1,d1 --no-split --delays 1 --ab new", no --live, dispatch recorded),
+#: read two ways (/usr/bin/time -l and the process's ru_maxrss; scratchpad d6_pipeline_principal_evidence/measure.sh):
+#: BEFORE this reader 1,434 MB at 1x and 1,966 MB at 2x (+532 MB for 32,662 alphas, 17 KB each: round 4's slope);
+#: AFTER it 905 MB and 903 MB, with the same 300 constructions (only meta.arm_by and the code's own pipeline_version
+#: differ). A
+#: `--mode gen` round: 989 MB and 961 MB (the journal holds 0 generated rows). Before, harvest.forge_rows parsed EVERY
+#: line into one list (read_jsonl) before keeping the latest row per alpha (alone 577 MB at 1x, mem_parts.py). The label
+#: file (fetched/rc/field_labels.jsonl, 127,642 labels) takes 563 MB of what remains and does not grow with the journal.
+#: THE READ, two passes over one file. Pass 1 (journal_index) parses each line once and keeps only {alpha: byte
+#: offset of its latest forge line}; pass 2 (journal_rows) seeks to each offset and yields one row at a time. The
+#: sequence is exactly harvest.forge_rows(path).values() for a literal path -- the same rows (latest wins) in the
+#: same order (a dict keeps an alpha where it first appeared) -- so allocate.pair_states, whose ties are
+#: order-sensitive, reads what it read before. NOT COVERED: `--ensembles add|only` still loads the whole journal
+#: (harvest.forge_rows; forge/ensemble.py reads it per cell); no FORGE_ARGS on file carries --ensembles (vps/forge.env,
+#: read 2026-09-24). WHAT STILL GROWS with the journal, named: the index (one entry per
+#: distinct alpha), gates.journal_ids (one id per simulated construction), and what a CONSUMER keeps -- pair_states
+#: keeps each pair's Sharpe list, and the generator's state keeps EVERY GENERATED ROW whole (forge/gen/state.py: the
+#: state is a pure function of the journal, design §3.2, and build() takes the rows). MEASURED (tracemalloc, the
+#: test's ~3 KB row shape, gen_slope.py): a gen round's peak grows 151 B per added library row and 24.9 KB per added
+#: generated row; the gen owner's own State.build over the same parsed rows keeps 24.5 KB per row (22.6 KB the parsed
+#: row, 2.0 KB the state; gen_slope2.py), so this reader adds about 0.4 KB. A real journal row parses to 15.0 KB
+#: (rowmem.py, 3,000 rows). How many generated rows a day brings is UNMEASURED (none has run); at the median whole day
+#: of 3,197 scored and D53's half, SPECULATION, about 1,600. That growth is D58 x design §3.2, not this reader's: bound
+#: it and the state is no longer a function of every generated row (a window is the discounting §3.2 rejects). Routed
+#: to the gen owner and Khoa. Append-only is assumed between the passes: the dispatcher, the file's only writer in a
+#: round, runs after the planner (vps/forge_loop.sh, read).
+FORGE_JOURNAL = "state/layered/runs/forge.jsonl"
+
+
+def journal_index(path, see=None) -> dict:
+    """D58 pass 1: {alpha: byte offset of its LATEST forge line}, in first-appearance order. A forge line is one
+    harvest.forge_rows keeps (parsable, an alpha, meta.forge); a line that does not parse is skipped as there.
+    `see(row)`, when given, is called on every forge line in file order. {} when the file does not exist."""
+    out = {}
+    path = pathlib.Path(path)
+    if not path.exists():
+        return out
+    with open(path, "rb") as fh:
+        off = 0
+        for line in fh:
+            at, off = off, off + len(line)
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            if r.get("alpha") and (r.get("meta") or {}).get("forge"):
+                out[r["alpha"]] = at
+                if see is not None:
+                    see(r)
+    return out
+
+
+def journal_rows(path, index=None):
+    """D58 pass 2: harvest.forge_rows(path).values(), yielded one row at a time (above)."""
+    path = pathlib.Path(path)
+    index = journal_index(path) if index is None else index
+    if not index:
+        return
+    with open(path, "rb") as fh:
+        for off in index.values():
+            fh.seek(off)
+            yield json.loads(fh.readline())
+
+
+def gen_state(root):
+    """The pass-first generator's state (forge/gen/state.py) from the inputs forge.gen.state.load(root) reads --
+    the forge journal, both submit logs, the cached PnL curves of the accepted POSTs and of generated harvest-passes
+    -- with the journal read in D58's two passes and only the rows the state reads kept: every generated row, the
+    rows of accepted POSTs (novelty.formula_of's fallback) and any row sharing a generated row's
+    repair.formula_key (repair.existing_neighbours, D51). The Mac journal holds 32,662 alphas and 0 generated rows
+    (counted 2026-09-24), so load()'s whole-journal dict is what D58 removes here. corr.jsonl is not read: state.py
+    says why ("no rule ticked for this branch reads a PROD / SELF reading"). test_runner holds this equal to
+    state.load(root) (sha and proposal) on a journal that exercises each kept kind."""
+    from forge import submit as SUB
+    from forge.gen import posterior as PO, repair as RP, state as GS
+    root = pathlib.Path(root)
+    history = SUB.posted_history(paths=(root / "state/forge/submitted.jsonl", root / "state/climb/submitted.jsonl"))
+    posted = {h["alpha"] for h in history if h.get("alpha") and h.get("http") in (200, 201)}
+    gen_keys = {}
+
+    def see(r):
+        if PO.is_generated(r):
+            gen_keys[r["alpha"]] = RP.formula_key(r)
+        else:
+            gen_keys.pop(r["alpha"], None)
+    path = root / FORGE_JOURNAL
+    index = journal_index(path, see)
+    keys = set(gen_keys.values())
+    rows = {r["alpha"]: r for r in journal_rows(path, index)
+            if PO.is_generated(r) or r["alpha"] in posted or RP.formula_key(r) in keys}
+    curves = {}
+    for a in sorted(posted | {a for a, r in rows.items() if PO.is_generated(r) and PO.harvest_pass(r)}):
+        c = HV.cached_curve(a, root / "state/pnl_curves")
+        if c:
+            curves[a] = c
+    return GS.build(rows, history, curves)
+
+
 def novelty_index(root, catalogues: Catalogues) -> S.NoveltyIndex:
     """Signatures of the ACTIVE book (fetched/rc/active_book.json), catalogue-aware for USA/d1."""
     root = pathlib.Path(root)
@@ -66,11 +170,60 @@ def novelty_index(root, catalogues: Catalogues) -> S.NoveltyIndex:
     return S.NoveltyIndex.from_book(json.load(open(p)), field_datasets=fd)
 
 
-#: The version of the code that produced a row, stamped into every construction so D1 ("a pipeline
-#: VERSION receives the grade") and D14 ("only the alphas that version produced") have a referent.
-#: Read once per process from the deploy manifest the target carries; when there is none -- a
-#: hand-rsynced tree, which is how this desk ran for thirteen days -- it is computed from the bytes
-#: on disk, so the answer is never absent and never a guess.
+#: The version of the code that produced a row, so D1 ("a pipeline VERSION receives the grade") and
+#: D14 ("only the alphas that version produced") have a referent. Computed once per process.
+#: WHICH ROWS CARRY IT (draw-3 pipeline MINOR 6; the old sentence said "every construction"): the
+#: constructions plan() builds, through _construction(), and every construction main() dispatches,
+#: a `--plan` round's included: main() calls stamp(), which OVERWRITES `pipeline_version` and
+#: `run_config` with this process's values (D46, Khoa 2026-09-23 ~20:15; design stage 0c,
+#: docs/evalharness/04_passfirst_design.md; code audit A6: setdefault would keep the wrong one).
+#: Before that, main() dispatched a prebuilt plan exactly as written (vps/pow_run.sh, c11_run.sh, llm_formula_run.sh): forge/llm/formula.py writes no
+#: stamp, and forge/offline/pow_pairs.py and c11_neut.py copy `meta` from a journal row, so a stamp in
+#: their plans named the version that produced the BASE row, not the one that ran the round.
+#: WHAT IS HASHED (architecture round 2, S1iii-NL): the bytes on disk, by the release engineer's own
+#: `deploy.pipeline_version_of(root)` -- the fallback used to be the whole-tree hash over the PLAN keys,
+#: a third id namespace that byte-identical code on /opt/wq could never match, and the manifest was
+#: trusted over the bytes, so a hand-rsync after a deploy was stamped with a version that was not
+#: running. On a deploy TARGET whose DEPLOYED.json carries a `hashes` map, pipeline_version_of hashes
+#: exactly the in_pipeline files that manifest LISTS, re-read from disk (draw-3 release BLOCKER 1); a
+#: file on the target that the manifest does not list never enters the id. deploy.surface_extras()
+#: reports those files (`deploy.py status`), and D40 marks the ones the loop can reach (below).
+#: The values a row can carry, and what each means to a scorer that pools by version:
+#:   `<id>`                     DEPLOYED.json's `pipeline_version`, and the bytes of the files it lists agree.
+#:   `<id>+MISMATCH:<on_disk>`  DEPLOYED.json says `<id>`, those bytes hash to `<on_disk>` (a hand edit of a
+#:                              shipped file after the deploy).
+#:   `<id>+unverified`          DEPLOYED.json says `<id>`; the bytes could not be hashed, or the D40 extras
+#:                              could not be counted (deploy.loop_reachable_extras raised).
+#:   `<on_disk>+untracked`      no usable manifest claim; `<on_disk>` is the bytes' own pipeline id.
+#:   `unknown`                  no usable manifest claim, and the bytes could not be hashed or the D40
+#:                              extras could not be counted (one except clause covers both calls).
+#:   `+EXTRAS:<n>` suffixed to  D40 (Khoa 2026-09-23 ~17:20): deploy.loop_reachable_extras(root) named n > 0
+#:   `<id>`, `<id>+MISMATCH:..` files the loop can reach that the manifest does not list. WHICH files count
+#:   or `<on_disk>+untracked`   is that function's rule, not this file's. A deploy.py without the function
+#:                              (one from before D40) adds nothing: the rule does not exist in that tree.
+#:                              `+unverified` and `unknown` never carry it: the except clause that produces
+#:                              them also zeroes the count (draw-4 pipeline 5(c)).
+#: Only the bare `<id>` is a manifest the bytes confirm. The scorer forms cohorts through
+#: forge/offline/benchmark.py cohort_of() and parse_cohort(), both gated by plain_stamp(): a '+'-suffixed
+#: value or a marker word ('unknown', 'ambiguous') forms no cohort (read 2026-09-23; draw-4 pipeline 5(d):
+#: this sentence used to say "by equality on this field (build_from, compare)"), so every suffixed value
+#: keeps the row out of every version's cohort, `<id>`'s and `<on_disk>`'s alike.
+#: draw-3 pipeline MINOR 3: `+MISMATCH` used to drop `<on_disk>`, which was stored nowhere, so two
+#: different drifts from one manifest read as one label and such a row could never be re-attributed.
+#: It is carried now.
+#: draw-3 pipeline MINOR 4: the claim is DEPLOYED.json's `pipeline_version` ONLY. The old fallback to
+#: `version` compared the WHOLE-TREE id with a pipeline id -- two namespaces that differ whenever a test
+#: or CI file ships -- so a byte-identical tree with a pre-A10 manifest read `+MISMATCH` (the draw-3
+#: adjudicator's replica: `e4726594f240aa07+MISMATCH`). A manifest without a `pipeline_version`, or with
+#: one that is not a non-empty string (MINOR 5: `5` crashed the planner with TypeError; a JSON list, with
+#: AttributeError), is treated as no claim at all: `<on_disk>+untracked`. On a SOURCE tree, so is one
+#: nested too deeply to parse (draw3_fix pipeline 6: the adjudicator's `'['*100000 + ']'*100000` raised
+#: RecursionError out of the planner). On a deploy TARGET the same file gives `unknown`, not that (draw-4
+#: pipeline 4 / P4): deploy._target_manifest() reads DEPLOYED.json for its `hashes` map and catches only
+#: OSError and ValueError, so deploy.pipeline_version_of() and deploy.loop_reachable_extras() both raise
+#: RecursionError, which the except below takes as "the bytes could not be hashed". Re-measured 2026-09-23
+#: with the real deploy.py on one set of shipped bytes: `unknown` in the target layout, `<on_disk>+untracked`
+#: in the source layout. Neither crashes the planner.
 _VERSION = None
 
 
@@ -82,18 +235,200 @@ def pipeline_version(root=None) -> str:
     base = pathlib.Path(root or ROOT)
     try:
         m = json.loads((base / "DEPLOYED.json").read_text())
-        # the LOOP's identity, not the whole shipped tree's: a CI-only change is not a new pipeline
-        _VERSION = m.get("pipeline_version") or m["version"]
-        return _VERSION
-    except (OSError, ValueError, KeyError):
-        pass
+        # the LOOP's identity, never the whole shipped tree's `version` (MINOR 4, above)
+        claimed = m.get("pipeline_version") if isinstance(m, dict) else None
+    except (OSError, ValueError, RecursionError):       # draw3_fix pipeline 6: too deep to parse is no claim
+        claimed = None
+    if not isinstance(claimed, str) or not claimed:     # MINOR 5: a claim we cannot compare is no claim
+        claimed = None
     try:
         sys.path.insert(0, str(base / "tools"))
         import deploy as DP
-        _VERSION = DP.version_id(DP.content_hashes(DP.file_map(base))) + "+untracked"
+        on_disk = DP.pipeline_version_of(base) or None
+        extras = getattr(DP, "loop_reachable_extras", None)          # D40; a pre-D40 deploy.py has none
+        n_extras = len(extras(base) or ()) if extras is not None else 0
     except Exception:  # noqa: BLE001 -- a version we cannot compute is named, never omitted
-        _VERSION = "unknown"
+        on_disk, n_extras = None, 0
+    if claimed is None:
+        _VERSION = on_disk + "+untracked" if on_disk else "unknown"
+    elif on_disk is None:
+        _VERSION = claimed + "+unverified"
+    else:
+        _VERSION = claimed if on_disk == claimed else claimed + "+MISMATCH:" + on_disk
+    if n_extras:
+        _VERSION += "+EXTRAS:%d" % n_extras                         # D40
     return _VERSION
+
+
+#: D30 (Khoa 2026-09-23 ~15:45; implementation note in docs/evalharness/00_agreements.md). The arguments
+#: this runner received are hashed into a SECOND stamp, meta.run_config, beside meta.pipeline_version, and
+#: a cohort is the pair. Second, not folded into pipeline_version, for the note's reason: benchmark's
+#: live_days joins deploy-ledger rows to journal rows on pipeline_version. N and FORGE_ARGS reach the
+#: runner as argv through vps/forge_loop.sh, from the wq-forge unit's Environment in /etc/systemd (read on
+#: the VPS 2026-09-23: N=300, FORGE_ARGS "--mode composites --order USA/d1,d1 --no-split --delays 1 --ab
+#: new"). deploy ships forge_loop.sh (it is in deploy.PLAN) but never writes /etc/systemd (draw-4 pipeline
+#: 5(a): this sentence used to say deploy never touches forge_loop.sh), so before D30 a change to N or
+#: FORGE_ARGS left every later row in the same cohort. D50 moves them into /opt/wq/forge.env; not built here.
+#: Hashed: the PARSED namespace, defaults included, as sorted JSON (so `--cells=x` and `--cells x` agree).
+#: A new option changes every run's hash; it arrives with an edit to this file, which moves
+#: pipeline_version anyway. `root` is kept: it names the tree the planner reads (library, journals,
+#: catalogues); its default is this file's absolute tree, so one command line hashes differently on two
+#: hosts, and every row that reaches the journal is made on /opt/wq (RULE 1). The runner has no
+#: output-path option (OUT and PLANS are constants). Left out, each with why:
+RUN_CONFIG_EXCLUDED = {
+    "seed": "forge_loop.sh passes a fresh --seed every round (SEED=$(date +%s)): were it hashed, every round "
+            "would be a cohort of one",
+    "plan": "the prebuilt plan file's PATH: one plan reached by two paths is one configuration. Its CONTENT "
+            "is hashed instead (`plan_sha256`, beside `plan_given`), so two different experiment plans are "
+            "two cohorts (D30 amendment, orchestrator decision recorded with D43-D46; before it, pow.json and "
+            "c11.json rounds shared one run_config, draw-4 pipeline 6)",
+}
+
+
+def run_config(args, plan_bytes=None) -> str:
+    """meta.run_config (D30): sha256, 16 hex, of the parsed arguments without RUN_CONFIG_EXCLUDED, as
+    sorted JSON, plus `plan_given` and, for a `--plan` round, `plan_sha256` = sha256 of the plan file's
+    bytes (D30 amendment). main() passes the bytes it parsed and dispatched, so the hash names what ran,
+    not a second read of the file; without them the file is read here. A round without `--plan` hashes
+    exactly the body it hashed before the amendment, so the live loop's run_config does not move."""
+    cfg = {k: v for k, v in vars(args).items() if k not in RUN_CONFIG_EXCLUDED}
+    cfg["plan_given"] = bool(getattr(args, "plan", ""))
+    if cfg["plan_given"]:
+        if plan_bytes is None:
+            plan_bytes = pathlib.Path(args.plan).read_bytes()
+        cfg["plan_sha256"] = hashlib.sha256(plan_bytes).hexdigest()
+    return hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()[:16]
+
+
+#: meta.arm, D47 groundwork (Khoa 2026-09-23 ~21:00; the shared interface fixed for the parallel builders:
+#: "the runner stamps the planning mode of every construction"). D47 randomises ROUNDS within each ET day
+#: between the incumbent (`--mode composites`) and the branch, and tells them apart by this stamp. The
+#: value is `--mode` for a planner round, and PLAN_FILE_ARM for a `--plan` round, whose constructions an
+#: experiment script chose: `--mode` is parsed there but plans nothing, and its default ("composites") would
+#: file an experiment's rows under the incumbent.
+#: SET ONLY WHERE A ROW HAS NO ARM (setdefault), never overwritten: meta.arm already carries labels other
+#: readers group by -- plan()'s `--ab` arms "current" / "new" / "typed" (forge/offline/ab_report.py,
+#: rung_report.py) and the experiment plans' own arms (forge/llm/formula.py "llmformula"; c11_neut.py,
+#: pow_pairs.py and tvr_pairs.py). The live FORGE_ARGS carry `--ab new` (read on the VPS 2026-09-23), so
+#: every live construction already has an arm: overwriting would end the harness5 A/B read-out the loop runs
+#: today, while setdefault leaves today's live rows unchanged. CONSEQUENCE, named for D47's owners: while
+#: `--ab` is on, a reader looking for "composites" finds "current" / "new" instead. Which FORGE_ARGS the D47
+#: incumbent runs with is D47 / D50's to settle, not this file's. For recover_orphans the arm is IDENTITY
+#: (architecture round 3 S15: it does not join ROUND_KEYS).
+#: EXCEPT IN A RANDOMISED ROUND (below): there the arm is the randomiser's draw and is OVERWRITTEN, the shared
+#: interface's "stamps every construction with meta.arm (the arm)". A composites round planned under `--ab new`
+#: therefore reads "composites", not "current" / "new", and forge/offline/ab_report.py (ARMS: current, typed, new,
+#: llmformula, pow15, pow2; read 2026-09-24) no longer sees it; the split survives only in the plan copy's `by_arm`,
+#: which plan() counts before main() stamps. Only a deploy that puts `--mode randomised` in forge.env makes such a
+#: round (D50).
+PLAN_FILE_ARM = "plan"
+
+#: D47 / D53 / D54 / D60 (Khoa 2026-09-23 ~21:00, 2026-09-24 ~02:20) and the shared interface fixed for this
+#: build: `--mode randomised` draws the arm of a ROUND from sha256(f"{et_day}:{seed}"), the digest read as one
+#: integer: even -> "composites" (the incumbent, D47's arm A), odd -> "gen" (the branch), i.e. 50/50 (D53).
+#: et_day is the ET quota day (forge.submit.quota_day: resets 00:00 America/New_York) in which the round is
+#: planned; seed is the round's --seed (vps/forge_loop.sh: SEED=$(date +%s)). Nothing the round later sees enters
+#: the draw, so the assignment is fixed before any row exists; plan["randomiser"] records (et_day, seed, arm), so
+#: the plan copy re-derives it. Every construction of such a round is stamped meta.arm = the draw, meta.arm_by =
+#: ARM_BY_RANDOMISER, meta.round = the seed. Every other round -- `--mode composites|gen|singles|both` and a
+#: `--plan` round -- is stamped meta.arm_by = ARM_BY_EXPLICIT (OVERWRITTEN: a plan row copied from a randomised
+#: journal row must not keep "randomiser") and carries no meta.round; D54/D60 keep such rounds out of the
+#: comparison and count them.
+RANDOMISED = "randomised"
+RANDOMISED_ARMS = ("composites", "gen")
+ARM_BY_RANDOMISER = "randomiser"
+ARM_BY_EXPLICIT = "explicit"
+
+
+def randomised_arm(et_day: str, seed: int) -> str:
+    """The arm D53's 50/50 draw gives the round (et_day, seed) (above)."""
+    return RANDOMISED_ARMS[int(hashlib.sha256(("%s:%s" % (et_day, seed)).encode()).hexdigest(), 16) % 2]
+
+
+def randomise(seed: int, now=None) -> dict:
+    """{"et_day", "seed", "arm"} for a `--mode randomised` round planned at `now` (default: the clock)."""
+    from forge import submit as SUB
+    day = SUB.quota_day(time.time() if now is None else now)
+    return {"et_day": day, "seed": seed, "arm": randomised_arm(day, seed)}
+
+
+def stamp(constructions, run_cfg, arm, round_seed=None) -> None:
+    """Every construction main() dispatches carries THIS process's pipeline_version and run_config, and an arm.
+    The two stamps are OVERWRITTEN, never setdefault (D46, Khoa 2026-09-23 ~20:15; design stage 0c; code
+    audit A6): a `--plan` file built by forge/offline/pow_pairs.py or c11_neut.py carries the stamps of the
+    journal row it copied. The arm is set only where the row has none (PLAN_FILE_ARM, above), unless the round
+    was randomised: `round_seed` given means a `--mode randomised` round, whose arm, arm_by and round are
+    overwritten; otherwise arm_by is ARM_BY_EXPLICIT and a copied `round` is dropped (RANDOMISED, above).
+    OPEN (draw-4 pipeline 5(e)): meta.seed is not re-stamped. A `--plan` row keeps the seed its plan entry
+    carries, and pow_pairs, c11_neut and tvr_pairs copy meta from a journal row, so that is the BASE row's
+    round; forge/offline/ab_report.py groups rows into rounds by meta.seed. An arm those scripts copy from the
+    base row is kept the same way."""
+    version = pipeline_version()
+    for c in constructions:
+        c["meta"] = dict(c.get("meta") or {}, pipeline_version=version, run_config=run_cfg)
+        if round_seed is None:
+            c["meta"].setdefault("arm", arm)
+            c["meta"]["arm_by"] = ARM_BY_EXPLICIT
+            c["meta"].pop("round", None)
+        else:
+            c["meta"].update(arm=arm, arm_by=ARM_BY_RANDOMISER, round=round_seed)
+
+
+#: D45 (Khoa 2026-09-23 ~20:15): a cohort's exposure comes from the run_config transitions the runner records.
+#: The shared interface: one JSON row {"at": epoch, "pipeline_version", "run_config", "host"} appended when
+#: the runner starts with a (pipeline_version, run_config) different from the last row for its host; the
+#: scorer reads it for cohort exposure, the deploy ledger's readers never do.
+#: ONLY A LIVE START IS RECORDED. A dry run journals nothing (tools/layered_sim.py _dispatch returns [] before
+#: it opens the journal; EX-ANTE, read), so it exposes no cohort; and run_config hashes `live`, so the deploy
+#: smoke's planner (tools/deploy.py SMOKE: the unit's N and FORGE_ARGS on /opt/wq, not live) would otherwise
+#: append a (new version, smoke run_config) row on every push, between the loop's own rows -- architecture
+#: round 3 X3, which asked for exactly this check once the writer existed.
+RUN_CONFIG_LOG = ROOT / "state/forge/run_config_log.jsonl"
+
+
+def record_run_config(pv, rc, path=None, host=None, now=None) -> bool:
+    """Append the D45 transition row unless the last row for this host already names (pv, rc); True when a
+    row was written. The read of the last row and the append happen under one exclusive flock on the log,
+    so two runners starting together cannot both append or both skip. The row is one os.write of one whole
+    line (a short write raises), put on a fresh line if a crash left the file without its final newline;
+    lines that do not parse are skipped."""
+    path = pathlib.Path(path or RUN_CONFIG_LOG)
+    host = host or socket.gethostname()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a+b") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        fh.seek(0)
+        body = fh.read()
+        last = None
+        for line in body.splitlines():
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(r, dict) and r.get("host") == host:
+                last = r
+        if last is not None and (last.get("pipeline_version"), last.get("run_config")) == (pv, rc):
+            return False
+        row = json.dumps({"at": time.time() if now is None else now, "pipeline_version": pv, "run_config": rc,
+                          "host": host}) + "\n"
+        data = (b"\n" if body and not body.endswith(b"\n") else b"") + row.encode()
+        if os.write(fh.fileno(), data) != len(data):
+            raise OSError("short write to %s" % path)
+        os.fsync(fh.fileno())
+    return True
+
+
+def note_run_config(live, pv, rc, path=None) -> None:
+    """main()'s D45 step: records a LIVE start only (above). A failure to record is printed, loudly, and never
+    stops the round: the round's rows still carry both stamps, and D45 reads a cohort with no transition row
+    as "exposure unknown", never as a guess."""
+    if not live:
+        return
+    try:
+        record_run_config(pv, rc, path)
+    except Exception as exc:  # noqa: BLE001 -- the round runs; the missing exposure row is named instead
+        print("!!! D45 RUN_CONFIG LOG NOT WRITTEN (%s: %s): cohort (%s, %s) has no exposure row for this start"
+              % (type(exc).__name__, exc, pv, rc), flush=True)
 
 
 def _construction(cand: dict, seed: int, recipe=None) -> dict:
@@ -123,7 +458,8 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
     round Khoa ticked on 2026-09-04).
     `mode` (Khoa 2026-09-04 "1", the ratified standard): "composites" simulates only cross-family
     composites that pass the standard's hard gates — single-field hypotheses are LEGS, never alphas;
-    "singles" is the pre-standard behaviour (measurement only); "both" runs composites first.
+    "singles" is the pre-standard behaviour (measurement only); "both" runs composites first; "gen" is the
+    pass-first generator (fill_gen below; design stage 4).
     `recipe` (Khoa 15:40 "thử nhiều cách … tới khi ra được pass đầu tiên"): plan-time overrides for
     ONE round — {"universe": {"GLB": "TOP3000"}, "neut": [...], "group": "country", "decay": [...],
     "truncation": 0.05, "smooth": 10, "tag": "R3"}; every row of the round carries meta.recipe."""
@@ -136,6 +472,8 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
     cats = H.categories(lib)
     if mode == "composites":
         cats = {c for comp in comps for leg in comp.legs for c in lib_by_id[leg].categories()}
+    if mode == "gen":                   # D20: no library; every category the pyramid still needs (cells.rank_cells)
+        cats = None
     all_cells = C.targets(root, hypotheses=cats)
     cells = [c for c in all_cells if c.weight > 0]
     if cells_filter:                                   # "GLB/d1 Fundamental" or shell-safe "GLB/d1:Fundamental"
@@ -196,9 +534,9 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
     active_taken = [taken]              # which per-cell counter _composite_block charges (an A/B arm swaps its own in)
     qpath = root / QUARANTINE
     dead = set(json.load(open(qpath))) if qpath.exists() else set()
-    journal = HV.forge_rows(root / "state/layered/runs/forge.jsonl") if (ensembles != "off" or allocate) else {}
+    journal = HV.forge_rows(root / FORGE_JOURNAL) if ensembles != "off" else {}     # ensembles re-read it per cell
     states = {}
-    if allocate:
+    if allocate and mode != "gen":                  # the composites allocator; the generator keeps its own rules (D36)
         if posted_keys is None:
             posted_keys = set()
             try:
@@ -207,7 +545,7 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
                 posted_keys = {h["mechanism_key"] for h in SUB.posted_history(ledger=SB.LEDGER) if h.get("mechanism_key")}
             except Exception:  # noqa: BLE001 -- no ledger readable: nothing counts as harvested
                 posted_keys = set()
-        states = AL.pair_states(journal, posted_keys)
+        states = AL.pair_states(journal if ensembles != "off" else journal_rows(root / FORGE_JOURNAL), posted_keys)  # D58
     posted_legs = {}
     if allocate and mode in ("composites", "both"):
         try:
@@ -369,12 +707,84 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
                            "refused": res["refused"], "reasons": res.get("reasons", {})})
         return made
 
+    gen_report = {}
+
+    def gen_quarantined(cand) -> bool:
+        """The quarantine step of the chain for a generated candidate: the composite chain's key under its
+        gen:<family> hypothesis, and D36's (cell, field) key over EVERY field it names (harvest.row_fields;
+        architecture round 3 m19: "charge every field"), which harvest.quarantine writes for generated rows."""
+        m, st = cand["meta"], cand["settings"]
+        if HV.quarantine_key(m.get("hypothesis"), st.get("region"), st.get("delay"), m.get("category"), m.get("field")) in dead:
+            return True
+        return any(HV.field_quarantine_key(st.get("region"), st.get("delay"), f) in dead for f in HV.row_fields(cand))
+
+    def fill_gen(budget) -> int:
+        """`--mode gen`, design stage 4 (docs/evalharness/04_passfirst_design.md §4.1): forge.gen.propose on the
+        loop's state (gen_state above), handed every provable generated harvest-pass for its two D51 neighbours
+        and asked for the D37 repairs by propose's own order, each candidate through the COMPOSITE chain, in
+        _composite_block's order -- made_ids -> quarantine -> structurally_ok -> PreSimGate.check -- as `accept`,
+        which propose calls last (§4.1: "the pre-sim chain must be the composite chain"; code audit Y23: the typed
+        and ensemble arms skipped quarantine and the structure gate). The made_ids link cannot refuse here, EX-ANTE:
+        a gen round plans nothing before fill_gen, and propose refuses an id in seen_ids or made this round before it
+        calls accept (its `known`); it is kept so the chain is the composite one, and a mutant that drops it leaves
+        test_runner green (2026-09-24). Before that chain, a candidate whose
+        meta.gen_route is not one of propose.ROUTES is refused and counted: D54 reads that stamp, only "fresh"
+        enters its estimand. propose reads `taken` and returns by_cell, its own charge per cell (neighbours and
+        repairs included), which the blocks report; a gen round plans nothing else, so `taken` is not written back
+        (§4.1's "charges the same taken counter" would have no reader). Only the recipe's tag reaches a generated
+        construction: its power and smooth wrappers would add signed_power / ts_decay_linear after every check,
+        and D35 keeps §2.3's signed_power exclusion; neut, decay, truncation and group act on library objects.
+        WHICH ALPHAS ARE HANDED is the push-split tick forge/gen/repair.py leaves to Khoa (neighbours planned after a
+        push carry the new version, and the alpha's own card never counts them). Until it is ticked every provable
+        alpha of the state is handed, whatever its cohort -- D51's own words, "each generated alpha that clears every
+        check" -- and an alpha that cannot be proven on its card shows in propose's `neighbour-short` count."""
+        from forge.gen import propose as PR, repair as RP
+        state = gen_state(root)
+        labels = struct_labels if struct_labels is not None else (LB.load(labels_path) if labels_path.exists() else {})
+        refused, fds = collections.Counter(), {}
+
+        def field_datasets(region, universe, delay):
+            key = (region, universe, int(delay))
+            if key not in fds:
+                fds[key] = {fid: m["dataset"] for fid, m in cat.index(*key).items()} or None
+            return fds[key]
+
+        def accept(cand) -> bool:
+            if cand["meta"].get("gen_route") not in PR.ROUTES:
+                refused["gen-route-invalid"] += 1
+                return False
+            if cand["id"] in made_ids:
+                return False
+            if gen_quarantined(cand):
+                refused["quarantined"] += 1
+                return False
+            if not structurally_ok(cand):
+                return False
+            if gate.check(cand) != G.OK:
+                return False
+            made_ids.add(cand["id"])
+            return True
+        handed = [r for r in state.rows.values() if RP.provable(r)]
+        res = PR.propose(state, labels, cells, budget, seed, field_datasets=field_datasets, handed=handed,
+                         seen_ids=gate.seen, cell_cap=cell_cap, taken=taken, accept=accept)
+        tag = {"tag": recipe["tag"]} if recipe.get("tag") else None
+        constructions.extend(_construction(c, seed, tag) for c in res["candidates"])
+        for cell, k in res["by_cell"].items():         # propose's charge; nothing is planned after fill_gen to read it
+            blocks.append({"cell": "%s/d%d %s" % (cell.region, cell.delay, cell.category), "weight": cell.weight,
+                           "hypothesis": "gen", "grid": k, "kept": k, "class": "GEN"})
+        gen_report.update(gen_state=res["gen_state"], counts=dict(collections.Counter(res["counts"]) + refused),
+                          by_route=res["by_route"], n_draws=res["n_draws"], n_floor=res["n_floor"], handed=len(handed))
+        return len(res["candidates"])
+
     comps_current = [c for c in comps if getattr(c, "arm", "current") != "new"]
     comps_new = [c for c in comps if getattr(c, "arm", "current") == "new"]
     n_current = n // 2 if ab in ("typed", "new") else n
     made_alloc = fill_allocated(n_current, comps_current if ab == "new" else None) if (allocate and mode in ("composites", "both")) else 0
     made_typed = 0
-    if ab == "typed":
+    if mode == "gen":                   # the whole round; `--ab` splits the incumbent's composites, not this arm
+        fill_gen(n)
+        remaining = 0
+    elif ab == "typed":
         for c in constructions:
             c["meta"].setdefault("arm", "current")
         made_typed = fill_typed(n - n_current)
@@ -410,6 +820,7 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
                 fill(cells, left)
         else:
             fill(cells, remaining)
+    gen_key = {"gen": gen_report} if mode == "gen" else {}          # a composites plan file keeps its old keys
     return {"seed": seed, "n": n, "made_at": time.time(), "hypotheses": len(lib),
             "cells_considered": len(cells), "gate": dict(gate.counts), "blocks": blocks, "quarantined": len(dead),
             "ensembles": ensembles, "n_ensembles": sum(1 for c in constructions if c["meta"].get("ensemble")),
@@ -420,7 +831,7 @@ def plan(root, n: int, seed: int, per_block: int = 20, cell_cap: int = 60, libra
             "blocks_by_class": dict(collections.Counter(b.get("class", "-") for b in blocks)),
             "mode": mode, "composites": len(comps), "n_composites": sum(1 for c in constructions if c["meta"].get("composite")),
             "by_delay": {d: sum(1 for c in constructions if c["settings"]["delay"] == d) for d in (0, 1)},
-            "constructions": constructions}
+            "constructions": constructions, **gen_key}
 
 
 def summarize(p: dict) -> str:
@@ -437,6 +848,13 @@ def summarize(p: dict) -> str:
         lines.append("  structure gate: refused %s" % (p.get("structure_refused") or {}))
     if p.get("ab") and p.get("ab") != "off":
         lines.append("  A/B %s: by arm %s | typed judge refusals %s" % (p["ab"], p.get("by_arm"), p.get("typed_refused")))
+    if p.get("randomiser"):
+        lines.append("  randomiser: ET day %(et_day)s, seed %(seed)s -> arm %(arm)s (D47/D53)" % p["randomiser"])
+    if p.get("gen"):
+        g = p["gen"]
+        lines.append("  gen: state %s | routes %s | draws %s (floor %s) | provable handed %s | counts %s"
+                     % (g.get("gen_state"), g.get("by_route"), g.get("n_draws"), g.get("n_floor"), g.get("handed"),
+                        g.get("counts")))
     for cell, k in per_cell.items():
         if k:
             lines.append("  %-28s %3d" % (cell, k))
@@ -472,7 +890,7 @@ def notify_queue(p: dict, root) -> None:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], allow_abbrev=False)  # S7-NL: `--li` is not `--live`
     ap.add_argument("-n", type=int, default=300)
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--live", action="store_true", help="actually spend simulations (VPS only, RULE 1)")
@@ -482,8 +900,9 @@ def main(argv=None) -> int:
     ap.add_argument("--cell-cap", type=int, default=60)
     ap.add_argument("--ensembles", choices=("off", "add", "only"), default="off",
                     help="2-3-leg ensembles of measured legs per cell (forge/ensemble.py)")
-    ap.add_argument("--mode", choices=("composites", "singles", "both"), default="composites",
-                    help="composites = only standard-admissible cross-family composites (default); singles = legs alone")
+    ap.add_argument("--mode", choices=("composites", "singles", "both", "gen", RANDOMISED), default="composites",
+                    help="composites = only standard-admissible cross-family composites (default); singles = legs alone; "
+                         "gen = the pass-first generator (forge/gen); randomised = composites or gen, drawn per round (D47/D53)")
     ap.add_argument("--cells", default="", help='comma list of cells to plan for, e.g. "GLB/d1 Fundamental,GLB/d1 Analyst"')
     ap.add_argument("--only", default="", help="comma list of hypothesis/composite ids to include")
     ap.add_argument("--universe", default="", help="REGION:UNIVERSE[,...] override, e.g. GLB:TOP3000")
@@ -511,14 +930,26 @@ def main(argv=None) -> int:
               "group": a.group or None,
               "universe": dict(x.split(":", 1) for x in a.universe.split(",") if ":" in x) if a.universe else None,
               "order": a.order.split(",") if a.order else None}
+    plan_bytes, mode, drawn = None, a.mode, None
     if a.plan:
-        p = json.loads(pathlib.Path(a.plan).read_text())
+        plan_bytes = pathlib.Path(a.plan).read_bytes()     # the bytes dispatched are the bytes hashed (D30 amendment)
+        p = json.loads(plan_bytes)
         p["seed"] = seed
     else:
-        p = plan(a.root, a.n, seed, per_block=a.per_block, cell_cap=a.cell_cap, ensembles=a.ensembles, mode=a.mode,
+        if a.mode == RANDOMISED:                           # D47/D53: the arm is drawn before anything is planned
+            drawn = randomise(seed)
+            mode = drawn["arm"]
+        p = plan(a.root, a.n, seed, per_block=a.per_block, cell_cap=a.cell_cap, ensembles=a.ensembles, mode=mode,
                  cells_filter=a.cells.split(",") if a.cells else None, only=a.only.split(",") if a.only else None,
                  recipe=recipe, split_delays=not a.no_split, allocate=not a.no_allocate,
                  delays=[int(x) for x in a.delays.split(",") if x.strip()] or None, ab=a.ab, structure_gate=not a.no_structure_gate)
+        if drawn:
+            p["randomiser"] = drawn
+    rc = run_config(a, plan_bytes)
+    # before the plan file: recover_orphans reads the stamps there (D46)
+    stamp(p.get("constructions") or [], rc, PLAN_FILE_ARM if a.plan else mode, seed if drawn else None)
+    print("forge stamp: pipeline_version %s, run_config %s" % (pipeline_version(), rc), flush=True)  # draw3_fix pipeline 7
+    note_run_config(a.live, pipeline_version(), rc)    # D45: a live start records its (pv, rc) transition
     PLANS.mkdir(parents=True, exist_ok=True)
     (PLANS / ("%d.json" % seed)).write_text(json.dumps(p))
     print(summarize(p), flush=True)

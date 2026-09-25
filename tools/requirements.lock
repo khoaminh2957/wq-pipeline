@@ -1,0 +1,28 @@
+# D59 (Khoa, 2026-09-24): the distributions the forge loop imports, pinned at the versions the HOST runs.
+# tools/deploy.py ships this file (PLAN's tools/, so it is in the pipeline id), checks the target's venv against it
+# read-only before every swap and again in the smoke, and refuses a push naming each package that is missing or at
+# another version. Deploy never installs a package: installing stays attended, by hand.
+#
+# NAMES: tools/deploy.py lock_gaps() -- the loop's import closure read from the source with ast (LOOP_SCRIPTS and
+# LOOP_ENTRIES, every import at any depth, function-level included), mapped to distributions on this Mac, plus their
+# non-optional requirements. On 2026-09-24 that closure imported two third-party modules, requests and yaml: 61
+# repository files at 09:49 +07, and 72 at 11:10 once forge.gen and forge.meaning had joined it through function-level
+# imports -- the same two. Re-derived a second way at both times: importing LOOP_ENTRIES (at 11:10 also forge.meaning,
+# forge.pbo and every forge.gen module) in a fresh `python3 -B` loaded the same two, their four requirements, and
+# three modules requests/urllib3 import only when present (brotli, PySocks, setuptools), which are not requirements and
+# are not pinned. tools/tests/test_deploy.py fails when the names here and the closure differ in either direction.
+# NOT PINNED, by D59's scope ("what the loop imports"): what only the smoke's `tests` step runs on the host -- pytest
+# (9.1.1 there, read the same way) with its requirements, and what forge/tests import besides the pins below (scipy,
+# optional in test_benchmark.py; a regex over forge/tests at 11:10 found no other third-party name). A pin here the
+# loop does not import fails lock_gaps(), so adding them changes D59's scope (Khoa's tick). Until then a change of
+# them on the host changes the smoke, not the loop, and nothing records it.
+# VERSIONS: the host's, read-only 2026-09-24:
+#   ssh -n -o BatchMode=yes root@160.25.88.163 'PYTHONDONTWRITEBYTECODE=1 /opt/wq/venv/bin/pip --disable-pip-version-check freeze'
+# (Python 3.14.4 there; this Mac ran 3.14.0 and certifi 2026.2.25, charset-normalizer 3.4.7, idna 3.11, urllib3 2.5.0,
+# so the Mac's tests ran four of these six at other versions -- round 4 m10's class, not closed here.)
+certifi==2026.7.22
+charset-normalizer==3.4.9
+idna==3.18
+PyYAML==6.0.3
+requests==2.33.1
+urllib3==2.7.0

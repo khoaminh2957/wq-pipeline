@@ -1,0 +1,166 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(less(ts_corr(returns,subtract(returns,group_neutralize(returns,market)),60),0.3),rank($1),add(multiply(rank($1),0.5),0.25))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "QUARTER",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 60,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "add",
+   "group_neutralize",
+   "if_else",
+   "less",
+   "multiply",
+   "rank",
+   "subtract",
+   "ts_corr"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [
+  "market"
+ ],
+ "id": "F2a9a6e94d8e8",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (ts_corr with the market-mean construct of NF05)"
+    },
+    "family": "price-state-trigger",
+    "field": "template",
+    "function": "idiosyncratic-name emphasis: full weight where the 60-day correlation with the equal-weight market is under 0.3",
+    "id": "NF31",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "low-correlation names are often small or illiquid: LOW_SUB_UNIVERSE_SHARPE risk"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "stock-specific information moves names that the market does not move"
+    },
+    "ref": "line 31",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 62353,
+      "role": "stock-specific signal",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(less(ts_corr(returns,subtract(returns,group_neutralize(returns,market)),#),#),rank($1),add(multiply(rank($1),#),#))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ],
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "stock-specific signal",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(less(ts_corr(returns,subtract(returns,group_neutralize(returns,market)),60),0.3),rank($1),add(multiply(rank($1),0.5),0.25))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_corr",
+   60
+  ]
+ ]
+}

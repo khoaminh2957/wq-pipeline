@@ -1,0 +1,174 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(less(rank(mdl177_2_earningmomentumfactor400_stdevfy2epsp),0.5),group_rank(ts_zscore(ts_backfill($1,20),120),industry),0.5)",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 4,
+  "economic_function": "LEVEL",
+  "family": "SINGLE.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 120,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "group_rank",
+   "if_else",
+   "less",
+   "rank",
+   "ts_backfill",
+   "ts_zscore"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "mdl177_2_earningmomentumfactor400_stdevfy2epsp"
+ ],
+ "evidence": null,
+ "groups": [
+  "industry"
+ ],
+ "id": "Fd0896b7b9062",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (the condition field is labelled 'Standard deviation of FY2 EPS estimates scaled by price', so it is comparable across names)"
+    },
+    "family": "uncertainty-conditioned",
+    "field": "template",
+    "function": "low-uncertainty revision: trade an estimate's 120-day z-score only where analyst dispersion is below median",
+    "id": "NF34",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "half the book sits at the neutral 0.5"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "revisions under consensus are less likely to reverse"
+    },
+    "ref": "line 34",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "analyst-revision",
+       "analyst-rating",
+       "analyst-coverage"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 4098,
+      "role": "estimate or revision field",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 3,
+  "neutralization": "SUBINDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(less(rank(mdl177_2_earningmomentumfactor400_stdevfy2epsp),#),group_rank(ts_zscore(ts_backfill($1,#),#),industry),#)",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "analyst-revision",
+     "analyst-rating",
+     "analyst-coverage"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "estimate or revision field",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(less(rank(mdl177_2_earningmomentumfactor400_stdevfy2epsp),0.5),group_rank(ts_zscore(ts_backfill($1,20),120),industry),0.5)",
+ "version": 1,
+ "windows": [
+  [
+   "ts_zscore",
+   120
+  ],
+  [
+   "ts_backfill",
+   20
+  ]
+ ]
+}

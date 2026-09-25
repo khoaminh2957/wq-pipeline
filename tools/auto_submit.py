@@ -577,7 +577,7 @@ def _session():
 
 
 def main(argv=None, transport=None, out=print, ctx=None, sleep=time.sleep, now=time.time):
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0], allow_abbrev=False)  # draw-3 MINOR 9: `--i` is not live
     ap.add_argument("--region", required=True, help="the SINGLE region this run may submit into")
     ap.add_argument("--delay", required=True, type=int, help="the SINGLE delay this run may submit into")
     ap.add_argument(LIVE_FLAG, dest="live", action="store_true",

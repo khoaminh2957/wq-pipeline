@@ -179,3 +179,56 @@ def test_main_orders_pools_and_saves_unfetchable_per_pool(tmp_path, monkeypatch)
     out = [json.loads(l) for l in (tmp_path / "scored.jsonl").read_text().splitlines()]
     by = {x["alpha"]: x for x in out}
     assert by["N0"]["pbo_status"].startswith("insufficient") and by["O0"]["pbo_status"] == "pending"
+
+
+def _gen_row(fam, fields, status="FAIL", alpha=None, region="USA", delay=1, category="Option"):
+    """A generated journal row (meta.hypothesis gen:<family>, the generator's legs with their fields)."""
+    return {"status": status, "alpha": alpha, "settings": {"region": region, "delay": delay, "universe": "TOP3000"},
+            "meta": {"forge": 1, "hypothesis": "gen:" + fam, "category": category, "field": fields[0],
+                     "legs": [{"fields": list(fields[:1])}, {"fields": list(fields[1:])}]}}
+
+
+def test_a_generated_rows_dsr_pool_is_its_family_cell_and_category():
+    """D38 (Khoa 2026-09-23 ~17:20, Q6 option a): the DSR pool of a generated alpha is its fingerprint family x cell x
+    category, which pool_key gives once meta.hypothesis is gen:<family> (design §5.3). A PIN: harvest needed no
+    change for it; a key that dropped the hypothesis or the category would merge families or categories."""
+    rows = {}
+    for a, fam, cat, region in (("A", "f1", "Option", "USA"), ("B", "f1", "Option", "USA"), ("C", "f2", "Option", "USA"),
+                                ("D", "f1", "News", "USA"), ("E", "f1", "Option", "EUR")):
+        r = _row(a, 1.0 + len(rows) / 10, hyp="gen:" + fam, region=region)
+        r["meta"]["category"] = cat
+        rows[a] = r
+    assert HV.pool_key(rows["A"]) == ("gen:f1", "USA", 1, "Option")
+    pools = HV.pool_stats(rows)
+    assert pools[("gen:f1", "USA", 1, "Option")][0] == 2 and len(pools) == 4
+    assert [r["alpha"] for r in HV.pool_members(("gen:f1", "USA", 1, "Option"), rows)] == ["A", "B"]
+
+
+def test_a_field_the_platform_refuses_under_several_families_is_quarantined_by_cell_and_field(tmp_path):
+    """D36 (Q4 option a): the branch's quarantine is keyed (cell, field). Keyed on the hypothesis, a generated row's
+    family (gen:<family>, almost never repeated) never reached QUARANTINE_MIN: architecture round 4 m22 re-ran it, 4
+    FAIL rows of one field under 4 families gave dead keys [] (design §5.1: DELETION). A failure is charged to EVERY
+    field of the row (round 3 m19); a field that landed in any forge row of the cell -- a library row included -- is
+    never quarantined; 3 failures are too few; the library's own keys are what they were."""
+    j = tmp_path / "forge.jsonl"
+    rows = [_gen_row("fam%d" % i, ["f_dead", "f_other%d" % i]) for i in range(4)]
+    rows += [_gen_row("famL%d" % i, ["f_landed_lib", "f_x"]) for i in range(4)]
+    rows.append({"status": "COMPLETE", "alpha": "LIB1", "settings": {"region": "USA", "delay": 1},
+                 "meta": {"forge": 1, "hypothesis": "lib_h", "category": "News", "field": "f_landed_lib"}})
+    rows += [_gen_row("famG%d" % i, ["f_landed_gen", "f_y"]) for i in range(4)]
+    rows.append(_gen_row("famG9", ["f_landed_gen", "f_z"], status="COMPLETE", alpha="G1"))
+    rows += [_gen_row("famF%d" % i, ["f_few", "f_w"]) for i in range(3)]
+    rows += [_gen_row("famE%d" % i, ["f_dead"], region="EUR") for i in range(2)]      # another cell: its own count
+    j.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    dead = HV.quarantine(j, tmp_path / "q.json")
+    fields = sorted(k for k in dead if k.startswith("field|"))
+    assert fields == [HV.field_quarantine_key("USA", 1, f) for f in ("f_dead", "f_x", "f_y")]
+    assert HV.field_quarantine_key("USA", 1, "f_dead") == "field|USA|1|f_dead"
+    assert HV.row_fields(rows[0]) == ["f_dead", "f_other0"] and HV.row_fields(rows[8]) == ["f_landed_lib"]
+    # the library's rule is untouched: a library-only journal gives exactly the keys it gave (no field key)
+    lib = [{"status": "FAIL", "meta": {"forge": 1, "hypothesis": "h", "category": "Fundamental", "field": "f_dead"},
+            "settings": {"region": "JPN", "delay": 0}} for _ in range(4)]
+    j.write_text("\n".join(json.dumps(r) for r in lib) + "\n")
+    assert HV.quarantine(j, tmp_path / "q.json") == ["h|JPN|0|Fundamental|f_dead"]
+    from forge.gen import families as FM
+    assert HV.GEN_PREFIX == FM.PREFIX            # the prefix is written out here (module text), held equal

@@ -1,0 +1,56 @@
+# D41 (Khoa, 2026-09-23): the judge runs on the VPS, once per closed ET quota day (wq-judge.timer).
+# It runs /opt/wq/wq-judge.sh, which records one scorecard per cohort with forge/offline/benchmark.py --record.
+#
+# ATTENDED INSTALL -- by hand, by the release owner, never by tools/deploy.py (D30: deploy does not touch
+# /etc/systemd). Order matters: the script must be on the host before the timer can fire.
+#   1. ship the code:            tools/deploy.py push   (puts /opt/wq/wq-judge.sh there; check with
+#                                ssh root@160.25.88.163 'ls -l /opt/wq/wq-judge.sh')
+#   2. copy the two unit files:  scp vps/wq-judge.service vps/wq-judge.timer root@160.25.88.163:/etc/systemd/system/
+#   3. check and enable:         ssh root@160.25.88.163 'systemd-analyze verify /etc/systemd/system/wq-judge.service &&
+#                                  systemctl daemon-reload && systemctl enable --now wq-judge.timer &&
+#                                  systemctl list-timers wq-judge.timer'
+#      (systemd 259 on the host accepts the zone in OnCalendar: `systemd-analyze calendar "*-*-* 00:30:00
+#      America/New_York"`, read-only 2026-09-23, gave the next elapse 11:30 +07.)
+#   4. first run, watched:       ssh root@160.25.88.163 'systemctl start wq-judge.service; systemctl status wq-judge.service;
+#                                  tail -n 5 /opt/wq/state/benchmark/judge.log; tail -c 300 /opt/wq/state/benchmark/cards.jsonl'
+# REMOVE: systemctl disable --now wq-judge.timer && rm /etc/systemd/system/wq-judge.service
+#         /etc/systemd/system/wq-judge.timer && systemctl daemon-reload
+#
+# While this unit runs, tools/deploy.py push refuses (other_operator_busy): the judge imports forge/ and must not
+# read a half-swapped tree. A oneshot unit without RemainAfterExit never enters "active" -- systemd.service(5) on the
+# host: it goes from "activating" to deactivating or dead -- so push reads every state but inactive and failed as
+# running (draw4_build release 2: it used to wait only for "active", which this unit never prints).
+#
+# LIMITS (round 3 S10, the unit's half; bounding build() itself is the judge's owner's half):
+#   MemoryMax=3G   Peak RSS of ONE card, as measured so far -- each on another benchmark version or journal, and never
+#                  reconciled (draw5_build release MINOR 11): 335 MB without the branch drill and 1,066 MB with it (this
+#                  Mac 2026-09-23, benchmark 76c4dba8, the 115.7 MB journal copy with 3,640 rows as one synthetic
+#                  cohort, /usr/bin/time -l); 741 MB, build(run_drill=False) on the same journal (architecture round 3
+#                  S10, before the judge's reader was bounded); 233 MB at 1x and 312 MB at 2x without the drill, about
+#                  2.0 KB per alpha (round 4 E2, the host's journal copy). The card the judge records runs the drill,
+#                  and 3G is about 2.9x the largest of these (3,072 / 1,066). The host's RSS for a card is NOT measured.
+#                  THE HOST'S BUDGET, read-only 2026-09-24: 7,376 MiB of RAM, 1,135 MiB used with the loop asleep.
+#                  This said "7,376 - 1,107 - 3,072 = 3,197 MB still covers the loop's measured peak"; round 4 S4
+#                  measured that peak growing with the journal (wq-forge had no limit), so it held for a projected ~19
+#                  full-quota days, no longer. D58 gives wq-forge its own MemoryMax=3G in its attended unit edit
+#                  (vps/systemd_wq-forge.service): 3,072 + 3,072 + 1,135 = 7,279 MiB, so both caps and the base fit in
+#                  RAM. Until that edit is installed, wq-forge is unbounded and this sum does not hold.
+#                  AT THE CAP (EX-ANTE, systemd.service(5) OOMPolicy=; not observed -- round 4 X2, SUSPECTED): the
+#                  kernel kills a process of this unit, and under the host's DefaultOOMPolicy=stop (read 2026-09-24)
+#                  systemd then stops the whole unit, wq-judge.sh included, so the day's log may end with no "recorded
+#                  NO card" line (this header used to promise one). Either way the cohorts not yet graded get no card,
+#                  and the loop, in its own unit, is untouched.
+#   Nice=19        The judge is not time-critical (one idempotent card per cohort per day); the loop is.
+#   TimeoutStartSec=1h   A oneshot's start timeout is off by default (round 3 m11), so a hung judge would never read
+#                  "failed" and would hold the timer's next run. MEASURED above: 5.1 s per card with the drill on this
+#                  Mac; the host's speed and the number of cohorts are not measured, and 1 h is ~700 such cards.
+[Unit]
+Description=wq judge (D41) -- records one scorecard per cohort per closed ET quota day (forge/offline/benchmark.py --record)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wq
+ExecStart=/bin/bash /opt/wq/wq-judge.sh
+MemoryMax=3G
+Nice=19
+TimeoutStartSec=1h

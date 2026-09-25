@@ -1,0 +1,245 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(ts_std_dev(subtract(returns,group_neutralize(returns,market)),20),ts_mean(ts_std_dev(subtract(returns,group_neutralize(returns,market)),20),250)),rank($1),rank($2))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 6,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 250,
+  "n_legs": 2,
+  "n_slots": 2,
+  "operators": [
+   "greater",
+   "group_neutralize",
+   "if_else",
+   "rank",
+   "subtract",
+   "ts_mean",
+   "ts_std_dev"
+  ],
+  "slot_kinds": "MATRIX*2",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [
+  "market"
+ ],
+ "id": "F7abfda17cb67",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (the platform rescales the book daily, so a uniform size cut does nothing: the frame SWITCHES legs instead of scaling one)"
+    },
+    "family": "market-regime",
+    "field": "template",
+    "function": "market-volatility leg switch: a defensive leg when 20-day market vol is above its 250-day mean, an offensive leg otherwise",
+    "id": "NF06",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "two legs, each live only part of the time: the IS_LADDER trailing windows see each leg in fragments"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "different legs pay in calm and in turbulent markets"
+    },
+    "ref": "line 6",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "profitability",
+       "cashflow",
+       "accruals"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "ratio",
+       "score",
+       "return",
+       "level"
+      ],
+      "pool_size_in_cell": 5948,
+      "role": "defensive leg (quality / low risk)",
+      "sample": "mdl177_2_garpanalystmodel_qgp_roefcf",
+      "sign": [
+       "+"
+      ],
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     },
+     {
+      "domain": [
+       "analyst-revision",
+       "analyst-rating",
+       "analyst-coverage"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 3944,
+      "role": "offensive leg (revision / momentum)",
+      "slot": "$2",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(ts_std_dev(subtract(returns,group_neutralize(returns,market)),#),ts_mean(ts_std_dev(subtract(returns,group_neutralize(returns,market)),#),#)),rank($1),rank($2))",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "profitability",
+     "cashflow",
+     "accruals"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "ratio",
+     "score",
+     "return",
+     "level"
+    ],
+    "sign": [
+     "+"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "defensive leg (quality / low risk)",
+   "slot": "$1"
+  },
+  {
+   "constraints": {
+    "domain": [
+     "analyst-revision",
+     "analyst-rating",
+     "analyst-coverage"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "offensive leg (revision / momentum)",
+   "slot": "$2"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(ts_std_dev(subtract(returns,group_neutralize(returns,market)),20),ts_mean(ts_std_dev(subtract(returns,group_neutralize(returns,market)),20),250)),rank($1),rank($2))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_std_dev",
+   20
+  ],
+  [
+   "ts_mean",
+   250
+  ],
+  [
+   "ts_std_dev",
+   20
+  ]
+ ]
+}

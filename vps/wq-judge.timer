@@ -1,0 +1,13 @@
+# D41: once per closed ET quota day. The platform's quota day ends at 00:00 America/New_York
+# (benchmark.py: "Days are ET QUOTA days"), so at 00:30 ET the day before is whole and the card can grade it.
+# Persistent=true: a run missed while the host was down happens at boot instead of being skipped.
+# Installed by hand; see wq-judge.service.
+[Unit]
+Description=Run the wq judge (D41) at 00:30 America/New_York, after each ET quota day closes
+
+[Timer]
+OnCalendar=*-*-* 00:30:00 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

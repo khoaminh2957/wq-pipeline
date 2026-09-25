@@ -238,7 +238,7 @@ def record(row, http, body, path=LOG):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], allow_abbrev=False)  # draw-3 MINOR 9: `--sub` is not `--submit`
     ap.add_argument("--list", action="store_true", help="show what would be submitted and exit")
     ap.add_argument("--submit", action="store_true",
                     help="ACTUALLY POST. Irreversible: a 403 spends the alpha forever.")

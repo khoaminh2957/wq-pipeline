@@ -156,13 +156,22 @@ def test_the_no_network_fixture_actually_fires():
         socket.getaddrinfo("api.worldquantbrain.com", 443)
 
 
-def test_a_real_requests_session_cannot_reach_the_platform():
+def test_a_real_requests_session_cannot_reach_the_platform(monkeypatch):
     """Second, independent derivation: drive the ACTUAL http client the module would use and show
-    the socket monkeypatch stops it before anything leaves this machine."""
+    the socket monkeypatch stops it before anything leaves this machine.
+
+    draw-3 pipeline MINOR 8: this used to accept ANY BaseException, and the conftest POST guard raises
+    one before a socket is ever asked for -- so with `_no_network` broken the test still passed. It
+    now lifts the conftest guard for itself (the real HTTPAdapter.send, which the guard records as
+    `__wrapped__`) and demands `_no_network`'s own AssertionError. The host is RFC 6761 `.invalid`,
+    not the platform: were both guards broken, this POST would still reach no one."""
     if requests is None:
         pytest.skip("requests not installed")
-    with pytest.raises(BaseException):
-        requests.Session().post("https://api.worldquantbrain.com/alphas/X/submit", timeout=1)
+    import inspect
+    from requests.adapters import HTTPAdapter
+    monkeypatch.setattr(HTTPAdapter, "send", inspect.unwrap(HTTPAdapter.send))
+    with pytest.raises(AssertionError, match="must be fully offline"):
+        requests.Session().post("https://example.invalid/alphas/X/submit", timeout=1)
 
 
 def test_no_real_state_paths_are_touched(env):

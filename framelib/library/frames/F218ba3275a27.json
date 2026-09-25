@@ -1,0 +1,196 @@
+{
+ "approval": null,
+ "canonical_key": "trade_when(less(days_from_last_change($1),3),group_rank(ts_delta(ts_backfill($2,60),63),industry),greater(days_from_last_change($1),60))",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "FIXED",
+  "conditioning": "TRADE_WHEN",
+  "depth": 4,
+  "economic_function": "CHANGE",
+  "family": "SINGLE.TRADE_WHEN.CHANGE",
+  "grouping": "TOKEN",
+  "horizon": "QUARTER",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 63,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "days_from_last_change",
+   "greater",
+   "group_rank",
+   "less",
+   "trade_when",
+   "ts_backfill",
+   "ts_delta"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [],
+ "evidence": null,
+ "groups": [
+  "industry"
+ ],
+ "id": "F218ba3275a27",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {
+  "1": "ern2_earnrelease_d1_calendar_prev"
+ },
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (OPERATORS.md trade_when: x = trigger, y = value, z = exit to NaN; days_from_last_change docs use ern2_earnrelease_d1_calendar_prev as the earnings clock)"
+    },
+    "family": "event-window",
+    "field": "template",
+    "function": "event-window drift: refresh a quarterly change within 3 days of the earnings release, hold, go flat after day 60",
+    "id": "NF01",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "late in each quarter the early reporters are past day 60 and flat, so the book shrinks: CONCENTRATED_WEIGHT and coverage risk"
+    },
+    "posthoc_refs": [
+     "entry-logic-and-nonpv1-regime (POST-HOC): 'PEAD event-timing (SUE + earnings age clock) all negative' on USA TOP1000 d1 2019-2023, a different universe"
+    ],
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "post-announcement drift of the reported change (Bernard-Thomas 1989 is the literature idea); whether it survives on BRAIN TOP3000 is unknown"
+    },
+    "ref": "line 1",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "profitability",
+       "cashflow",
+       "sales",
+       "growth",
+       "investment",
+       "analyst-estimate"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "count",
+       "return",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 8804,
+      "role": "fundamental quantity whose quarterly change is the news",
+      "sign": [
+       "+"
+      ],
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX",
+      "time": [
+       "quarterly",
+       "annual",
+       "event"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 0,
+  "neutralization": "SUBINDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "trade_when(less(days_from_last_change($1),#),group_rank(ts_delta(ts_backfill($2,#),#),industry),greater(days_from_last_change($1),#))",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "profitability",
+     "cashflow",
+     "sales",
+     "growth",
+     "investment",
+     "analyst-estimate"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "count",
+     "return",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sign": [
+     "+"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ],
+    "time": [
+     "quarterly",
+     "annual",
+     "event"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "fundamental quantity whose quarterly change is the news",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "trade_when(less(days_from_last_change(ern2_earnrelease_d1_calendar_prev),3),group_rank(ts_delta(ts_backfill($1,60),63),industry),greater(days_from_last_change(ern2_earnrelease_d1_calendar_prev),60))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_delta",
+   63
+  ],
+  [
+   "ts_backfill",
+   60
+  ]
+ ]
+}

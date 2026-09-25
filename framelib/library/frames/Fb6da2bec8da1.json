@@ -1,0 +1,180 @@
+{
+ "approval": null,
+ "canonical_key": "rank(subtract(ts_zscore(ts_backfill($1,60),250),group_neutralize(ts_zscore(ts_backfill($1,60),250),industry)))",
+ "characteristics": {
+  "combiner": "SPREAD",
+  "condition_input": "NONE",
+  "conditioning": "NONE",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "SPREAD.NONE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 250,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "group_neutralize",
+   "rank",
+   "subtract",
+   "ts_backfill",
+   "ts_zscore"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [],
+ "evidence": null,
+ "groups": [
+  "industry"
+ ],
+ "id": "Fb6da2bec8da1",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (x - group_neutralize(x, g) = the group mean; INDUSTRY neutralization would zero it, so the frame needs MARKET)"
+    },
+    "family": "group-broadcast",
+    "field": "template",
+    "function": "industry rotation: rank industries by the mean standardized fundamental of their members",
+    "id": "NF37",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "every member of an industry gets the same weight: industry-sized bets, prod-corr with sector books"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "industry-level fundamental momentum"
+    },
+    "ref": "line 37",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 65838,
+      "role": "fundamental aggregated over members",
+      "sign": [
+       "+"
+      ],
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 3,
+  "neutralization": "MARKET",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "rank(subtract(ts_zscore(ts_backfill($1,#),#),group_neutralize(ts_zscore(ts_backfill($1,#),#),industry)))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sign": [
+     "+"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "fundamental aggregated over members",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "rank(subtract(ts_zscore(ts_backfill($1,60),250),group_neutralize(ts_zscore(ts_backfill($1,60),250),industry)))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_zscore",
+   250
+  ],
+  [
+   "ts_backfill",
+   60
+  ],
+  [
+   "ts_zscore",
+   250
+  ],
+  [
+   "ts_backfill",
+   60
+  ]
+ ]
+}

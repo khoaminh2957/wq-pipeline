@@ -4,11 +4,24 @@
 # gives the same verdict on a laptop, on the VPS and here — "it passed in CI" and "it passed on my
 # machine" have to be the same sentence, or the gate teaches people to distrust it.
 #
-# WHAT THIS RUNNER CANNOT DO, said here so nobody reads a green tick as more than it is: 22 of the
-# 247 tests load fetched/rc/field_labels.jsonl (101 MB) and a 50 MB field catalogue. GitHub refuses
-# files over 100 MB, so a hosted runner cannot execute them. tools/ci_gate.py names those files and
-# says where they ARE covered — the VPS deploy smoke, which has the data. A gate that printed
-# "247 passed" while running 225 would be lying in the most damaging way available to it.
+# WHAT THIS RUNNER CANNOT DO, said here so nobody reads a green tick as more than it is: it runs the
+# HERMETIC tier. The desk's journal, the 101 MB fetched/rc/field_labels.jsonl and a 50 MB field catalogue
+# cannot live on GitHub (100 MB per file), so tools/ci_gate.py skips, and NAMES file by file, two kinds of
+# test: the two LLM test files (--ignore'd in every tier, so NOT COVERED pre-merge: no tier of the gate
+# runs them, and the gate reads no other run of them -- the orchestrator decision under D42), and the
+# tests tools/ci_classify.py MEASURED data-bound (run by tools/ci_publish.py's data tier before every
+# publish). A stale classification blocks, and so does a pytest run in which a COLLECTED test did not run or
+# was not counted, or whose loaded conftests can narrow what pytest collects (draw4_build ci 2: the earlier
+# wording here claimed more than the gate can see -- an installed plugin, or conftest code that narrows
+# collection another way, is not detected). Every test file of the published subset is run by the
+# tests check or listed as run by no tier (round 3 S6), and the gate prints each skipped or listed file beside
+# where it is covered instead, or that it is not; a gate that printed "N passed" while running fewer would be
+# lying in the most damaging way available to it.
+#
+# This run REPORTS; it does not block (D31: a private repository on the Free plan has no branch
+# protection). "Block merge" is enforced on the operator's machine by tools/ci_publish.py, which runs
+# the same gate in the data tier before it pushes, and by tools/deploy.py, which refuses a tree with no
+# green or known-red-only publish record.
 #
 # Deployment is NOT here. tools/deploy.py snapshots, ships, smokes and rolls back against a host that
 # holds the desk's only journal, and it is under audit (docs/evalharness/audits/deploy.md). Wiring an
@@ -42,9 +55,11 @@ jobs:
           python-version: "3.13"
 
       - name: install
+        # pytest is pinned to the version whose output tools/ci_gate.py run_incomplete and parse_summary were
+        # measured on (PYTEST_MEASURED; draw4_build ci 9). pyyaml and requests are not pinned (backlog).
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pyyaml requests
+          pip install pytest==9.1.1 pyyaml requests
 
       - name: gate
         # the single source of truth for what a change must satisfy
@@ -54,6 +69,11 @@ jobs:
         # informational: the three-axis benchmark, printed on every run so a reviewer sees what the
         # change did to the pipeline's own score. The 4-per-day floor is REPORTED here and never
         # blocks — at the measured rate every version fails it, and a gate on the floor would freeze
-        # development. tools/ci_gate.py blocks on REGRESSION instead (D9).
+        # development. D9 asked the gate to block on a regression of a version's output; tools/ci_gate.py
+        # does NOT, because a candidate has produced no rows at merge time (D14), so judging output is
+        # benchmark.compare(), after a version has run. What it blocks on: tests, test files no tier runs,
+        # known-red tests, schema, version, architecture fitness, the branch drill (data tier only), no
+        # --live/--submit reachable from CI, and the pinned scorer (the truth table in tools/ci_fixture.py must
+        # reproduce tools/ci_golden_card.json, whose identity covers the scorer's whole import closure).
         if: always()
         run: python forge/offline/benchmark.py || true

@@ -1,0 +1,166 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(ts_std_dev(returns,20),ts_std_dev(returns,120)),subtract(1,rank($1)),rank($1))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 3,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "NONE",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 120,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "greater",
+   "if_else",
+   "rank",
+   "subtract",
+   "ts_std_dev"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [],
+ "id": "F4da2c812b764",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (comparison of two dispersions)"
+    },
+    "family": "price-state-trigger",
+    "field": "template",
+    "function": "per-stock vol-expansion sign switch: fade the signal when 20-day vol exceeds 120-day vol, ride it otherwise",
+    "id": "NF30",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "sign flips at the boundary add turnover"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "turbulent names overreact"
+    },
+    "ref": "line 30",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 62353,
+      "role": "signal",
+      "sample": "mdl177_2_managementqualityfactor_fwdroe",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(ts_std_dev(returns,#),ts_std_dev(returns,#)),subtract(#,rank($1)),rank($1))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ],
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "signal",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(ts_std_dev(returns,20),ts_std_dev(returns,120)),subtract(1,rank($1)),rank($1))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_std_dev",
+   20
+  ],
+  [
+   "ts_std_dev",
+   120
+  ]
+ ]
+}

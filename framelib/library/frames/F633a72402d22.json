@@ -1,0 +1,155 @@
+{
+ "approval": null,
+ "canonical_key": "sigmoid(group_zscore(ts_backfill($1,60),industry))",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "NONE",
+  "conditioning": "NONE",
+  "depth": 3,
+  "economic_function": "LEVEL",
+  "family": "SINGLE.NONE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "QUARTER",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 60,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "group_zscore",
+   "sigmoid",
+   "ts_backfill"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [],
+ "evidence": null,
+ "groups": [
+  "industry"
+ ],
+ "id": "F633a72402d22",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (sigmoid is bounded in (0, 1))"
+    },
+    "family": "tail-shaping",
+    "field": "template",
+    "function": "anti-concentration soft cap: sigmoid of an industry z-score keeps some magnitude but bounds the tails",
+    "id": "NF41",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "aimed at CONCENTRATED_WEIGHT"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "between rank (no magnitude) and zscore (unbounded tails)"
+    },
+    "ref": "line 41",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 65838,
+      "role": "signal with heavy tails",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 3,
+  "neutralization": "SUBINDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "sigmoid(group_zscore(ts_backfill($1,#),industry))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "signal with heavy tails",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "sigmoid(group_zscore(ts_backfill($1,60),industry))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_backfill",
+   60
+  ]
+ ]
+}

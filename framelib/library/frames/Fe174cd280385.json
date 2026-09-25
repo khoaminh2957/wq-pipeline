@@ -1,0 +1,289 @@
+{
+ "approval": null,
+ "canonical_key": "add(reverse(rank(divide($1,$2))),multiply(if_else(greater(divide(volume,adv20),1.5),rank($3),0.5),0.6))",
+ "characteristics": {
+  "combiner": "SUM",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "SUM.IF_ELSE.LEVEL",
+  "grouping": "NONE",
+  "horizon": "NONE",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": null,
+  "n_legs": 2,
+  "n_slots": 3,
+  "operators": [
+   "add",
+   "divide",
+   "greater",
+   "if_else",
+   "multiply",
+   "rank",
+   "reverse"
+  ],
+  "slot_kinds": "MATRIX*3",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "volume",
+  "adv20"
+ ],
+ "evidence": null,
+ "groups": [],
+ "id": "Fe174cd280385",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (if_else output is bounded, so it can be weighted by multiply)"
+    },
+    "family": "carrier-plus-gated-leg",
+    "field": "template",
+    "function": "light carrier plus an attention-gated information leg at 0.6",
+    "id": "NF52",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "the carrier is crowded: high PROD_CORRELATION risk, and the platform flags reversion components"
+    },
+    "posthoc_refs": [
+     "ensemble-leg-scale-law (POST-HOC): 0/754 vs 18/164 zero-fail with the close/open carrier",
+     "two-cell-submit-not-viable (POST-HOC): carrier-free 0/2039 zero-fail"
+    ],
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "the carrier supplies the base; the gated leg is the novel part"
+    },
+    "ref": "line 52",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "price-level"
+      ],
+      "kind": [
+       "level"
+      ],
+      "pool_size_in_cell": 627,
+      "role": "carrier numerator (close)",
+      "sample": "close",
+      "slot": "$1",
+      "sparsity": [
+       "dense"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX",
+      "time": [
+       "daily"
+      ],
+      "unit": [
+       "price"
+      ]
+     },
+     {
+      "domain": [
+       "price-level"
+      ],
+      "kind": [
+       "level"
+      ],
+      "pool_size_in_cell": 627,
+      "role": "carrier denominator (open)",
+      "sample": "open",
+      "slot": "$2",
+      "sparsity": [
+       "dense"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX",
+      "time": [
+       "daily"
+      ],
+      "unit": [
+       "price"
+      ],
+      "unit_eq": "$1"
+     },
+     {
+      "domain": [
+       "sentiment",
+       "news",
+       "social",
+       "short-flow",
+       "option"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 6789,
+      "role": "information leg",
+      "slot": "$3",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX",
+      "time": [
+       "daily"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "add(reverse(rank(divide($1,$2))),multiply(if_else(greater(divide(volume,adv20),#),rank($3),#),#))",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "price-level"
+    ],
+    "kind": [
+     "level"
+    ],
+    "sparsity": [
+     "dense"
+    ],
+    "structure": [
+     "MATRIX"
+    ],
+    "time": [
+     "daily"
+    ],
+    "unit": [
+     "price"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "divide",
+     0
+    ]
+   ],
+   "role": "carrier numerator (close)",
+   "slot": "$1"
+  },
+  {
+   "constraints": {
+    "domain": [
+     "price-level"
+    ],
+    "kind": [
+     "level"
+    ],
+    "sparsity": [
+     "dense"
+    ],
+    "structure": [
+     "MATRIX"
+    ],
+    "time": [
+     "daily"
+    ],
+    "unit": [
+     "price"
+    ],
+    "unit_eq": "$1"
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "divide",
+     1
+    ]
+   ],
+   "role": "carrier denominator (open)",
+   "slot": "$2"
+  },
+  {
+   "constraints": {
+    "domain": [
+     "sentiment",
+     "news",
+     "social",
+     "short-flow",
+     "option"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ],
+    "time": [
+     "daily"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "information leg",
+   "slot": "$3"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "add(reverse(rank(divide($1,$2))),multiply(if_else(greater(divide(volume,adv20),1.5),rank($3),0.5),0.6))",
+ "version": 1,
+ "windows": []
+}

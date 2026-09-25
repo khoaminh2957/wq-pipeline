@@ -848,3 +848,462 @@ sees is running the whole time.
 - **The journal** (`state/layered/runs/forge.jsonl`): push, snapshot and rollback have no byte path to it. There is no `--delete`, no plan destination lies under `state/`, and the rm list is a subset of the plan paths. The residual risk is indirect: rows appended by unsmoked code during the window are not undone, and a restart can SIGTERM `recover_orphans.py` mid-append (a torn or lost row is SUSPECTED). Step 3 removes both.
 - **The code tree:** 10 target files differ from local and exist only there. The snapshot preserves them, so the `.tgz` in `.deploy/` becomes their only copy and must not be pruned. Two demonstrated mechanisms can destroy target bytes with no copy (D1 and D2). Neither was armed at 10:01, and steps 1 and 2 close both.
 - **A rollback under a full disk** truncates live modules. The bytes survive in the `.tgz`, and the risk is negligible with about 80 GB free.
+
+# Fourth pass (2026-09-23)
+
+Adjudicator, fourth pass. Three auditors reported: **regression**, **destroy** and **assume**. I kept
+a defect only after I had re-verified it myself, using one of four means:
+
+- reading the line in the pinned file;
+- an offline harness (scratchpad `adj4/h.py`) that drives the real `push()`. It replaces only `_remote`,
+  rsync and `loop_closure`, so the real `stop_units`, `start_units`, `units_state`, `snapshot`,
+  `rollback`, `write_manifest`, `run_smoke`, `_stage`, `_staged_matches` and `_undo` run;
+- running the real existence-probe program on a scratch tree;
+- read-only `ssh -n -o BatchMode=yes` (`cat`, `ls`, `stat`, `pgrep`, `systemctl is-active/list-units`),
+  between 12:40 and 12:50.
+
+Nothing was written on the VPS and nothing was simulated. My harness leaked stage directories into
+`$TMPDIR` (4 of them, see F7), and I removed them.
+
+**Pinned.** `tools/deploy.py` is sha256 `47db4007…` (648 lines, mtime 12:18:33), and
+`tools/tests/test_deploy.py` is `ccec9015…` (37 tests, `pytest -q`: 37 passed). Every line number
+below refers to `47db4007`. If the file changes again, this verdict lapses.
+
+## Contradictions settled
+
+| claim | settled |
+|---|---|
+| The brief, *regression* and *assume* audit `c8d499dd` (599 lines, 36 tests) | **The file changed at 12:18:33.** A diff against the `c8d499dd` copy in the scratchpad shows only these changes: `loop_closure()`/`LOOP_ENTRIES` (`:124-156`); `pipeline_version` in `manifest()` (`:164-176`); a refusal when the closure cannot be measured (`:504-507`); and test edits. The push path (`:375-604`) is textually unchanged. So every push-path finding carries over. Old line L maps to L+45 for L between 130 and 458, and to L+49 after that. |
+| 36 vs 37 tests | 37. The rewrite added two tests and **deleted `test_a_regular_file_where_a_directory_must_go_is_refused`** (see F15). |
+| Plan and target counts | Measured 12:41: **551 plan paths. 503 are present on the target and 48 are new. Of the 503, 491 are byte-identical and 12 differ.** I hashed all 491 locally from `cat` output, split at the known sizes: the 327 files with the same size and mtime, and the 164 with the same size but another mtime. The 12 that differ are those *destroy* names. |
+| *assume* ranks the silent-stop class BLOCKER | **Reduced to SERIOUS.** It is demonstrated, but it loses no data, and one `systemctl is-active` after the push detects it (see the verdict). |
+
+## The five third-pass items
+
+1. **One file list, refuse on staged drift: LANDED for the ship path.** The walk at `:502` feeds the
+   hash (`:503`), the probe (`:519-521`), `to_delete` (`:525`), the stage (`:530`) and the verification
+   (`:531`). In harness case `drift_refusal`, a real byte change made during staging was refused, and
+   the only remote calls were busy, read_manifest and probe. Residuals: F6, F7 and F8.
+2. **Regular-file parent: LANDED.** The real probe program, run on a scratch tree, printed
+   `BADPARENT regfile` and `BADPARENT dangling`, and `remote_existing` raised. A symlink to a directory
+   passed (F9). Its only test was deleted (F15).
+3. **Stop the units for the swap: PARTIAL.** The main paths are right. In harness case
+   `green_paused_units` the order was stop, is_active, rsync, smoke, write_manifest, start, is_active.
+   A failed rollback leaves the units stopped (`:602-604`). What is wrong is listed in F1 to F5 and F10
+   to F12.
+4. **Real terminal: still only a condition.** No signal handler exists (grep `signal` finds only the
+   comment at `:204`). **SIGTERM during the smoke: exit 143. The tree is NEW, both units are inactive,
+   `DEPLOYED.json` is old, there is no ledger row and the stage leaks** (harness `sigterm`).
+5. **Stage root mode: LANDED** (`:439`, test `:382`). Subdirectories follow the umask, which is 022
+   here. The target's `/opt/wq` is 755 (stat).
+
+## What survives (re-verified)
+
+**SERIOUS. All demonstrated. They cost production time, not data.**
+- **F1. Paths that end with the loop stopped and no warning.** `write_manifest` and the final
+  `start_units` (`:586-587`) sit outside the guard.
+  - Harness `manifest_timeout_after_green`: TimeoutExpired escapes `push()`. The tree is NEW,
+    `DEPLOYED.json` is old, the units are inactive/inactive, there is no ledger row and no unit
+    warning.
+  - Harness `red_start_timeout`: rollback, start, rollback, start, then TimeoutExpired. The units are
+    inactive (F10).
+  - SIGTERM: see item 4.
+  - Nothing on the VPS would notice. `watchdog.py:54-55` UNITS has no `wq-forge`. `deadman.py:65-104`
+    alarms only on `systemctl --failed`, and a clean stop leaves the unit `inactive`, not failed. grep
+    finds no `forge` liveness check in `watchdog.py`, `deadman.py` or `health_report.py`.
+- **F2. The `start_units` verdict is thrown away at `:556`, `:578` and `:600`.** The comment at `:194`
+  says the opposite. Harness `red_rollback_ok_start_fails`: rc 1 `rolled_back` and ledger
+  `rolled_back`, with the units `failed/failed`. The only trace is the line `units started: {…failed…}`.
+- **F3. The state of the units before the push is never read.** Harness `green_paused_units`:
+  inactive/inactive before, active/active after, rc 0. Harness `stop_unreadable_paused`: rc 2
+  "refused", no ledger row, and the paused units end active. The arm drivers stop `wq-forge` and then
+  run `forge_loop.sh` outside its cgroup, with `trap 'systemctl start wq-forge' EXIT`
+  (`vps/c11_run.sh:29-33`).
+- **F4. `--force` now kills live children.**
+  - Harness `force_skips_busy`: there is no busy call, and stop is issued. The help text at `:619` is
+    unchanged.
+  - A SIGTERM that lands after `submit.py:330` writes `stage: reserved` and before `record()` leaves a
+    row with no `http`. `record_adjudication.pending()` (`:32-35`) adjudicates only `http` 200 or 201,
+    so it never picks that row up.
+
+**MINOR, or not armed on today's target.**
+- **F5.** `:385` treats any state other than `active` as stopped (harness: `deactivating` and
+  `activating` let rsync run, rc 0). The rc of `systemctl stop` is ignored (`:383`).
+- **F6.** The ledger's version comes from a second walk and a second closure import (`:470`), not from
+  the manifest that was shipped. A no-op push is logged as `deployed` (`:515-517`).
+- **F7. The stage leaks.**
+  - On the drift refusal: `return` inside a `try` that has no `finally` (`:532-534`). Harness:
+    leaked=1.
+  - When `snapshot` raises (`:540`, outside any try).
+  - **The test suite leaks one 5.4 MB stage per run.** `test_what_ships_is_exactly_what_was_hashed`
+    takes that path. Measured: the count of `wq-deploy-*` went from 25 to 26 in one run. 22 others are
+    sitting in `$TMPDIR`.
+- **F8.** There is no `--checksum` (`:559`), and `copy2` keeps mtimes (`:443`). **Not armed:** 0 of the
+  327 target files with the same size and mtime differ in content.
+- **F9.** `:311` `isdir` follows symlinks. **Not armed:** `ls -laR` of forge, tools, harness13 and
+  harness on the target shows 0 symlinks, and no plan path or ancestor is a non-directory.
+- **F10.** When `start_units` raises inside `_undo`, that is caught at `:570`, and the rollback runs a
+  second time (harness `red_start_timeout`).
+- **F11. BUSY (`:205`) does not see `recover_harvest.py`, `harvest_loop.sh`, `record_adjudication.py`,
+  `mint_link.py`, `*_run.sh` or `pytest forge/tests`** (regex run). It does see `forge/harvest.py` and
+  `recover_orphans.py`. The harm is dormant: `recovered.jsonl` was last written 2026-08-18 17:37:49
+  (stat). `recover_harvest.py:35-46` does key `done` on `parent_url`, and `:119-121` writes one row per
+  child (read on the target).
+- **F12. Only 2 units are stopped. The docstring's claim at `:493-494` overstates.** For today's push,
+  a static recursive import scan of the timer and daemon entry points (`mint_link`, `watchdog`,
+  `auto_cycle`, `health_report`, `deadman`, `sender`, `auth_daemon`) found one link into the changed
+  or new files: `health_report.py:187` imports the **new** `tools/auth_backoff.py` lazily, inside
+  try/except. `wq-health` "does not post" (unit description). `wq-forge-tests` runs `forge/tests` at
+  10:30. The scan cannot see dynamic imports.
+- **F13.** The probe and the snapshot run before the stop (`:521`, `:540` < `:554`). No target writer
+  to a plan path has been identified (third pass, *destroy*). I did not re-derive this.
+- **F14. The smoke never loads `mint_link` or `layered_sim`** (measured locally in a fresh interpreter).
+  `runner.py:527-529` returns 2 before importing `layered_sim`. `forge_loop.sh:38-44` sends import
+  failures to `2>/dev/null` and logs them as "auth dead". **Not armed today:** both files are
+  byte-identical on the target (hashed).
+- **F15. The tests.** `nonet` replaces `stop_units` and `start_units` (test `:209-210`), and the drift
+  test fakes `_staged_matches` (`:377`). **New: the 12:18 rewrite deleted the only BADPARENT test.** grep
+  finds `BADPARENT` in 0 test files, so item 2 now has no test at all.
+- **F16.** There is no deploy lock. The failed-rollback message (`:602-603`) does not persist
+  `to_delete`, which can be rebuilt as the plan paths absent from the `.tgz`.
+- **F17.** A straggler on the target after a Ctrl-C (N3) is still SUSPECTED and unchanged.
+- **F18.** After an exit 4 with no manifest, `runner.pipeline_version()` falls back to
+  `<full version>+untracked` (`runner.py:83-95`). That affects D14 attribution only.
+
+## Dropped or reduced
+
+- *regression*: "subdirectory modes follow the umask". **Dropped as a defect.** It was not reproduced,
+  the umask here is 022, and the target's directories are 755.
+- *destroy* (h): "wq-auth keeps old `auth_daemon.py` after a green deploy". **Inert for this push.**
+  `auth_daemon.py` is byte-identical on the target.
+- *regression* and *assume*: "timers import a half-shipped tree". **Reduced to the one measured link**
+  (F12).
+- *assume*: "a restart discards `sleep until`". **Carried as MINOR.** It is read from
+  `forge_loop.sh:48` (`sleep 300` in-process). The quota-exhausted interaction was not verified.
+- *assume*: "the 3-second check sees only a bash fork". **Kept as F14, and not armed today.**
+
+## Target state at 12:40 (read-only)
+
+- `wq-forge` and `wq-harvest` are both `active`.
+- `forge/runner.py --live` (pid 3248119) is in flight, so push would refuse right now.
+- No arm driver is running.
+- `wq-cycle.service` is `activating`.
+- There is no `DEPLOYED.json` and no `.deploy/`.
+- `forge.jsonl` holds 121,722,274 bytes, last written 12:38:57.
+
+## VERDICT (fourth pass)
+
+**NO. The two stated conditions (a real terminal, and no forge process) are not enough.**
+- Under them, F1 and F2 can still end with both units stopped, with an exit code that says
+  `rolled_back` or nothing at all, and no VPS monitor watches `wq-forge`.
+- F3 restarts any unit that someone else paused.
+- An idle moment caught by chance leaves the ~1 s race between the second BUSY check (`:550`) and
+  the stop (`:554`) (SUSPECTED).
+
+**The shortest ordered list to YES**, for one attended push of `47db4007`:
+1. **Before.**
+   - `pgrep -fa '_run\.sh'` returns nothing.
+   - Nobody else has paused either unit.
+   - The clock is not between 10:25 and 10:45 (`wq-forge-tests`).
+   - `--force` is not used.
+2. **Idle at a round boundary, not by chance.** Touch `state/STOP_FORGE`, wait until no `forge/*.py`
+   remains, then `systemctl stop wq-forge` and `rm -f state/STOP_FORGE`. This is the
+   `vps/c11_run.sh:24-30` sequence.
+3. **Run `python3 tools/deploy.py push` in a terminal that stays open.** Do not interrupt it after
+   the line `units stopped`.
+4. **After, whatever the exit code, run `systemctl is-active wq-forge wq-harvest`.**
+   - The smoke was green, or the output says `rollback: snapshot restored`, and the units are not
+      active: start them.
+   - The output says `ROLLBACK FAILED`: restore from the printed `.tgz`, remove the 48 new paths,
+      and only then start anything.
+5. **Keep `.deploy/pre-*.tgz`.**
+
+**Before a second push, or any push nobody watches, these must land in code.** Each is small.
+- F1 and F2: every path that called `stop_units` must end in a `start_units` whose verdict sets the
+  exit code, with `:586-587` inside the guard.
+- F10: catch a failed start inside `_undo`, so the rollback cannot run twice.
+- Item 4: SIGTERM and SIGHUP handlers that raise into the existing `except` path.
+- F3 and F5: read the prior unit state and restart only the units that were active; count only
+  `inactive` and `failed` as stopped.
+- F15: restore a BADPARENT test that runs the real probe program.
+
+**Data-loss risk, stated plainly.**
+- **The journal** (`state/layered/runs/forge.jsonl`): **no path found.**
+  - No plan destination lies under `state/`, and rsync runs without `--delete`.
+  - The rollback's rm list holds only the 48 plan paths that are absent on the target.
+  - The snapshot writes only under `.deploy/`.
+  - The dry planner returns before it opens the journal (`layered_sim.py:616-627`; the open is at
+    `:642`).
+  - The indirect risks are SUSPECTED only. The `wq-harvest` stop can SIGTERM `recover_harvest.py`,
+    which writes `recovered.jsonl`, not the journal, and has been dormant since 2026-08-18. The ~1 s
+    race can kill a runner that has just started. Step 2 removes the race.
+- **The code tree:** **12 files are overwritten and 48 are added.** The other 491 are byte-identical.
+  - After a green push, the target's versions of those 12 exist only in the `.tgz`. 9 of them contain
+    target-only lines. I spot-checked 5 of the 9, and each of those lines is an older form of a line
+    that exists, extended, locally. This is not a full semantic check.
+  - Every measured mechanism that would destroy bytes with no copy is closed or not armed today: D2
+    (demonstrated refusal), a regular-file parent (0), a symlinked parent (0), and a quick-check skip
+    (0 of 327).
+  - Files outside the plan are never touched.
+  - A failed rollback leaves a mixed tree, and every byte is still in the `.tgz`.
+
+---
+
+# Fifth pass (2026-09-23)
+
+Adjudicator, fifth pass. Three auditors reported: **regression**, **destroy** and **assume**. I kept a
+defect only after I had reproduced it myself, using one of these means:
+
+- reading the line in the pinned file;
+- my own harness (scratchpad `adj5/h.py`). It runs the real `push()` in a child process, one case per
+  process, and records the real exit code. It fakes only `_remote`, rsync, `loop_closure` and
+  `time.sleep`. The real `_push`, `quiesce`, `start_units`, `units_state`, `other_operator_busy`,
+  `rollback`, `write_manifest`, `run_smoke`, `_undo` and the signal handlers all run. 23 cases;
+  `wq-deploy-*` stage count was 26 before and 26 after;
+- `adj5/hup2.py`: a fresh interpreter on a pty (so stdout is a line-buffered tty, as in a real
+  terminal), with the pty master closed while the fake rsync blocks;
+- the real `quiesce` shell string, run locally against stub `pgrep` and `systemctl` (`adj5/q/`);
+- the real existence-probe program, run on a scratch tree (`adj5/bp/`);
+- read-only `ssh -n -o BatchMode=yes` between 13:15 and 13:22 (`systemctl is-active/show`, `ls`,
+  `stat`, `pgrep`, `ps`, `cat`). Disclosure: one call piped into `head` and used `$(pgrep …)` inside
+  `ps`. Both are read-only but outside the literal list.
+
+Nothing was written on the VPS, nothing was simulated and nothing was fixed.
+
+**Pinned.** `tools/deploy.py` is sha256 `398706c5…` (679 lines, mtime 12:52:07), re-hashed at the
+end. `tools/tests/test_deploy.py` is `45b9548f…` (44 tests; `pytest -q`: 44 passed). Every line number
+below refers to `398706c5`. If the file changes, this verdict lapses.
+
+## Contradictions settled
+
+| claim | settled |
+|---|---|
+| SIGHUP from a closed terminal skips the rollback (*regression*, *assume*) | **Reproduced, with a condition attached.** My first try forked the child from a parent whose stdout was a pipe. The child inherited a block-buffered `sys.stdout`, so it rolled back and restarted. With a fresh interpreter on the pty (`hup2.py`) the result was: `OSError: [Errno 5]` with context `_Signalled('signal 1')`, exit 120, order ending `…,quiesce,is_active,rsync`, tree PARTIAL, units inactive/inactive, no ledger row. So the failure needs stdout to be a tty. A real terminal is exactly that case. |
+| *destroy* ranks the quiesce-exception path BLOCKER; the others rank it SERIOUS | **SERIOUS**, by the fourth pass's standard. It is demonstrated. It loses no data. When someone is watching, it shows up as a traceback or a non-zero exit. The exception is the orphan-waiter sub-case (S1), which is SUSPECTED and would be silent. |
+| "exit 130" vs "rc −2" | These are the same result. An uncaught `KeyboardInterrupt`, including the `_Signalled` subclass, ends the process with SIGINT, which the shell reports as 130 (`h.py` cases). |
+| *assume*: "inactive left by an earlier deploy reads as a pause" is SERIOUS | **Reduced to MINOR (G14).** It needs an earlier push to have left the units down. Every such path is loud except G2. |
+
+## The fourth-pass items
+
+- **F1 (write_manifest outside the try): LANDED** (`:604`). Harness `manifest_raises_before_mv`: rc 1,
+  ledger `rolled_back`, tree OLD, units active/active. **The start after a green smoke (`:611`) is
+  still unguarded**: see G3.
+- **F2 (start results discarded): LANDED on every path that does not raise.** `start_fails_after_green`
+  gives rc 5, ledger `units_down`, and "NOTHING IS RUNNING". On a path that raises, the result is lost
+  (G3).
+- **F3 (paused units restarted): LANDED for `inactive`** (`:580-581`). A unit that reads `activating`
+  is still counted as not running (G8).
+- **F5: NOT LANDED.** `:398` still counts anything other than `active` as stopped.
+- **F10 (start raising re-enters the rollback): NOT LANDED.** `smoke_red_start_raises` ran
+  `rollback,start,rollback,start`, then exited 1 with a traceback and no ledger row.
+- **SIGTERM/SIGHUP handlers: PARTIAL.**
+  - `sigterm_during_rsync`: rollback, start, is-active, re-raise. rc 130, tree OLD, units active/active,
+    no ledger row.
+  - A real closed terminal does not roll back (G2).
+  - `quiesce` sits outside the guard (G1).
+  - A second signal aborts the rollback (G6).
+- **F15 (BADPARENT test): PARTIAL.** The test at `:419-423` exercises only the parser. The real probe
+  program still raises `a parent of a shipped path is a regular file on the target: ['forge/sub']`
+  (run on `adj5/bp/`), but no test runs that program.
+- **The ~1 s race: LANDED for the runner.** `forge_loop.sh:28-31` consumes STOP_FORGE at the top of a
+  round, before `refresh_cells` or the runner can start.
+  - The real shell string, run against stubs: the QUIET branch polled until pgrep cleared, then made
+    one call, `systemctl stop wq-forge wq-harvest`, removed STOP_FORGE and printed QUIET. The TIMEOUT
+    branch removed STOP_FORGE, printed TIMEOUT and made no systemctl call.
+  - BUSY does not match its own command text: Python `re.search` returns None. On the host,
+    `pgrep -fa` with the BUSY pattern did not match my own ssh command, which contained that pattern.
+    It matched only runner.py.
+- **round_in_flight(): removed.** A grep finds no caller.
+
+## What survives (re-verified)
+
+**SERIOUS. Demonstrated locally. They cost production time, not data.**
+- **G1. The quiesce stage is unguarded.** `stop_units` at `:586` is outside the only try (`:592-610`)
+  that restarts the units, and `push()` writes nothing when `_push` raises. The stage prints nothing
+  for up to 45 min.
+  - `sigint_during_quiesce` and `sigterm_during_quiesce`: rc 130. No start, no ledger row, and the
+    STOP_FORGE left behind on the target is not cleaned up.
+  - `quiesce_local_timeout`: rc 1, traceback.
+  - `isactive_raises_after_quiet`: rc 1, traceback. Units inactive/inactive, tree OLD, no ledger row.
+    The units are certainly stopped here, because QUIET has already been printed.
+  - `quiesce_ssh_drop` (rc 255, empty stdout): prints `STOP_FORGE removed, nothing stopped` and returns
+    2 (not logged). Nothing it observed supports either half of that sentence (`:394-395` never looks
+    for the TIMEOUT token).
+  - What the remote shell does after the client is lost is **S1** below.
+- **G2. SIGHUP from a closed terminal does not roll back.** `out()` is the first statement of the
+  except block (`:606`) and raises EIO before `_undo` runs. See the table above. The end state is a
+  PARTIAL tree, both units stopped, no ledger row, exit 120.
+- **G3. On paths that end in an exception, the exit code and the ledger row are lost.** The docstring
+  at `:525` says "a unit left down is exit 5 whatever else happened". Measured:
+  - `sigterm_rsync_rollback_fails`: rc 130, not 3. Tree MIXED, units inactive/inactive.
+  - `sigterm_rsync_start_fails`: rc 130, not 5. Units failed/failed.
+  - `start_raises_after_green`: rc 1, the number of `rolled_back`, with a traceback. Tree NEW,
+    DEPLOYED.json NEW, units inactive in the fake.
+  - None of the three writes a ledger row. The first two do print `ROLLBACK FAILED` or
+    `NOTHING IS RUNNING`.
+- **G4. DEPLOYED.json is outside the rollback.** Moving `write_manifest` into the try created this.
+  Neither `snapshot` nor `to_delete` covers the manifest. `manifest_raises_after_mv` (the remote `mv`
+  completes, then the local ssh raises): rc 1, ledger `rolled_back`, tree OLD, **manifest NEW**. The
+  next push of the same content (`manifest_raises_after_mv:second`) prints `nothing to do`, returns
+  rc 0 and logs `deployed`. The premise (the remote side completes, the local side raises) was not
+  demonstrated on the target.
+
+**MINOR.**
+- **G5.** F10, above.
+- **G6. A second signal during `_undo` aborts it.** `double_sigterm_rollback`: the order ends
+  `rsync,rollback`. Units inactive/inactive, rc 130, and nothing is printed to say the rollback did
+  not finish.
+- **G7. `other_operator_busy` (`:370-380`).**
+  - **The wq-forge-tests branch cannot fire.** Host: `Type=oneshot`, `RemainAfterExit=no`. EX-ANTE
+    (systemd.service(5)): a oneshot unit reads `activating` while ExecStart runs. I did not observe it
+    during a run of this unit. `forge_tests_activating`: rc 0, deployed.
+  - **It fails open.** `busy_ssh_fails` (rc 255): rc 0, deployed.
+  - It is checked once, before a wait of up to 45 min.
+  - There is still no deploy lock (grep finds only comments).
+- **G8. `activating` before the push is never restarted.** `harvest_activating_before`: rc 0,
+  `units running again: wq-forge`, wq-harvest left inactive. Not armed today: NRestarts=0 on both units.
+- **G9. quiesce removes a STOP_FORGE it did not create** (`:390-392`, code read).
+- **G10. QUIESCE_TIMEOUT (45 min) is shorter than the measured round tail** (POST-HOC; mechanism
+  UNKNOWN). Re-derived from the 13:02 copy of `loop.log`, over pairs of consecutive N=300 rounds with
+  no sleep, auth, STOP or quota marker between them and exit 0:
+  - all such rounds: n=93, p50 24.2, p90 36.5, max 106.0 min, 5 of them over 45 min;
+  - since 09-16: n=19, p50 26.6, max 81.8 min, 1 over 45 min.
+  A timeout refuses safely (`quiesce_timeout`: rc 2, STOP_FORGE removed, `systemctl start` sent only to
+  units that were already active).
+- **G11.** When the units fail to start after a green smoke, nothing is rolled back: tree NEW, rc 5,
+  loud. No smoke step runs `forge_loop.sh`.
+- **G12.** The SIGHUP handler replaces nohup's SIG_IGN. `nohup_sighup` rolled back and restarted,
+  rc 130. The `--force` help text (`:650`) is stale.
+- **G13. The tests.**
+  - `nonet` fakes `stop_units`, `start_units`, `units_state` and `other_operator_busy`.
+  - The only quiesce test returns QUIET.
+  - No test raises inside quiesce, or covers TIMEOUT, rc 255 or `activating`.
+- **G14.** Units that a push itself left stopped read as a deliberate pause to the next push, which
+  then leaves them down and exits 0 (`:581`, `:411-413`).
+- **Carried, not re-derived:**
+  - F11: BUSY misses `tools/record_adjudication.py`, `mint_link.py` and `recover_harvest.py`.
+    wq-harvest is stopped mid-pass. It writes `recovered.jsonl` only (`recover_harvest.py:30,77`),
+    last modified 2026-08-18 (stat).
+  - F12: the timers run `tools/*.py` during the swap. `wq-cycle` runs `auto_cycle.py`, `wq-mint` runs
+    `mint_link.py` and `wq-watch` runs `watchdog.py` (ExecStart read on the host).
+  - F16: no deploy lock.
+  - F18.
+  - The rollback's `rm -f` does not remove directories that rsync created.
+
+**SUSPECTED.**
+- **S1. The orphan waiter.** EX-ANTE: OpenSSH signals a remote command only through a pty, and none
+  is requested. If the client is lost during the wait (Ctrl-C, SIGTERM, the local 3,000 s timeout, a
+  dropped connection, or the Mac sleeping, with no ServerAliveInterval set), the remote shell would
+  keep polling. At the round boundary it would run `systemctl stop wq-forge wq-harvest`, after the push
+  has already exited with 130, 1 or 2. Restart=always does not undo an explicit stop.
+  - Not demonstrated: there is no local sshd, and the target is read-only.
+  - To settle it, on a non-production host: `ssh h 'sleep 30; touch /tmp/m'`, kill -9 the client
+    after 2 s, and look for `/tmp/m` at 35 s.
+  - This is the only path found that could leave the loop stopped with nothing printed.
+- **S2. A pgrep sample that falls in the millisecond gap between two loop steps.** It would end the
+  quiesce mid-round, and the stop would catch a step that is just starting. Not measured on the host.
+  What such a process has done by then is SPECULATION.
+- **S3. The background probe is SIGTERMed when the loop exits.** EX-ANTE, from `ExitType=main` and
+  `KillMode=control-group`, both read on the host at 13:15. The probe appends to
+  `state/forge/corr.jsonl` (`forge/probe.py:23,101-105`), not to the journal.
+
+## Dropped or reduced
+
+- *assume*: "push() from a thread raises ValueError". **Dropped.** No caller does this, and it fails
+  before any remote call.
+- *destroy*: BLOCKER, **reduced to SERIOUS (G1)**. *assume*: SERIOUS, **reduced to MINOR (G14)**. See
+  the table above.
+- *regression*: "exit 1 is the same number as `rolled_back`". **Folded into G3.**
+- The auditors' own out-of-list commands: *regression* ran `date`, `grep` and `systemctl --version`,
+  and *assume* ran a 450-sample `systemctl is-active` loop. All of these are read-only. I did not use
+  their output for any finding I kept, except the observation that other oneshot units read
+  `activating`, which only supports G7.
+
+## Target state at 13:15 (read-only)
+
+- `wq-forge` and `wq-harvest` are both `active`. NRestarts=0 since 2026-09-10 06:36:11. Restart=always,
+  RestartUSec=1min, KillMode=control-group, ExitType=main.
+- `forge/runner.py --live` (pid 3252128) is in flight, so a push started now would wait in quiesce.
+- No `*_run.sh` is running. `wq-forge-tests` is inactive; its last run was 10:30:13 to 10:31:14.
+- There is no STOP_FORGE, no DEPLOYED.json and no `.deploy/`.
+- `forge.jsonl` holds 122,951,729 bytes, last written 13:15:20.
+- `recover_harvest.py` (pid 3235634, wq-harvest) is mid-pass.
+
+## VERDICT (fifth pass)
+
+**YES, for one attended push of `398706c5` from a real terminal, under the conditions below.
+NO for a push nobody watches, a push run through an agent's Bash tool (its 2 or 10 min timeout lands
+inside the quiesce wait), or a second push, until the fix list lands.** Whether to run it is Khoa's
+decision.
+
+What changed since the fourth pass: every outcome that involves no signal, no lost connection and no
+ssh timeout now ends named and correct.
+
+| outcome | rc | end state |
+|---|---|---|
+| green | 0 | units back |
+| red | 1 | units back |
+| rollback failed | 3 | named |
+| units down | 5 | named |
+| quiesce timeout | 2 | nothing swapped |
+
+What remains either needs an event the conditions exclude, or shows up as a traceback or a non-zero
+exit that step 4 checks for. S1 is the one path that could stay invisible, and step 4b checks for it.
+
+**Conditions, in order:**
+1. **Before.**
+   - `pgrep -fa '_run\.sh'` returns nothing.
+   - Nobody else will push or touch the VPS during the run.
+   - The clock is not between 10:25 and 10:45 (G7).
+   - `systemctl is-active wq-forge wq-harvest` prints `active` twice.
+   - There is no `/opt/wq/state/STOP_FORGE`.
+   - `--force` is not used.
+2. **Run it in Terminal or iTerm, not under nohup, with the Mac kept awake**, on a stable network:
+   `caffeinate -i python3 tools/deploy.py push`. Expect up to 45 min of silence after
+   `units before the push`, and keep the window open.
+3. **Never press Ctrl-C.** To abort during the wait, abort on the VPS instead:
+   `pkill -f '[t]ouch state/STOP_FORGE'; rm -f /opt/wq/state/STOP_FORGE`. The bracket stops pkill from
+   matching its own ssh command. The push then refuses and restarts only the units that were already
+   active.
+4. **After, whatever the exit code:**
+   - (a) `systemctl is-active wq-forge wq-harvest` must print `active` twice, unless the output says
+     `ROLLBACK FAILED`. If not, and the output shows a green smoke, `rollback: snapshot restored`, or
+     a traceback before `shipped`, run `systemctl start wq-forge wq-harvest`.
+   - (b) `pgrep -fa '[t]ouch state/STOP_FORGE'` must return nothing, and STOP_FORGE must be absent.
+     If the waiter is there, kill it, remove the file, then repeat (a).
+   - (c) If the exit was not 0, `/opt/wq/DEPLOYED.json` must not exist, because the target has none
+     today (G4). If it exists, remove it.
+   - (d) If the output says `ROLLBACK FAILED`, or the exit is 120, or there is a traceback after
+     `shipped`: restore from the printed `.tgz`, remove the plan paths the `.tgz` does not hold, and
+     only then start anything.
+5. **Keep `.deploy/pre-*.tgz`.**
+
+**Before an unattended or second push, these must land, in this order:**
+1. **G1.** Guard `stop_units`. On any exception or any result other than QUIET: kill the remote waiter
+   by a unique marker, remove STOP_FORGE only if this push created it (G9), re-read the units, start
+   `was_active`, and return 5 if they are not back. Print TIMEOUT only when the token was seen.
+2. **G2, G6, G12.** Mask SIGINT, SIGTERM and SIGHUP for the duration of `_undo`. Give it an `out()`
+   that cannot raise. Keep SIG_IGN when that is the prior disposition.
+3. **G3, G5.** Keep `_undo`'s return code and write the ledger on the exception paths. Guard `:611` and
+   `units_state`.
+4. **G4.** Put DEPLOYED.json in the snapshot, or in `to_delete` when it is absent.
+5. **G7, G8, F16.** Count `activating` as running. Fail closed when the busy probe's ssh fails. Take a
+   host-side flock and re-check before rsync.
+6. **G13.** Tests that raise inside quiesce, cover TIMEOUT, rc 255 and `activating`, and run the real
+   quiesce and probe programs.
+
+**Journal risk** (`state/layered/runs/forge.jsonl`): **no path found.**
+- No plan destination lies under `state/`, and rsync runs without `--delete`.
+- The rollback's rm list holds only plan paths.
+- The smoke planner is a dry run.
+- quiesce waits out every `forge/*.py`, which covers the runner, harvest, submit and recover_orphans.
+- `wq-harvest` writes `recovered.jsonl`, not the journal.
+- Indirect risk: S2 only, SUSPECTED.
+
+**Code-tree risk:**
+- Every overwritten byte is recoverable on every demonstrated path. The snapshot is verified
+  member-for-member before the stop, and the PARTIAL (G2) and MIXED (G6, rollback failed) trees keep
+  every original in the `.tgz`.
+- The identity can lie (G4). Condition 4c excludes that.
+- I did not re-measure how many files this push overwrites and adds. The fourth pass's 12 and 48 were
+  measured on the 12:41 content.

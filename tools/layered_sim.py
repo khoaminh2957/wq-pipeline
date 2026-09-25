@@ -862,7 +862,7 @@ def _child_row(s, jf, results, out, c, st, alpha, polls, msg, *, sim_url, t0,
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], allow_abbrev=False)  # S7-NL: `--li` is not `--live`
     ap.add_argument("-n", type=int, default=10)
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--live", action="store_true", help="actually spend simulations")

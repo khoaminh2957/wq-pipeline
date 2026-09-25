@@ -1,0 +1,157 @@
+{
+ "approval": null,
+ "canonical_key": "rank(add(ts_delay(ts_sum($1,21),231),ts_delay(ts_sum($1,21),483)))",
+ "characteristics": {
+  "combiner": "SUM",
+  "condition_input": "NONE",
+  "conditioning": "NONE",
+  "depth": 4,
+  "economic_function": "LEVEL",
+  "family": "SUM.NONE.LEVEL",
+  "grouping": "NONE",
+  "horizon": "MULTIYEAR",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 483,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "add",
+   "rank",
+   "ts_delay",
+   "ts_sum"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [],
+ "evidence": null,
+ "groups": [],
+ "id": "Fd9c39249ee55",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (ts_delay(ts_sum(x,21),231) covers days t-251..t-231, the calendar window that matches the next 21 days one year earlier)"
+    },
+    "family": "seasonality",
+    "field": "template",
+    "function": "annual same-month seasonality: sum of the field over the matching 21-day windows one and two years back",
+    "id": "NF44",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "needs 504 days of history: the first two IS years are NaN"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "return seasonality (Heston-Sadka 2008 is the literature idea)"
+    },
+    "ref": "line 44",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "kind": [
+       "return"
+      ],
+      "pool_size_in_cell": 3396,
+      "role": "daily return-like series",
+      "sample": "returns",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX",
+      "time": [
+       "daily"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 2,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "rank(add(ts_delay(ts_sum($1,#),#),ts_delay(ts_sum($1,#),#)))",
+ "slots": [
+  {
+   "constraints": {
+    "kind": [
+     "return"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ],
+    "time": [
+     "daily"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_sum",
+     0
+    ],
+    [
+     "ts_sum",
+     0
+    ]
+   ],
+   "role": "daily return-like series",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "rank(add(ts_delay(ts_sum($1,21),231),ts_delay(ts_sum($1,21),483)))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_delay",
+   231
+  ],
+  [
+   "ts_sum",
+   21
+  ],
+  [
+   "ts_delay",
+   483
+  ],
+  [
+   "ts_sum",
+   21
+  ]
+ ]
+}

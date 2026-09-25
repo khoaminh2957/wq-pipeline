@@ -1,0 +1,245 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(ts_zscore(ts_mean(subtract(abs(group_neutralize(returns,market)),group_neutralize(abs(group_neutralize(returns,market)),market)),5),250),1),rank($1),rank($2))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 8,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 250,
+  "n_legs": 2,
+  "n_slots": 2,
+  "operators": [
+   "abs",
+   "greater",
+   "group_neutralize",
+   "if_else",
+   "rank",
+   "subtract",
+   "ts_mean",
+   "ts_zscore"
+  ],
+  "slot_kinds": "MATRIX*2",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [
+  "market"
+ ],
+ "id": "F946abbd10f3e",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (|r - mean| minus its de-meaned self = the cross-sectional mean absolute deviation, one number per day)"
+    },
+    "family": "market-regime",
+    "field": "template",
+    "function": "cross-sectional dispersion leg switch: a stock-specific leg when return dispersion across stocks is high, a slow leg otherwise",
+    "id": "NF07",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "the high-dispersion state is rare (z > 1), so leg 1 is live on few days"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "stock-picking signals may pay more when stocks move apart"
+    },
+    "ref": "line 7",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "domain": [
+       "sentiment",
+       "news",
+       "social",
+       "short-flow",
+       "option"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 6789,
+      "role": "stock-specific fast leg",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX",
+      "time": [
+       "daily"
+      ]
+     },
+     {
+      "domain": [
+       "valuation",
+       "payout-yield"
+      ],
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "ratio",
+       "score"
+      ],
+      "pool_size_in_cell": 1397,
+      "role": "slow leg",
+      "sign": [
+       "+"
+      ],
+      "slot": "$2",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 6,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(ts_zscore(ts_mean(subtract(abs(group_neutralize(returns,market)),group_neutralize(abs(group_neutralize(returns,market)),market)),#),#),#),rank($1),rank($2))",
+ "slots": [
+  {
+   "constraints": {
+    "domain": [
+     "sentiment",
+     "news",
+     "social",
+     "short-flow",
+     "option"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ],
+    "time": [
+     "daily"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "stock-specific fast leg",
+   "slot": "$1"
+  },
+  {
+   "constraints": {
+    "domain": [
+     "valuation",
+     "payout-yield"
+    ],
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "ratio",
+     "score"
+    ],
+    "sign": [
+     "+"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "slow leg",
+   "slot": "$2"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(ts_zscore(ts_mean(subtract(abs(group_neutralize(returns,market)),group_neutralize(abs(group_neutralize(returns,market)),market)),5),250),1),rank($1),rank($2))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_zscore",
+   250
+  ],
+  [
+   "ts_mean",
+   5
+  ]
+ ]
+}

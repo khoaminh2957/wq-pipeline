@@ -1,0 +1,83 @@
+# wq-frames: the continuous frames loop (vps/frames_loop.sh). F5 (Khoa, 2026-09-24): the frame library replaces the
+# forge loop; wq-forge is retired (read-only on the host 2026-09-24 21:56 +07: inactive, disabled). This unit never
+# starts wq-forge -- it names no other unit -- and the loop takes /var/lock/wq_forge.lock, so the two cannot run
+# together whichever is started. No Conflicts=wq-forge.service: a start of this unit would then STOP a running forge
+# loop mid-round instead of at a round boundary; the lock already refuses the second spender.
+#
+# Restart=always, RestartSec=60 (wq-forge's values). The loop exits 0 when the lock is held, when a STOP file is
+# consumed and after ROUNDS rounds; Restart=always starts it again in each case, so an operator who wants it down
+# stops the unit (below).
+#
+# MemoryMax=3G (3,221,225,472 bytes). A CHOICE: the cap D58 ticked for wq-forge, the loop this one replaces in the
+# host's memory budget. Read-only on the host 2026-09-24 21:56 +07: 7,376 MiB of RAM, 1,130 MiB used with no loop
+# running, 2,047 MiB of swap; wq-harvest peaked at 83 MiB, wq-auth 24 MiB, wq-outbox 20 MiB; wq-judge is not
+# installed; wq-forge's own MemoryMax reads infinity (D58's attended edit was never installed). What the frames steps
+# use (POST-HOC, on the Mac, python 3.14.0, not on the host, which runs 3.14.4): framelib.fields.FieldLibrary.build for
+# USA/d1 (85,590 catalogue fields) peaked at 432 MB resident, and reading recovered.jsonl (33 MB) plus frames_r1b.jsonl
+# through analyse_round._rows at 206 MB. Re-measured 2026-09-25 with `/usr/bin/time -l`, maximum resident set size:
+# the planner (plan.build on the real library, 300 constructions, the planner engineer's smoke harness, not the CLI)
+# 769,409,024 bytes in 30.6 s; evidence.build read-only on the R1B state copy 63,569,920 bytes in 0.35 s. Both read
+# journals that grow with every round, so these are today's peaks, not bounds. newframes' peak is UNKNOWN.
+# AT THE CAP (EX-ANTE, systemd.resource-control(5), systemd.service(5); not observed): the kernel OOM-kills a process
+# inside this unit and, with the host's DefaultOOMPolicy=stop (OOMPolicy=stop read on wq-forge 2026-09-24), systemd
+# stops the whole unit, the loop included, and Restart=always starts it again after 60 s. The loop's own 900 s back-off
+# after a step ended by a signal runs only when the loop outlives the kill. OOMPolicy is not set here, as in D58.
+# KillMode is not set either: the default, control-group (read on wq-forge 2026-09-25: KillMode=control-group). EX-ANTE,
+# systemd.kill(5), not observed: a stop, or the main process's death, kills every process of the unit, the dispatcher
+# included, so under this unit no dispatcher outlives the loop (the lock note in frames_loop.sh is about a loop run by
+# hand), and a stop in the middle of a round leaves posted parents unread -- hence the round-boundary stop below.
+#
+# ONE-TIME ATTENDED INSTALL -- by hand, by the release owner, after Khoa's tick; never by tools/deploy.py (D30: deploy
+# does not touch /etc/systemd). Read-only commands use ssh -n -o BatchMode=yes.
+#   0. preconditions, each read-only:
+#      a. FRAMES-R2 is over. frames-r2.timer (transient, 2026-09-25 11:05 +07) runs experiments/frames/frames_round.sh,
+#         which does NOT take /var/lock/wq_forge.lock; the loop waits while that script runs, but cannot see one that
+#         starts during a round.  ssh -n -o BatchMode=yes root@160.25.88.163 'systemctl list-timers --all frames-r2.timer;
+#           pgrep -fa "frames_round[.]sh"; tail -n 2 /opt/wq/state/frames/frames-r2.log'
+#         must show no pending timer, no process, and "=== FRAMES-R2 driver done". (Read 2026-09-25 15:27 +07: no frames
+#         timer listed, and the log's last line "=== FRAMES-R2 driver done Fri Sep 25 03:24:24 PM +07 2026 ===".)
+#      b. wq-forge is retired:  ssh ... 'systemctl is-active wq-forge; systemctl is-enabled wq-forge'  -> inactive, disabled
+#      c. wq-auth is running:   ssh ... 'systemctl is-active wq-auth'  -> active. The frames loop never mints a login
+#         link (forge_loop.sh ran tools/mint_link.py when auth was dead); it only waits, so without wq-auth's daemon
+#         minting links nobody is asked for a session and the loop waits forever. (Read 2026-09-25: active.)
+#      d. framelib/loop/{evidence,availability,newframes,plan,submit}.py exist and their tests pass on the Mac, and
+#         framelib/tests/test_loop_driver.py passes.
+#   1. ship the code (tools/deploy.py's PLAN ships neither framelib/ nor vps/frames_loop.sh, read 2026-09-24):
+#         rsync -a --exclude __pycache__ framelib/ root@160.25.88.163:/opt/wq/framelib/
+#         scp vps/frames_loop.sh root@160.25.88.163:/opt/wq/frames_loop.sh
+#   2. check on the host, spending nothing:
+#         ssh ... 'bash -n /opt/wq/frames_loop.sh && cd /opt/wq && venv/bin/python -c "import framelib.loop.evidence,
+#           framelib.loop.availability, framelib.loop.newframes, framelib.loop.plan, framelib.loop.submit,
+#           framelib.experiments.analyse_round; from forge import search; print(\"imports ok\")"'
+#   3. read what is there now, and keep it as the UNDO:  ssh ... 'systemctl cat wq-frames; systemctl is-active wq-frames'
+#   4. copy, check, reload:
+#         scp vps/wq-frames.service root@160.25.88.163:/etc/systemd/system/wq-frames.service
+#         ssh ... 'systemd-analyze verify /etc/systemd/system/wq-frames.service && systemctl daemon-reload &&
+#           systemctl show wq-frames -p MemoryMax -p Restart -p ExecStart'   (MemoryMax=3221225472, Restart=always)
+#   5. start and enable (this spends quota from the first round):  ssh ... 'systemctl enable --now wq-frames'
+#   6. confirm:  ssh ... 'systemctl show wq-frames -p ActiveState -p MemoryCurrent; grep "^=== " /opt/wq/state/frames/loop.log | tail -n 12'
+#      a round header "=== frames round 1, seed ...", its step lines and "=== frames round end, seed ...".
+# STOP AT A ROUND BOUNDARY (the order tools/deploy.py's quiesce uses for wq-forge: ask, wait, stop the unit, THEN
+# remove the file, or a restarted loop reads it and ends). The wait ends when the loop has consumed the file (it has
+# exited; systemd would start it again after 60 s) or when its only child is `sleep` (a back-off or the quota sleep:
+# nothing in flight). NOT TESTED: an operator procedure, written from the loop's code; run it by hand and read it.
+#         ssh ... 'cd /opt/wq && touch state/STOP_FRAMES && P=$(systemctl show -p MainPID --value wq-frames) &&
+#           until [ ! -e state/STOP_FRAMES ] || [ "$(ps -o comm= --ppid "$P" | sort -u)" = sleep ]; do sleep 2; done;
+#           systemctl stop wq-frames; rm -f state/STOP_FRAMES'
+# UNDO: ssh ... 'systemctl disable --now wq-frames; rm /etc/systemd/system/wq-frames.service; systemctl daemon-reload'
+#   (or copy back the unit read in step 3). wq-forge stays retired: F5; starting it again is Khoa's tick, not an undo.
+[Unit]
+Description=wq frames loop — the frame library miner (F5). Singleton by flock on /var/lock/wq_forge.lock.
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wq
+Environment=ROUNDS=100000
+MemoryMax=3G
+ExecStart=/bin/bash /opt/wq/frames_loop.sh
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

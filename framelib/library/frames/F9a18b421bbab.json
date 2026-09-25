@@ -1,0 +1,165 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(ts_mean(subtract(sign(returns),group_neutralize(sign(returns),market)),20),0),rank($1),subtract(1,rank($1)))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "FIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 6,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "MONTH",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 20,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "greater",
+   "group_neutralize",
+   "if_else",
+   "rank",
+   "sign",
+   "subtract",
+   "ts_mean"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [
+  "market"
+ ],
+ "id": "F9a18b421bbab",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (mean of sign(returns) across stocks = advancers minus decliners share)"
+    },
+    "family": "market-regime",
+    "field": "template",
+    "function": "breadth sign switch: ride the signal when most stocks rose over 20 days, fade it otherwise",
+    "id": "NF08",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "a 20-day breadth flips more often than a 120-day trend: more whole-book flips than NF05"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "breadth as a market-state variable, a sibling of NF05"
+    },
+    "ref": "line 8",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 62353,
+      "role": "signal whose sign may depend on breadth",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium"
+      ],
+      "sparsity_rule": "no density operator above this slot: sparse removed (typed H4-density)",
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(ts_mean(subtract(sign(returns),group_neutralize(sign(returns),market)),#),#),rank($1),subtract(#,rank($1)))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "rank",
+     0
+    ],
+    [
+     "rank",
+     0
+    ]
+   ],
+   "role": "signal whose sign may depend on breadth",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(ts_mean(subtract(sign(returns),group_neutralize(sign(returns),market)),20),0),rank($1),subtract(1,rank($1)))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_mean",
+   20
+  ]
+ ]
+}

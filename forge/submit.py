@@ -2,7 +2,7 @@
 measured correlations. The POST, the shared-ledger reservation, the flock and the m6 announce reuse
 tools/climb_submit.py, tools/submit_budget.py and tools/msgcat.py unchanged.
 
-ELIGIBLE (C21 — nothing more, nothing less):
+ELIGIBLE (C21 — nothing more, nothing less, for a library composite; D39 amends C21 for a generated one, below):
   stage == candidate (platform PASS, turnover band, DSR >= 0.95)
   ∧ prod and self correlation MEASURED and under the platform lines (row limits, else 0.7)
   ∧ MATCHES_PYRAMID PASS on the row
@@ -12,6 +12,35 @@ SECOND-BEST (C16): within the winner's hypothesis, top two scores within 10% →
 403 BUDGET (C29): more than MAX_403_PER_WEEK refusals in 7 days → hold-for-approval, nothing posted.
 FRESH CORR (C29): a reading older than 30 min is re-read right before the POST; a re-read that is
 empty or over a line skips that candidate for now.
+
+GENERATED CANDIDATES (meta.hypothesis "gen:<family>", the judge's own test, benchmark.GENERATED_PREFIX;
+either the scored record or the journal row saying so is enough). Every gate above runs for them
+unchanged; AFTER all of them, three more, each failing closed (a hold, never a POST):
+  D51        'd51-neighbours-pending' until the journal holds two one-setting neighbours of the row with a
+             numeric Sharpe -- forge.gen.repair.existing_neighbours, the loop's copy of the judge's rule
+             (benchmark.neighbourhood_stability, with the row's own version-card cohort as the planner
+             counts it), so submit and the D51 planner cannot disagree on "two". Their values are not
+             read: the judge grades robustness. A D51 neighbour row is itself `gen:` and meets the same
+             hold (round 4 m19: C16 could POST a neighbour the judge reads UNPROVEN). Checked before
+             meaning because meaning is the costly step (design 04 section 4.2: "anything costly only for
+             alphas that are otherwise POSTable").
+  D39/D52    forge.meaning.score, the row appended to state/forge/meaning.jsonl (forge.meaning.append).
+             POST only when every decidable gate (G4's leg clause, G5-G8) is exactly true; G1-G3 are "not
+             applicable" (D39) unless the row inherited a composite's text (inherited_from set), and then
+             they must be true too (the task's reading of "not applicable unless inherited"; POST-HOC, the
+             Mac library 2026-09-24: 0 of 94 composites carry a false G1-G3, so today this clause moves no
+             verdict). The hold names each gate that is not true ('meaning:G4=false,G7=null'). append keeps
+             the EARLIEST row per (alpha, formula sha), the one the judge grades (benchmark.meaning_index),
+             so that recorded row must read true as well ('meaning-recorded:...'). Scoring that raises
+             holds with the exception's class.
+  S11        round 3 S11: after each ACCEPTED POST, every remaining generated pick whose PnL-predicted SELF
+             against the just-POSTed alpha (tools/self_corr_predict.predict on the cached curves,
+             forge.harvest.cached_curve; nothing is fetched) is at or over its SELF line is held for this
+             invocation. No curve or no prediction holds too: no reading is not a verdict. Library picks
+             are not touched (they behave as before this rule). POST-HOC, host read-only 2026-09-24: 37 of
+             37 candidates and 4 of 5 accepted POSTs (not the climb-era mL516W9W) had a cached curve, and
+             144 of 144 candidate x POST pairs gave a number (9 at >= 0.7), so the fail-closed branches are
+             not what decides today.
 """
 from __future__ import annotations
 
@@ -19,6 +48,7 @@ import argparse
 import collections
 import json
 import pathlib
+import re
 import sys
 import time
 
@@ -35,6 +65,12 @@ CORR_MAX_AGE_S = 30 * 60
 MAX_403_PER_WEEK = 1
 SECOND_BEST_TOL = 0.10
 CAT_ALIAS = {"PV": "PRICEVOLUME"}
+#: named so the fake-transport tests can run main() where /var/lock does not exist (macOS); the value is unchanged
+SUBMIT_LOCK = "/var/lock/wq_submit.lock"
+#: D39: benchmark.GENERATED_PREFIX, restated (the judged does not import the judge, Draw 4).
+GENERATED_PREFIX = "gen:"
+D51_PENDING = "d51-neighbours-pending"
+_IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
 def corr_lines(row) -> tuple:
@@ -143,16 +179,124 @@ def needs_reread(read_at, now, last_post_at) -> bool:
     return (now - read_at > CORR_MAX_AGE_S) or (read_at <= last_post_at)
 
 
-def eligible(scored, corr, rows, pair_counts, history, now=None, novelty=None):
+def is_generated(x, row) -> bool:
+    """D39's test on the scored record OR the journal row: either saying gen: applies the stricter gates."""
+    return any(str(h or "").startswith(GENERATED_PREFIX) for h in (x.get("hypothesis"), (row.get("meta") or {}).get("hypothesis")))
+
+
+def neighbour_index(rows) -> dict:
+    """{forge.gen.repair.formula_key: [journal rows]}, the index existing_neighbours reads (as gen.state builds it)."""
+    from forge.gen import repair as RP
+    out = {}
+    for r in rows.values():
+        if r.get("alpha") and r.get("formula"):
+            out.setdefault(RP.formula_key(r), []).append(r)
+    return out
+
+
+def d51_ready(row, index) -> bool:
+    """D51: the journal holds RP.NEIGHBOURS (2) one-setting neighbours of `row` with a numeric Sharpe."""
+    from forge.gen import repair as RP
+    return len(RP.existing_neighbours(row, index)) >= RP.NEIGHBOURS
+
+
+def meaning_reasons(mrow) -> list:
+    """['G4=false', 'G7=null', ...]: the gates of a meaning row that keep a generated alpha from POSTing.
+    D39: every decidable gate (G4-G8) must be exactly true; G1-G3 only when the row inherited a composite's
+    text. A value that is not exactly true / false reads null, as benchmark._standard_gate reads it."""
+    from forge import meaning as M
+    gates = mrow.get("gates") if isinstance(mrow.get("gates"), dict) else {}
+    want = M.DECIDABLE + (M.NOT_APPLICABLE if mrow.get("inherited_from") else ())
+    return ["%s=%s" % (g, "false" if gates.get(g) is False else "null") for g in want if gates.get(g) is not True]
+
+
+def meaning_gate(path=None, clock=time.time):
+    """gate(alpha, row) -> None when D39 lets a generated alpha POST, else the hold reason. Scores with
+    forge.meaning.score, appends the row (path None = meaning.LEDGER), and requires both the fresh row and
+    the ledger's standing row for (alpha, formula sha) to pass meaning_reasons. forge.meaning is imported,
+    and the journal-wide ledgers read, at the first call only, so a round with no generated candidate
+    reads nothing new. The catalogue is read per candidate with `only` = every identifier in the formula
+    (a superset of its fields, so no field of it reads missing: draw5 meaning M6). main() builds it before
+    the --submit check, so a dry run appends rows too: a row records a scoring, not a POST."""
+    cache = {}
+
+    def gate(alpha, row):
+        formula, settings = row.get("formula"), row.get("settings")
+        if not (isinstance(formula, str) and formula and isinstance(settings, dict)):
+            return "meaning-unscorable"
+        try:
+            from forge import meaning as M
+            if "ledgers" not in cache:
+                cache["ledgers"] = M.load_ledgers()
+            cell = (settings.get("region"), settings.get("universe"), settings.get("delay"))
+            cat = None if None in cell else M.load_catalogue(*cell, only=set(_IDENT.findall(formula)))
+            mrow = M.score(formula, row.get("meta") or {}, cat, cache["ledgers"], alpha=alpha, settings=settings,
+                           scored_at=clock())
+            ledger, appended = M.append(mrow, path)
+            standing = mrow if appended else next(
+                (r for r in HV.read_jsonl(ledger) if isinstance(r, dict) and r.get("alpha") == alpha
+                 and r.get("formula_sha") == mrow["formula_sha"]), None)
+        except Exception as exc:  # noqa: BLE001 -- a hold, named and printed; never a POST
+            print("  %s: meaning scoring raised %s: %s -- held" % (alpha, type(exc).__name__, exc))
+            return "meaning-error:%s" % type(exc).__name__
+        bad = meaning_reasons(mrow)
+        if bad:
+            return "meaning:" + ",".join(bad)
+        if standing is None:
+            return "meaning-recorded-row-unread"
+        bad = meaning_reasons(standing)
+        return ("meaning-recorded:" + ",".join(bad)) if bad else None
+    return gate
+
+
+def pnl_twin_hold(posted_alpha, elig, curve_of=None, predict=None):
+    """Round 3 S11 -> (kept, Counter of hold reasons). After an accepted POST of `posted_alpha`, each
+    remaining GENERATED entry is held when its predicted SELF against it is at or over the entry's own
+    SELF line ('s11-pnl-twin'), when either cached curve is absent ('s11-curve-absent'), when the
+    predictor gives no number ('s11-unpredictable') or raises ('s11-error:<class>'). Library entries pass
+    through untouched, and with no generated entry left nothing is read."""
+    kept, held = [], collections.Counter()
+    if not any(is_generated(e, e["row"]) for e in elig):
+        return list(elig), held
+    try:
+        curve_of = curve_of or HV.cached_curve
+        if predict is None:
+            import self_corr_predict as SCP
+            predict = SCP.predict
+        posted = curve_of(posted_alpha)
+        for e in elig:
+            if not is_generated(e, e["row"]):
+                kept.append(e)
+                continue
+            mine = curve_of(e["alpha"])
+            if not (isinstance(posted, dict) and posted and isinstance(mine, dict) and mine):
+                held["s11-curve-absent"] += 1
+                continue
+            v, _n = predict(mine, posted)
+            if not isinstance(v, (int, float)):
+                held["s11-unpredictable"] += 1
+            elif v >= e["lines"][1]:
+                held["s11-pnl-twin"] += 1
+            else:
+                kept.append(e)
+    except Exception as exc:  # noqa: BLE001 -- fail closed: every generated entry is held
+        held = collections.Counter({"s11-error:%s" % type(exc).__name__: sum(1 for e in elig if is_generated(e, e["row"]))})
+        kept = [e for e in elig if not is_generated(e, e["row"])]
+    return kept, held
+
+
+def eligible(scored, corr, rows, pair_counts, history, now=None, novelty=None, meaning=None):
     """(eligible list sorted for POST order, Counter of hold reasons).
     Khoa 2026-09-08 (harness5 Q19/Q20): the one-mechanism-per-week rule is GONE; the correlation
     lines alone separate siblings. In its place a DIVERSITY rule per quota day: at most 2 of a day's
     submissions may share a dataset set, and only one dataset set may repeat — so 4 submissions span
-    ≥ 3 distinct dataset sets (2+1+1)."""
+    ≥ 3 distinct dataset sets (2+1+1).
+    `meaning`: meaning_gate()'s gate; None holds every generated candidate ('meaning-not-scored')."""
     now = now or time.time()
     posted_alphas = {h["alpha"] for h in history}
     today_sets = today_dataset_sets(history, now)
     out, held = [], collections.Counter()
+    nb = None
     for a, x in scored.items():
         if x.get("stage") != "candidate":
             continue
@@ -210,6 +354,17 @@ def eligible(scored, corr, rows, pair_counts, history, now=None, novelty=None):
             structural_sim = (sim, twin)
         else:
             structural_sim = (None, None)
+        # D51, then D39/D52, for a generated candidate only (module docstring); library rows skip both
+        if is_generated(x, row):
+            if nb is None:
+                nb = neighbour_index(rows)
+            if not d51_ready(row, nb):
+                held[D51_PENDING] += 1
+                continue
+            why = meaning(a, row) if meaning is not None else "meaning-not-scored"
+            if why:
+                held[why] += 1
+                continue
         pyr = []
         for c in row.get("checks") or []:
             if isinstance(c, dict) and c.get("name") == "MATCHES_PYRAMID":
@@ -249,7 +404,7 @@ def record(pick, http, body, path=LOG):
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], allow_abbrev=False)  # S7-NL: `--sub` is not `--submit`
     ap.add_argument("--submit", action="store_true", help="ACTUALLY POST. Irreversible: a 403 spends the alpha forever.")
     ap.add_argument("--cap", type=int, default=4, help="max POSTs this invocation (the shared daily budget still binds)")
     a = ap.parse_args(argv)
@@ -263,7 +418,7 @@ def main(argv=None) -> int:
     nov = NV.build(history, rows)
     print("forge submit: novelty index over %d submitted structure(s)%s" % (
         len(nov), "" if nov.complete else "; FORMULA MISSING for %s -- holding the round" % nov.missing))
-    elig, held = eligible(scored, corr, rows, pair_counts, history, novelty=nov)
+    elig, held = eligible(scored, corr, rows, pair_counts, history, novelty=nov, meaning=meaning_gate())
     print("forge submit: %d candidate(s) scored, %d eligible; held %s" % (
         sum(1 for x in scored.values() if x.get("stage") == "candidate"), len(elig), dict(held)))
     for e in elig[:8]:
@@ -290,7 +445,7 @@ def main(argv=None) -> int:
         print("no submit slot left today; nothing posted")
         return 0
     import fcntl
-    lockf = open("/var/lock/wq_submit.lock", "a+")
+    lockf = open(SUBMIT_LOCK, "a+")
     try:
         fcntl.flock(lockf.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
@@ -345,6 +500,11 @@ def main(argv=None) -> int:
             last_post_at = time.time()
             today_sets[datasets_of(pick["mechanism_key"])] += 1
             elig = [e for e in elig if diversity_ok(datasets_of(e["mechanism_key"]), today_sets)]
+            # round 3 S11: a SELF read minutes after a POST is not trusted (04 section 3.6: 6 of 8 low), and a
+            # gen:<family> key drops no PnL sibling, so a generated twin of this alpha is held by prediction
+            elig, twins = pnl_twin_hold(pick["alpha"], elig)
+            if twins:
+                print("  S11: held %s against %s" % (dict(twins), pick["alpha"]))
             # D18 inside one invocation: this alpha's structural family is now submitted, so drop the
             # rest of it from the queue. Without this, two twins POST in the same run -- the exact
             # shape of the diversity bug fixed on 2026-09-09 (code review F4), re-found by audit.

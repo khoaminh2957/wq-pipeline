@@ -1,0 +1,165 @@
+{
+ "approval": null,
+ "canonical_key": "trade_when(greater(abs(ts_zscore(returns,20)),2),group_rank(ts_backfill($1,60),country),reverse(1))",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "FIXED",
+  "conditioning": "TRADE_WHEN",
+  "depth": 4,
+  "economic_function": "LEVEL",
+  "family": "SINGLE.TRADE_WHEN.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "QUARTER",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 60,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "abs",
+   "greater",
+   "group_rank",
+   "reverse",
+   "trade_when",
+   "ts_backfill",
+   "ts_zscore"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [
+  "country"
+ ],
+ "id": "F041679f42cfe",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (trade_when docs)"
+    },
+    "family": "price-state-trigger",
+    "field": "template",
+    "function": "country-relative shock-day re-evaluation: refresh a within-country rank only on 2-sigma move days",
+    "id": "NF57",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "rare triggers: low turnover"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "NF28 for a multi-country universe"
+    },
+    "ref": "line 57",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 16220,
+      "role": "slow signal",
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 0,
+  "neutralization": "COUNTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "ASI": "MINVOL1M"
+  }
+ },
+ "shape": "trade_when(greater(abs(ts_zscore(returns,#)),#),group_rank(ts_backfill($1,#),country),reverse(#))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "slow signal",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "trade_when(greater(abs(ts_zscore(returns,20)),2),group_rank(ts_backfill($1,60),country),reverse(1))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_zscore",
+   20
+  ],
+  [
+   "ts_backfill",
+   60
+  ]
+ ]
+}

@@ -1,0 +1,210 @@
+{
+ "approval": null,
+ "canonical_key": "multiply(group_rank(ts_mean(ts_backfill($1,5),5),subindustry),subtract(1,group_rank(ts_mean(divide($2,$3),10),subindustry)))",
+ "characteristics": {
+  "combiner": "PRODUCT",
+  "condition_input": "NONE",
+  "conditioning": "NONE",
+  "depth": 5,
+  "economic_function": "LEVEL",
+  "family": "PRODUCT.NONE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "MONTH",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 10,
+  "n_legs": 2,
+  "n_slots": 3,
+  "operators": [
+   "divide",
+   "group_rank",
+   "multiply",
+   "subtract",
+   "ts_backfill",
+   "ts_mean"
+  ],
+  "slot_kinds": "MATRIX*3",
+  "taxonomy_version": 1,
+  "turnover_class": "MID"
+ },
+ "cond_fields": [],
+ "evidence": {
+  "caveats": [
+   "C1 fill counts measure allocation, not durability",
+   "C2 corpora are selected samples",
+   "C3 fills were not drawn at random",
+   "C4 settings vary within a cell and are partly unknown"
+  ],
+  "cells": {
+   "USA/d1": {
+    "corpus_groups": {
+     "forge": 8
+    },
+    "d24_rate": 0.0,
+    "d24_wilson_lo95": 0.0,
+    "ge_0p8_rate": 0.625,
+    "ge_0p8_wilson_lo95": 0.3057,
+    "limits": {
+     "1.58": 8
+    },
+    "n_complete": 8,
+    "n_d24": 0,
+    "n_datasets": 2,
+    "n_fills": 4,
+    "n_ge_0p8": 5,
+    "n_rows": 8,
+    "n_with_limit": 8,
+    "ratio_median": 1.0285,
+    "settings_top": [
+     [
+      "TOP3000|STATISTICAL|4|0.08",
+      3
+     ],
+     [
+      "TOP3000|INDUSTRY|8|0.08",
+      2
+     ],
+     [
+      "TOP3000|STATISTICAL|8|0.08",
+      2
+     ]
+    ],
+    "turnover_median": 0.2045
+   }
+  },
+  "evidence_version": 1,
+  "label": "POST-HOC",
+  "n_fills": 4,
+  "n_rows": 8,
+  "reliability": {
+   "method": null,
+   "rounds": [],
+   "verdict": "UNMEASURED"
+  },
+  "source": {
+   "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/canonical/rows_framed.jsonl",
+   "sha256": "ffc469471c1fd7d4df97619cf3b5e4a6148478723a52c362197d78b76ce1bceb",
+   "spec": "FRAME SPEC v1"
+  }
+ },
+ "groups": [
+  "subindustry"
+ ],
+ "id": "F6282cce63c38",
+ "notes": "first-100 curator 2026-09-24: mined: representative of its shape (highest eb_post of 1 frame(s) in the shape). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "mined",
+  "sources": [
+   {
+    "kind": "discovery",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/quant/out/q4_candidates.csv",
+    "ref": "row 5",
+    "row": {
+     "C1_top10": "True",
+     "C2": "True",
+     "C3": "True",
+     "C4": "True",
+     "candidate": "True",
+     "d24": "0",
+     "day_share": "1.0",
+     "day_testable": "True",
+     "days": "3",
+     "eb_p_above": "0.9999928254792281",
+     "eb_post": "0.8660219563527524",
+     "eb_post_allframe_prior": "0.9737035530693747",
+     "eb_post_sd": "0.07464022952133166",
+     "eb_rank_all_frames": "72.0",
+     "field_testable": "False",
+     "late_mean": "1.016064156372332",
+     "lofo_evaluable": "155.0",
+     "lofo_share_test_above": "1.0",
+     "mean": "1.008492155011448",
+     "n_fill": "4",
+     "p_luck": "1.9999900000499998e-05",
+     "pass_share_rows": "0.625",
+     "passes": "5.0",
+     "rand_share": "1.0",
+     "rows": "8",
+     "rr_post": "12.690368788976825",
+     "shape_key": "multiply(group_rank(ts_mean(ts_backfill($1,#),#),subindustry),subtract(#,group_rank(ts_mean(divide($2,$3),#),subindustry)))"
+    },
+    "sha256": "267186e1782a90ff432f59e12d5a6ce24f90e11a579b97eb7a4a7b531981aea6"
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "n_modal": 3,
+  "n_rows": 8,
+  "neutralization": "STATISTICAL",
+  "source": "canonical-modal",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "multiply(group_rank(ts_mean(ts_backfill($1,#),#),subindustry),subtract(#,group_rank(ts_mean(divide($2,$3),#),subindustry)))",
+ "slots": [
+  {
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "slot": "$1"
+  },
+  {
+   "context": "MATRIX",
+   "positions": [
+    [
+     "divide",
+     0
+    ]
+   ],
+   "slot": "$2"
+  },
+  {
+   "context": "MATRIX",
+   "positions": [
+    [
+     "divide",
+     1
+    ]
+   ],
+   "slot": "$3"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "multiply(group_rank(ts_mean(ts_backfill($1,5),5),subindustry),subtract(1,group_rank(ts_mean(divide($2,$3),10),subindustry)))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_mean",
+   5
+  ],
+  [
+   "ts_backfill",
+   5
+  ],
+  [
+   "ts_mean",
+   10
+  ]
+ ]
+}

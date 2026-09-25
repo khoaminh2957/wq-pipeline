@@ -1,32 +1,1753 @@
 {
- "axis1": {
-  "gate_coverage": 0.905,
-  "per_alpha": {
-   "P1": {
+ "cases": {
+  "axis1_gates": {
+   "floor_met": false,
+   "gate_coverage": 0.952,
+   "per_alpha": {
+    "all_gates_pass": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    },
+    "binding_check_missing": {
+     "gates": {
+      "all_binding_pass": false,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "binding_check_pending": {
+     "gates": {
+      "all_binding_pass": false,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "binding_fails": {
+     "gates": {
+      "all_binding_pass": false,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "corr_exactly_at_the_line": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": false,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "corr_fails": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": false,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "corr_just_under_the_line": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    },
+    "corr_under_default_over_row_limit": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": false,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "corr_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": null,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "curve_of_299_points": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": null
+     },
+     "status": "unproven"
+    },
+    "curve_of_300_points": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    },
+    "dsr_0_9499": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": false,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "dsr_exactly_0_95": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    },
+    "dsr_fails": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": false,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "dsr_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": null,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "neighbourhood_fails": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": false,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "neighbourhood_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": null,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "neighbours_retain_0_49": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": false,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "neighbours_retain_exactly_half": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    },
+    "one_gate_false_one_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": false,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": null,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "one_neighbour_only": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": null,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "pbo_fails": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": false,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "pbo_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": null,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "prod_row_limit_does_not_bind_self": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    },
+    "regime_fails": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": false
+     },
+     "status": "refuted"
+    },
+    "regime_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": null
+     },
+     "status": "unproven"
+    },
+    "self_corr_exactly_at_the_default_line": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": false,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "self_corr_over_its_own_row_limit": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": false,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "self_corr_over_the_default_line": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": false,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "self_corr_unmeasured_prod_measured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": null,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "standard_fails": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": false,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "standard_unmeasured": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": null,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "two_rows_differing_in_two_knobs": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": null,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    }
+   },
+   "status_counts": {
+    "proven": 6,
+    "refuted": 17,
+    "unproven": 10
+   },
+   "value": 0.1818
+  },
+  "axis3_tree": {
+   "broken": {
+    "checks": [
+     [
+      "mechanisms are data",
+      false
+     ],
+     [
+      "new work can be staged invisibly",
+      true
+     ],
+     [
+      "a change can be A/B'd in one round",
+      false
+     ],
+     [
+      "the deployed code has a version",
+      false
+     ],
+     [
+      "no module-level import cycle in forge/",
+      false
+     ],
+     [
+      "every forge module has a test",
+      false
+     ],
+     [
+      "a real branch goes through the planner",
+      true
+     ]
+    ],
+    "floor_met": false,
+    "held": 2,
+    "import_cycles": {
+     "deferred": [
+      "c -> d"
+     ],
+     "module_level": [
+      "a -> b"
+     ]
+    },
+    "of": 7,
+    "value": 0.286
+   },
+   "four_of_five_modules_tested": {
+    "checks": [
+     [
+      "mechanisms are data",
+      true
+     ],
+     [
+      "new work can be staged invisibly",
+      true
+     ],
+     [
+      "a change can be A/B'd in one round",
+      true
+     ],
+     [
+      "the deployed code has a version",
+      true
+     ],
+     [
+      "no module-level import cycle in forge/",
+      true
+     ],
+     [
+      "every forge module has a test",
+      false
+     ],
+     [
+      "a real branch goes through the planner",
+      true
+     ]
+    ],
+    "floor_met": false,
+    "held": 6,
+    "import_cycles": {
+     "deferred": [],
+     "module_level": []
+    },
+    "of": 7,
+    "value": 0.857
+   },
+   "healthy": {
+    "checks": [
+     [
+      "mechanisms are data",
+      true
+     ],
+     [
+      "new work can be staged invisibly",
+      true
+     ],
+     [
+      "a change can be A/B'd in one round",
+      true
+     ],
+     [
+      "the deployed code has a version",
+      true
+     ],
+     [
+      "no module-level import cycle in forge/",
+      true
+     ],
+     [
+      "every forge module has a test",
+      true
+     ],
+     [
+      "a real branch goes through the planner",
+      true
+     ]
+    ],
+    "floor_met": true,
+    "held": 7,
+    "import_cycles": {
+     "deferred": [],
+     "module_level": []
+    },
+    "of": 7,
+    "value": 1.0
+   }
+  },
+  "cohorts": {
+   "compare": {
+    "V vs V@rcA": {
+     "arms": {
+      "V": [
+       50,
+       1
+      ],
+      "V@rcA": [
+       200,
+       16
+      ]
+     },
+     "verdict": "indistinguishable"
+    },
+    "V@rcA vs V+untracked": "ValueError: 'V+untracked' forms no cohort: a suffixed or marker pipeline_version or run_config (+..., unknown, ambiguous) never does (D30)",
+    "V@rcA vs V@ambiguous": "ValueError: 'V@ambiguous' forms no cohort: a suffixed or marker pipeline_version or run_config (+..., unknown, ambiguous) never does (D30)",
+    "V@rcA vs V@rcB": {
+     "arms": {
+      "V@rcA": [
+       200,
+       16
+      ],
+      "V@rcB": [
+       200,
+       4
+      ]
+     },
+     "verdict": "worse"
+    },
+    "V@rcA vs unknown": "ValueError: 'unknown' forms no cohort: a suffixed or marker pipeline_version or run_config (+..., unknown, ambiguous) never does (D30)"
+   },
+   "rows_per_cohort": {
+    "V": 50,
+    "V@rcA": 200,
+    "V@rcB": 200,
+    "no cohort": 100
+   },
+   "version_card": {
+    "V": {
+     "cohort": {
+      "pipeline_version": "V",
+      "run_config": null
+     },
+     "scored_alphas": 50,
+     "version": "V"
+    },
+    "V+untracked": "ValueError: 'V+untracked' forms no cohort: a suffixed or marker pipeline_version or run_config (+..., unknown, ambiguous) never does (D30)",
+    "V@ambiguous": "ValueError: 'V@ambiguous' forms no cohort: a suffixed or marker pipeline_version or run_config (+..., unknown, ambiguous) never does (D30)",
+    "V@rcA": {
+     "cohort": {
+      "pipeline_version": "V",
+      "run_config": "rcA"
+     },
+     "scored_alphas": 200,
+     "version": "V@rcA"
+    },
+    "ambiguous": "ValueError: 'ambiguous' forms no cohort: a suffixed or marker pipeline_version or run_config (+..., unknown, ambiguous) never does (D30)"
+   }
+  },
+  "compare": {
+   "better": {
+    "arms": {
+     "v04": {
+      "clearing_every_binding_check": 4,
+      "exact_95_per_1000": [
+       5.449,
+       51.208
+      ],
+      "per_1000": 20.0,
+      "scored_alphas": 200
+     },
+     "v16": {
+      "clearing_every_binding_check": 16,
+      "exact_95_per_1000": [
+       45.727,
+       129.915
+      ],
+      "per_1000": 80.0,
+      "scored_alphas": 200
+     }
+    },
+    "calendar_gap_days": 2,
+    "estimand": "alphas clearing EVERY binding check per 1,000 scored alphas",
+    "minimum_detectable_ratio": {
+     "decrease": 0.074,
+     "increase": 2.783
+    },
+    "p_value": 0.01182,
+    "rate_ratio_b_over_a": 4.0,
+    "submission_reading": {
+     "v04": "censored",
+     "v16": "final"
+    },
+    "verdict": "better"
+   },
+   "indistinguishable": {
+    "arms": {
+     "v14": {
+      "clearing_every_binding_check": 14,
+      "exact_95_per_1000": [
+       38.27,
+       117.448
+      ],
+      "per_1000": 70.0,
+      "scored_alphas": 200
+     },
+     "v16": {
+      "clearing_every_binding_check": 16,
+      "exact_95_per_1000": [
+       45.727,
+       129.915
+      ],
+      "per_1000": 80.0,
+      "scored_alphas": 200
+     }
+    },
+    "calendar_gap_days": 7,
+    "estimand": "alphas clearing EVERY binding check per 1,000 scored alphas",
+    "minimum_detectable_ratio": {
+     "decrease": 0.191,
+     "increase": 2.366
+    },
+    "p_value": 0.85554,
+    "rate_ratio_b_over_a": 0.875,
+    "submission_reading": {
+     "v14": "censored",
+     "v16": "final"
+    },
+    "verdict": "indistinguishable"
+   },
+   "no_data": {
+    "arms": {
+     "never_stamped": {
+      "clearing_every_binding_check": 0,
+      "exact_95_per_1000": null,
+      "per_1000": null,
+      "scored_alphas": 0
+     },
+     "v16": {
+      "clearing_every_binding_check": 16,
+      "exact_95_per_1000": [
+       45.727,
+       129.915
+      ],
+      "per_1000": 80.0,
+      "scored_alphas": 200
+     }
+    },
+    "estimand": "alphas clearing EVERY binding check per 1,000 scored alphas",
+    "verdict": "no-data"
+   },
+   "worse": {
+    "arms": {
+     "v04": {
+      "clearing_every_binding_check": 4,
+      "exact_95_per_1000": [
+       5.449,
+       51.208
+      ],
+      "per_1000": 20.0,
+      "scored_alphas": 200
+     },
+     "v16": {
+      "clearing_every_binding_check": 16,
+      "exact_95_per_1000": [
+       45.727,
+       129.915
+      ],
+      "per_1000": 80.0,
+      "scored_alphas": 200
+     }
+    },
+    "calendar_gap_days": 2,
+    "estimand": "alphas clearing EVERY binding check per 1,000 scored alphas",
+    "minimum_detectable_ratio": {
+     "decrease": 0.074,
+     "increase": 2.783
+    },
+    "p_value": 0.01182,
+    "rate_ratio_b_over_a": 0.25,
+    "submission_reading": {
+     "v04": "censored",
+     "v16": "final"
+    },
+    "verdict": "worse"
+   }
+  },
+  "compare_arms": {
+   "cells_disagree": {
+    "arms": {
+     "composites": [
+      10,
+      500
+     ],
+     "gen": [
+      30,
+      500
+     ]
+    },
+    "cells": {
+     "EUR/d1": "B lower",
+     "USA/d1": "B higher"
+    },
+    "events_outside_shared_strata": 0,
+    "p_value": 0.00222,
+    "rate_ratio_b_over_a": 3.0,
+    "shared_days": 5,
+    "verdict": "indistinguishable"
+   },
+   "five_shared_days": {
+    "arms": {
+     "composites": [
+      5,
+      500
+     ],
+     "gen": [
+      20,
+      500
+     ]
+    },
+    "cells": {
+     "USA/d1": "B higher"
+    },
+    "events_outside_shared_strata": 0,
+    "p_value": 0.00408,
+    "rate_ratio_b_over_a": 4.0,
+    "shared_days": 5,
+    "verdict": "better"
+   },
+   "four_shared_days": {
+    "arms": {
+     "composites": [
+      4,
+      400
+     ],
+     "gen": [
+      16,
+      400
+     ]
+    },
+    "cells": {
+     "USA/d1": "B higher"
+    },
+    "events_outside_shared_strata": 0,
+    "p_value": 0.01182,
+    "rate_ratio_b_over_a": 4.0,
+    "shared_days": 4,
+    "verdict": "withheld"
+   },
+   "older_ab_arms_only": {
+    "arms": {
+     "composites": [
+      0,
+      0
+     ],
+     "gen": [
+      0,
+      0
+     ]
+    },
+    "verdict": "no-data"
+   },
+   "placebo_day_heterogeneous": {
+    "arms": {
+     "composites": [
+      6,
+      360
+     ],
+     "gen": [
+      33,
+      360
+     ]
+    },
+    "cells": {
+     "USA/d1": "B higher"
+    },
+    "events_outside_shared_strata": 0,
+    "p_value": 1.0,
+    "rate_ratio_b_over_a": 1.1,
+    "shared_days": 6,
+    "verdict": "indistinguishable"
+   },
+   "within_day_effect": {
+    "arms": {
+     "composites": [
+      6,
+      600
+     ],
+     "gen": [
+      24,
+      600
+     ]
+    },
+    "cells": {
+     "USA/d1": "B higher"
+    },
+    "events_outside_shared_strata": 0,
+    "minimum_detectable_ratio": {
+     "base_per_1000_by_cell": {
+      "USA/d1": 10.0
+     },
+     "decrease": null,
+     "increase": 3.513,
+     "note": null
+    },
+    "p_value": 0.00143,
+    "rate_ratio_b_over_a": 4.0,
+    "shared_days": 6,
+    "verdict": "better"
+   }
+  },
+  "compare_within_cell": {
+   "a_cell_one_arm_never_scored": {
+    "cells": {
+     "ASI/d1": [
+      [
+       1,
+       100
+      ],
+      [
+       0,
+       0
+      ],
+      "one arm only"
+     ],
+     "USA/d1": [
+      [
+       20,
+       1000
+      ],
+      [
+       60,
+       1000
+      ],
+      "B higher"
+     ]
+    },
+    "p_value": 1e-05,
+    "pooled": {
+     "decides": false,
+     "p_value": 0.0,
+     "rate_ratio_b_over_a": 3.143
+    },
+    "rate_ratio_b_over_a": 3.0,
+    "verdict": "indistinguishable"
+   },
+   "cells_agree": {
+    "cells": {
+     "EUR/d1": [
+      [
+       2,
+       1000
+      ],
+      [
+       8,
+       1000
+      ],
+      "B higher"
+     ],
+     "USA/d1": [
+      [
+       20,
+       1000
+      ],
+      [
+       60,
+       1000
+      ],
+      "B higher"
+     ]
+    },
+    "p_value": 0.0,
+    "pooled": {
+     "decides": false,
+     "p_value": 0.0,
+     "rate_ratio_b_over_a": 3.091
+    },
+    "rate_ratio_b_over_a": 3.091,
+    "verdict": "better"
+   },
+   "cells_disagree": {
+    "cells": {
+     "EUR/d1": [
+      [
+       50,
+       1000
+      ],
+      [
+       20,
+       1000
+      ],
+      "B lower"
+     ],
+     "USA/d1": [
+      [
+       100,
+       1000
+      ],
+      [
+       200,
+       1000
+      ],
+      "B higher"
+     ]
+    },
+    "p_value": 0.00032,
+    "pooled": {
+     "decides": false,
+     "p_value": 0.00032,
+     "rate_ratio_b_over_a": 1.467
+    },
+    "rate_ratio_b_over_a": 1.467,
+    "verdict": "indistinguishable"
+   },
+   "simpson": {
+    "cells": {
+     "EUR/d1": [
+      [
+       9,
+       900
+      ],
+      [
+       0,
+       100
+      ],
+      "B lower"
+     ],
+     "USA/d1": [
+      [
+       10,
+       100
+      ],
+      [
+       81,
+       900
+      ],
+      "B lower"
+     ]
+    },
+    "p_value": 0.64229,
+    "pooled": {
+     "decides": false,
+     "p_value": 0.0,
+     "rate_ratio_b_over_a": 4.263
+    },
+    "rate_ratio_b_over_a": 0.818,
+    "verdict": "indistinguishable"
+   }
+  },
+  "dora": {
+   "degraded": {
+    "band": [
+     [
+      "DORA change-failure rate <= 15 %",
+      false
+     ],
+     [
+      "DORA deploys per week >= 1",
+      false
+     ],
+     [
+      "DORA time to restore <= 24 h",
+      false
+     ]
+    ],
+    "keys": {
+     "change_failure_rate": 0.333,
+     "deploys": 3,
+     "deploys_per_week": 0.75,
+     "status": "measured",
+     "time_to_restore_hours_median": 30.0
+    },
+    "scored": false,
+    "verdict_and_rank_equal_to_off": true
+   },
+   "healthy": {
+    "band": [
+     [
+      "DORA change-failure rate <= 15 %",
+      true
+     ],
+     [
+      "DORA deploys per week >= 1",
+      true
+     ],
+     [
+      "DORA time to restore <= 24 h",
+      true
+     ]
+    ],
+    "keys": {
+     "change_failure_rate": 0.1,
+     "deploys": 10,
+     "deploys_per_week": 2.5,
+     "status": "measured",
+     "time_to_restore_hours_median": 1.0
+    },
+    "scored": false,
+    "verdict_and_rank_equal_to_off": true
+   },
+   "off": {
+    "dora_block": false,
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-09",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 1.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "verdict": "FAIL"
+   },
+   "reshipped": {
+    "band": [
+     [
+      "DORA change-failure rate <= 15 %",
+      false
+     ],
+     [
+      "DORA deploys per week >= 1",
+      false
+     ]
+    ],
+    "keys": {
+     "change_failure_rate": 0.333,
+     "deploys": 3,
+     "deploys_per_week": 0.75,
+     "status": "measured",
+     "time_to_restore_hours_median": null
+    },
+    "scored": false,
+    "verdict_and_rank_equal_to_off": true
+   }
+  },
+  "exposure": {
+   "known": {
+    "A": true,
+    "B": true,
+    "C": false
+   },
+   "live_days": {
+    "A": [
+     "2026-09-02",
+     "2026-09-03",
+     "2026-09-04",
+     "2026-09-06",
+     "2026-09-07"
+    ],
+    "B": [
+     "2026-09-09",
+     "2026-09-10",
+     "2026-09-11"
+    ],
+    "C": []
+   },
+   "no_ledger_known": false,
+   "retired_version_graded_2026-09-26": {
+    "quota_days": 5,
+    "rate": 1.6
+   },
+   "retired_version_graded_2026-10-20": {
+    "quota_days": 5,
+    "rate": 1.6
+   }
+  },
+  "floors": {
+   "four_proven_and_one_unproven": {
+    "axis1": {
+     "floor_met": false,
+     "gate_coverage": 0.971,
+     "n": 5,
+     "status_counts": {
+      "proven": 4,
+      "unproven": 1
+     },
+     "value": 0.8
+    },
+    "axis2": {
+     "exposure": "1 whole ET quota day(s)",
+     "floor_met": true,
+     "poisson_95_per_day": [
+      1.09,
+      10.242
+     ],
+     "proven_clean_per_quota_day": 4.0,
+     "proven_clean_submissions": 4,
+     "quota_days": 1,
+     "refuted_submissions": 0,
+     "scored_alphas": 13,
+     "submissions_of_alphas_this_version_produced": 5,
+     "sustainable": "not evaluable",
+     "unproven_submissions": 1
+    },
+    "floors_unmet": [
+     "axis1_product"
+    ],
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 4.0,
+     "refuted_or_unproven_submitted": 1,
+     "verdict": "FAIL"
+    },
+    "verdict": "FAIL",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": 1,
+     "since": "2026-09-18",
+     "until_exclusive": "2026-09-19"
+    }
+   },
+   "four_proven_axis3_six_of_seven": {
+    "axis1": {
+     "floor_met": true,
+     "gate_coverage": 1.0,
+     "n": 4,
+     "status_counts": {
+      "proven": 4
+     },
+     "value": 1.0
+    },
+    "axis2": {
+     "exposure": "1 whole ET quota day(s)",
+     "floor_met": true,
+     "poisson_95_per_day": [
+      1.09,
+      10.242
+     ],
+     "proven_clean_per_quota_day": 4.0,
+     "proven_clean_submissions": 4,
+     "quota_days": 1,
+     "refuted_submissions": 0,
+     "scored_alphas": 12,
+     "submissions_of_alphas_this_version_produced": 4,
+     "sustainable": "not evaluable",
+     "unproven_submissions": 0
+    },
+    "floors_unmet": [
+     "axis3_gearing"
+    ],
+    "rank": {
+     "axis3_held_fraction": 0.857,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 4.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "verdict": "FAIL",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": 1,
+     "since": "2026-09-18",
+     "until_exclusive": "2026-09-19"
+    }
+   },
+   "four_proven_in_one_day": {
+    "axis1": {
+     "floor_met": true,
+     "gate_coverage": 1.0,
+     "n": 4,
+     "status_counts": {
+      "proven": 4
+     },
+     "value": 1.0
+    },
+    "axis2": {
+     "exposure": "1 whole ET quota day(s)",
+     "floor_met": true,
+     "poisson_95_per_day": [
+      1.09,
+      10.242
+     ],
+     "proven_clean_per_quota_day": 4.0,
+     "proven_clean_submissions": 4,
+     "quota_days": 1,
+     "refuted_submissions": 0,
+     "scored_alphas": 12,
+     "submissions_of_alphas_this_version_produced": 4,
+     "sustainable": "not evaluable",
+     "unproven_submissions": 0
+    },
+    "floors_unmet": [],
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 4.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "PASS"
+    },
+    "verdict": "PASS",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": 1,
+     "since": "2026-09-18",
+     "until_exclusive": "2026-09-19"
+    }
+   },
+   "no_submission": {
+    "axis1": {
+     "floor_met": false,
+     "gate_coverage": null,
+     "n": 0,
+     "status_counts": {},
+     "value": 0.0
+    },
+    "axis2": {
+     "exposure": "1 whole ET quota day(s)",
+     "floor_met": false,
+     "poisson_95_per_day": [
+      0.0,
+      3.689
+     ],
+     "proven_clean_per_quota_day": 0.0,
+     "proven_clean_submissions": 0,
+     "quota_days": 1,
+     "refuted_submissions": 0,
+     "scored_alphas": 3,
+     "submissions_of_alphas_this_version_produced": 0,
+     "sustainable": false,
+     "unproven_submissions": 0
+    },
+    "floors_unmet": [
+     "axis1_product",
+     "axis2_throughput"
+    ],
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 0.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "verdict": "FAIL",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": 1,
+     "since": "2026-09-18",
+     "until_exclusive": "2026-09-19"
+    }
+   },
+   "three_proven_in_one_day": {
+    "axis1": {
+     "floor_met": true,
+     "gate_coverage": 1.0,
+     "n": 3,
+     "status_counts": {
+      "proven": 3
+     },
+     "value": 1.0
+    },
+    "axis2": {
+     "exposure": "1 whole ET quota day(s)",
+     "floor_met": false,
+     "poisson_95_per_day": [
+      0.619,
+      8.767
+     ],
+     "proven_clean_per_quota_day": 3.0,
+     "proven_clean_submissions": 3,
+     "quota_days": 1,
+     "refuted_submissions": 0,
+     "scored_alphas": 9,
+     "submissions_of_alphas_this_version_produced": 3,
+     "sustainable": "not evaluable",
+     "unproven_submissions": 0
+    },
+    "floors_unmet": [
+     "axis2_throughput"
+    ],
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 3.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "verdict": "FAIL",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": 1,
+     "since": "2026-09-18",
+     "until_exclusive": "2026-09-19"
+    }
+   },
+   "version_card_exposure_from_the_ledger": {
+    "axis1": {
+     "floor_met": true,
+     "gate_coverage": 1.0,
+     "n": 4,
+     "status_counts": {
+      "proven": 4
+     },
+     "value": 1.0
+    },
+    "axis2": {
+     "exposure": "1 whole ET quota day(s)",
+     "floor_met": true,
+     "poisson_95_per_day": [
+      1.09,
+      10.242
+     ],
+     "proven_clean_per_quota_day": 4.0,
+     "proven_clean_submissions": 4,
+     "quota_days": 1,
+     "refuted_submissions": 0,
+     "scored_alphas": 12,
+     "submissions_of_alphas_this_version_produced": 4,
+     "sustainable": "not evaluable",
+     "unproven_submissions": 0
+    },
+    "floors_unmet": [],
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": 4.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "PASS"
+    },
+    "verdict": "PASS",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": 1,
+     "since": "2026-09-18",
+     "until_exclusive": "2026-09-19"
+    }
+   },
+   "version_card_exposure_unknown": {
+    "axis1": {
+     "floor_met": true,
+     "gate_coverage": 1.0,
+     "n": 4,
+     "status_counts": {
+      "proven": 4
+     },
+     "value": 1.0
+    },
+    "axis2": {
+     "exposure": "exposure unknown",
+     "floor_met": false,
+     "poisson_95_per_day": null,
+     "proven_clean_per_quota_day": null,
+     "proven_clean_submissions": 4,
+     "quota_days": null,
+     "refuted_submissions": 0,
+     "scored_alphas": 12,
+     "submissions_of_alphas_this_version_produced": 4,
+     "sustainable": "not evaluable",
+     "unproven_submissions": 0
+    },
+    "floors_unmet": [
+     "axis2_throughput"
+    ],
+    "rank": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": false,
+     "proven_clean_per_quota_day": null,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "verdict": "FAIL",
+    "window": {
+     "excluded_unfinished_day": "2026-09-19",
+     "quota_days": null,
+     "since": null,
+     "until_exclusive": "2026-09-19"
+    }
+   }
+  },
+  "generated_alpha": {
+   "ledger_not_read": {
+    "gen_another_formulas_row_beside_its_own": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_earliest_row_decides": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_every_decidable_gate_true": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_g5_false": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_g6_unset": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_malformed_gate_value": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_no_meaning_row": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_only_another_formulas_row": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_row_scored_after_the_clock": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_row_scored_before_creation": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_tie_first_in_file_decides": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "meaning.jsonl was not read",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "library_composite": {
+     "g1_g3": null,
+     "gate": true,
+     "graded_row_sha_is_its_own": null,
+     "note": null,
+     "route": "library composite: load_standard",
+     "status": "proven"
+    }
+   },
+   "ledger_read": {
+    "gen_another_formulas_row_beside_its_own": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": false,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "refuted"
+    },
+    "gen_earliest_row_decides": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": false,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "refuted"
+    },
+    "gen_every_decidable_gate_true": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": true,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "proven"
+    },
+    "gen_g5_false": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": false,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "refuted"
+    },
+    "gen_g6_unset": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_malformed_gate_value": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_no_meaning_row": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "no meaning row for this alpha's own formula (formula_sha), scored after its creation and by the grading clock (meaning_index)",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_only_another_formulas_row": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "no meaning row for this alpha's own formula (formula_sha), scored after its creation and by the grading clock (meaning_index)",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_row_scored_after_the_clock": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "no meaning row for this alpha's own formula (formula_sha), scored after its creation and by the grading clock (meaning_index)",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_row_scored_before_creation": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": null,
+     "graded_row_sha_is_its_own": null,
+     "note": "no meaning row for this alpha's own formula (formula_sha), scored after its creation and by the grading clock (meaning_index)",
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "unproven"
+    },
+    "gen_tie_first_in_file_decides": {
+     "g1_g3": "G1-G3 UNMEASURED: not applicable to a generated alpha (D39)",
+     "gate": false,
+     "graded_row_sha_is_its_own": true,
+     "note": null,
+     "route": "generated (D39): state/forge/meaning.jsonl",
+     "status": "refuted"
+    },
+    "library_composite": {
+     "g1_g3": null,
+     "gate": true,
+     "graded_row_sha_is_its_own": null,
+     "note": null,
+     "route": "library composite: load_standard",
+     "status": "proven"
+    }
+   }
+  },
+  "input_layer": {
+   "axis1": {
+    "floor_met": false,
+    "gate_coverage": 0.929,
+    "n": 4,
+    "status_counts": {
+     "proven": 1,
+     "refuted": 1,
+     "unproven": 2
+    },
+    "value": 0.25
+   },
+   "axis2": {
+    "exposure": "8 whole ET quota day(s)",
+    "floor_met": false,
+    "poisson_95_per_day": [
+     0.003,
+     0.696
+    ],
+    "proven_clean_per_quota_day": 0.125,
+    "proven_clean_submissions": 1,
+    "quota_days": 8,
+    "refuted_submissions": 1,
+    "scored_alphas": 13,
+    "submissions_of_alphas_this_version_produced": 4,
+    "sustainable": false,
+    "unproven_submissions": 2
+   },
+   "data_through_et": "2026-09-18T16:00:00-04:00",
+   "excluded_uncovered_day": "2026-09-18",
+   "exposure": {
+    "excluded_run_config_days": [],
+    "known": true,
+    "unknown_days": []
+   },
+   "floors_unmet": [
+    "axis1_product",
+    "axis2_throughput"
+   ],
+   "gaps": [
+    "DORA is unmeasured: fewer than two recorded deploys.",
+    "Axis 1's regime gate needs each submitted alpha's PnL curve; 1 of 6 accepted alpha(s) have none in <miniature>/state/pnl_curves on this host and read UNMEASURED: in_old_post"
+   ],
+   "inputs": {
+    "accepted_posts": 6,
+    "corr": 7,
+    "curves": 5,
+    "data_through": 1789761600.0,
+    "deploys": 1,
+    "history": 8,
+    "last_post_day": "2026-09-18",
+    "last_row_day": "2026-09-18",
+    "meaning": 6,
+    "rows": 17,
+    "run_config_log": 2,
+    "scored": 7,
+    "scored_rows": 17,
+    "standard": 0
+   },
+   "per_alpha": {
+    "in_climb_post": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": null,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "unproven"
+    },
+    "in_last_row_fails": {
+     "gates": {
+      "all_binding_pass": false,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "refuted"
+    },
+    "in_old_post": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": null
+     },
+     "status": "unproven"
+    },
+    "in_proven": {
+     "gates": {
+      "all_binding_pass": true,
+      "corr_under_lines": true,
+      "dsr_ge_095": true,
+      "hypothesis_standard_8of8": true,
+      "neighbourhood_stable": true,
+      "pbo_pass": true,
+      "regime_stable": true
+     },
+     "status": "proven"
+    }
+   },
+   "posted_beyond_the_horizon": [],
+   "rank": {
+    "axis3_held_fraction": 1.0,
+    "comparable_from_et": "2026-09-29",
+    "horizon_final": false,
+    "proven_clean_per_quota_day": 0.125,
+    "refuted_or_unproven_submitted": 3,
+    "verdict": "FAIL"
+   },
+   "verdict": "FAIL",
+   "window": {
+    "excluded_unfinished_day": "2026-09-19",
+    "quota_days": 8,
+    "since": "2026-09-10",
+    "until_exclusive": "2026-09-18"
+   }
+  },
+  "neighbour_pool": {
+   "date_card": {
     "gates": {
      "all_binding_pass": true,
      "corr_under_lines": true,
      "dsr_ge_095": true,
      "hypothesis_standard_8of8": true,
-     "neighbourhood_stable": true,
-     "pbo_pass": true,
-     "regime_not_one_sided": true
-    },
-    "status": "proven"
-   },
-   "R1": {
-    "gates": {
-     "all_binding_pass": true,
-     "corr_under_lines": true,
-     "dsr_ge_095": true,
-     "hypothesis_standard_8of8": false,
      "neighbourhood_stable": false,
      "pbo_pass": true,
-     "regime_not_one_sided": false
+     "regime_stable": true
     },
     "status": "refuted"
    },
-   "U1": {
+   "version_card_VA": {
     "gates": {
      "all_binding_pass": true,
      "corr_under_lines": true,
@@ -34,32 +1755,465 @@
      "hypothesis_standard_8of8": true,
      "neighbourhood_stable": null,
      "pbo_pass": true,
-     "regime_not_one_sided": null
+     "regime_stable": true
     },
     "status": "unproven"
    }
   },
-  "status_counts": {
-   "proven": 1,
-   "refuted": 1,
-   "unproven": 1
+  "post_horizon": {
+   "graded_2026-09-06": {
+    "graded_by_axis1": [
+     "posted_same_day",
+     "posted_twice"
+    ],
+    "post_horizon": {
+     "comparable_from_et": "2026-09-16",
+     "days": 14,
+     "final": false,
+     "final_after_et": "2026-09-16T00:00-04:00",
+     "newest_day": "2026-09-01",
+     "posts_without_a_time": 2,
+     "seen_until": 1788710400.0,
+     "seen_until_et": "2026-09-06T12:00-04:00"
+    },
+    "posted_beyond_the_horizon": [],
+    "rank_level_1": 2,
+    "submissions": 2
+   },
+   "graded_2026-09-25": {
+    "graded_by_axis1": [
+     "posted_14_days_and_1_hour",
+     "posted_after_20_days",
+     "posted_after_the_first_now",
+     "posted_at_exactly_14_days",
+     "posted_same_day",
+     "posted_twice"
+    ],
+    "post_horizon": {
+     "comparable_from_et": "2026-09-16",
+     "days": 14,
+     "final": true,
+     "final_after_et": "2026-09-16T00:00-04:00",
+     "newest_day": "2026-09-01",
+     "posts_without_a_time": 2,
+     "seen_until": 1790352000.0,
+     "seen_until_et": "2026-09-25T12:00-04:00"
+    },
+    "posted_beyond_the_horizon": [
+     "posted_14_days_and_1_hour",
+     "posted_after_20_days"
+    ],
+    "rank_level_1": 6,
+    "submissions": 4
+   }
   },
-  "value": 0.5
+  "rank": {
+   "best_first": [
+    "PPP",
+    "P",
+    "P, axis 3 six of seven",
+    "nothing submitted",
+    "P, exposure unknown",
+    "PPP+R",
+    "P+U",
+    "U"
+   ],
+   "levels": {
+    "P": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-06",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 0.5,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "P+U": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-07",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 0.5,
+     "refuted_or_unproven_submitted": 1,
+     "verdict": "FAIL"
+    },
+    "P, axis 3 six of seven": {
+     "axis3_held_fraction": 0.857,
+     "comparable_from_et": "2026-10-06",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 0.5,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "P, exposure unknown": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-06",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": null,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "PPP": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-07",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 1.5,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "PPP+R": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-07",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 1.5,
+     "refuted_or_unproven_submitted": 1,
+     "verdict": "FAIL"
+    },
+    "U": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-06",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 0.0,
+     "refuted_or_unproven_submitted": 1,
+     "verdict": "FAIL"
+    },
+    "nothing submitted": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-06",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 0.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    }
+   },
+   "rank_cmp": {
+    "P vs P+U": -1,
+    "P, axis 3 six of seven vs P": 1,
+    "P, exposure unknown vs P, axis 3 six of seven": 1,
+    "P, exposure unknown vs PPP+R": -1,
+    "PPP vs P": -1,
+    "PPP+R vs P": 1,
+    "U vs P, exposure unknown": 1,
+    "U vs nothing submitted": 1,
+    "nothing submitted vs P, exposure unknown": -1
+   },
+   "rank_key_agrees_with_rank_cmp": true,
+   "verdicts": {
+    "P": "FAIL",
+    "P+U": "FAIL",
+    "P, axis 3 six of seven": "FAIL",
+    "P, exposure unknown": "FAIL",
+    "PPP": "FAIL",
+    "PPP+R": "FAIL",
+    "U": "FAIL",
+    "nothing submitted": "FAIL"
+   }
+  },
+  "rank_open_horizon": {
+   "final": {
+    "comparable_from_et": "2026-10-06",
+    "horizon_final": true,
+    "rank_key": [
+     1,
+     0,
+     -0.5,
+     -1.0
+    ]
+   },
+   "late_clock_early_cut": {
+    "comparable_from_et": "2026-10-06",
+    "horizon_final": false,
+    "rank_key": "NotComparable: not ranked (D27): the card's POST horizon is not final at its seen_until; it is comparable from 2026-10-06 ET, graded with data and a clock at or after 00:00 ET that day"
+   },
+   "open": {
+    "comparable_from_et": "2026-10-06",
+    "horizon_final": false,
+    "rank_key": "NotComparable: not ranked (D27): the card's POST horizon is not final at its seen_until; it is comparable from 2026-10-06 ET, graded with data and a clock at or after 00:00 ET that day"
+   },
+   "rank_cmp_open_vs_final": "NotComparable: not ranked (D27): the card's POST horizon is not final at its seen_until; it is comparable from 2026-10-06 ET, graded with data and a clock at or after 00:00 ET that day"
+  },
+  "regime": {
+   "consistent": {
+    "labels": [
+     "winning",
+     "winning",
+     "winning"
+    ],
+    "verdict": "consistent",
+    "winning_thirds": 3
+   },
+   "curve_of_299_points": {
+    "verdict": "unmeasured"
+   },
+   "curve_of_300_points": {
+    "verdict": "consistent"
+   },
+   "flat_flat_losing": {
+    "labels": [
+     "flat",
+     "flat",
+     "losing"
+    ],
+    "verdict": "negative-overall",
+    "winning_thirds": 0
+   },
+   "losing_third_curve_up": {
+    "labels": [
+     "winning",
+     "winning",
+     "losing"
+    ],
+    "verdict": "losing-third",
+    "winning_thirds": 2
+   },
+   "mixed_third_within_2_se": {
+    "labels": [
+     "winning",
+     "winning",
+     "flat"
+    ],
+    "verdict": "mixed",
+    "winning_thirds": 2
+   },
+   "negative_overall_no_losing_third": {
+    "labels": [
+     "flat",
+     "flat",
+     "flat"
+    ],
+    "verdict": "negative-overall",
+    "winning_thirds": 0
+   },
+   "one_regime": {
+    "labels": [
+     "winning",
+     "flat",
+     "flat"
+    ],
+    "verdict": "one-regime",
+    "winning_thirds": 1
+   },
+   "passing_verdicts": [
+    "consistent",
+    "mixed"
+   ]
+  },
+  "run_config_exposure": {
+   "V, no run_config": {
+    "exposure": {
+     "excluded_run_config_days": [],
+     "known": true,
+     "rows_outside_exposure": 0,
+     "unknown_days": []
+    },
+    "graded": [
+     "none_2026-09-11"
+    ],
+    "proven_clean_per_quota_day": 0.1,
+    "quota_days": 10,
+    "since": "2026-09-10"
+   },
+   "V@r1": {
+    "exposure": {
+     "excluded_run_config_days": [
+      "2026-09-14",
+      "2026-09-17"
+     ],
+     "known": true,
+     "rows_outside_exposure": 3,
+     "unknown_days": []
+    },
+    "graded": [
+     "r1_2026-09-10",
+     "r1_2026-09-13",
+     "r1_2026-09-14",
+     "r1_2026-09-18"
+    ],
+    "proven_clean_per_quota_day": 0.5,
+    "quota_days": 6,
+    "since": "2026-09-10"
+   },
+   "V@r1, no log read": {
+    "exposure": {
+     "excluded_run_config_days": [],
+     "known": false,
+     "rows_outside_exposure": null,
+     "unknown_days": []
+    },
+    "graded": [
+     "r1_2026-09-10",
+     "r1_2026-09-13",
+     "r1_2026-09-14",
+     "r1_2026-09-18"
+    ],
+    "proven_clean_per_quota_day": null,
+    "quota_days": null,
+    "since": null
+   },
+   "V@r2": {
+    "exposure": {
+     "excluded_run_config_days": [
+      "2026-09-14",
+      "2026-09-17"
+     ],
+     "known": true,
+     "rows_outside_exposure": 0,
+     "unknown_days": [
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-12",
+      "2026-09-13"
+     ]
+    },
+    "graded": [
+     "r2_2026-09-15"
+    ],
+    "proven_clean_per_quota_day": 0.5,
+    "quota_days": 2,
+    "since": "2026-09-15"
+   }
+  },
+  "sustainability": {
+   "next_window_has_a_proven_submission": {
+    "held_in_next_window": true,
+    "next_window": "1 proven clean submission(s) in the next window 2026-09-03..2026-09-03",
+    "sustainable": true
+   },
+   "next_window_has_only_a_refuted_submission": {
+    "held_in_next_window": false,
+    "next_window": "no proven clean submission in the next window 2026-09-03..2026-09-03",
+    "sustainable": false
+   },
+   "next_window_not_finished": {
+    "held_in_next_window": "not evaluable",
+    "next_window": "the next window 2026-09-03..2026-09-03 has not finished",
+    "sustainable": "not evaluable"
+   },
+   "next_window_unposted_and_its_horizon_open": {
+    "held_in_next_window": "not evaluable",
+    "next_window": "no proven clean submission yet in 2026-09-03..2026-09-03 and its POST horizon is still open at seen_until 2026-09-06T12:00-04:00 ET (D27)",
+    "sustainable": "not evaluable"
+   },
+   "nothing_ran_in_the_next_window": {
+    "held_in_next_window": "not evaluable",
+    "next_window": "no scored row in the next window 2026-09-03..2026-09-03: nothing ran",
+    "sustainable": "not evaluable"
+   }
+  },
+  "verdict_leads_rank": {
+   "best_first": [
+    "PASS",
+    "FAIL, better levels"
+   ],
+   "levels": {
+    "FAIL, better levels": {
+     "axis3_held_fraction": 0.857,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 5.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "FAIL"
+    },
+    "PASS": {
+     "axis3_held_fraction": 1.0,
+     "comparable_from_et": "2026-10-03",
+     "horizon_final": true,
+     "proven_clean_per_quota_day": 4.0,
+     "refuted_or_unproven_submitted": 0,
+     "verdict": "PASS"
+    }
+   },
+   "rank_cmp_pass_vs_fail": -1
+  },
+  "watch_rows": {
+   "dora": {
+    "change_failure_rate": 0.5,
+    "deploys": 4,
+    "deploys_per_week": 1.0,
+    "status": "measured",
+    "time_to_restore_hours_median": 71.0
+   },
+   "live_days": {
+    "V": [
+     "2026-09-10",
+     "2026-09-11",
+     "2026-09-13",
+     "2026-09-14"
+    ],
+    "W": [],
+    "X": [
+     "2026-09-16",
+     "2026-09-17"
+    ],
+    "Y": []
+   }
+  },
+  "window": {
+   "axis1": {
+    "floor_met": true,
+    "gate_coverage": 1.0,
+    "n": 2,
+    "status_counts": {
+     "proven": 2
+    },
+    "value": 1.0
+   },
+   "axis2": {
+    "exposure": "2 whole ET quota day(s)",
+    "floor_met": false,
+    "poisson_95_per_day": [
+     0.121,
+     3.612
+    ],
+    "proven_clean_per_quota_day": 1.0,
+    "proven_clean_submissions": 2,
+    "quota_days": 2,
+    "refuted_submissions": 0,
+    "scored_alphas": 6,
+    "submissions_of_alphas_this_version_produced": 2,
+    "sustainable": "not evaluable",
+    "unproven_submissions": 0
+   },
+   "floors_unmet": [
+    "axis2_throughput"
+   ],
+   "graded_submissions": [
+    "complete_row",
+    "warning_row"
+   ],
+   "posts_this_version_made": 2,
+   "rank": {
+    "axis3_held_fraction": 1.0,
+    "comparable_from_et": "2026-09-30",
+    "horizon_final": false,
+    "proven_clean_per_quota_day": 1.0,
+    "refuted_or_unproven_submitted": 0,
+    "verdict": "FAIL"
+   },
+   "verdict": "FAIL",
+   "window": {
+    "excluded_unfinished_day": "2026-09-16",
+    "quota_days": 2,
+    "since": "2026-09-14",
+    "until_exclusive": "2026-09-16"
+   }
+  }
  },
- "axis2": {
-  "clean_per_quota_day": 0.667,
-  "clean_submissions": 2,
-  "poisson_95_per_day": [
-   0.081,
-   2.408
-  ],
-  "posts_this_version_made": 3,
-  "quota_days": 3,
-  "scored_alphas": 8,
-  "sustainable": false
- },
- "composite_0_100": 25.8,
  "constants": {
+  "ARMS": [
+   "composites",
+   "gen"
+  ],
+  "ARMS_DESIGN": {
+   "alpha": 0.05,
+   "arms": "meta.arm 'composites' (A, the incumbent) against 'gen' (B, the branch), within ONE pipeline_version",
+   "decides": "better / worse only when (1) at least MIN_SHARED_DAYS whole ET days carry a stratum both arms scored in, (2) the test is significant at alpha, and (3) every CELL with an event in such a stratum points strictly the same way, a cell's direction being the sign of the sum over its shared strata of k_b - K n_b / (n_a + n_b); otherwise indistinguishable, or withheld under (1). Events in a stratum only one arm scored in are outside the test and are counted, never deciding",
+   "estimand": "alphas clearing EVERY binding check per 1,000 scored alphas",
+   "mdr": "the smallest ratio B/A that this decision -- test, direction rule and day minimum together -- reaches with power_for_mdr, on these strata's exposures at arm A's own rate per cell (not the pooled rate, round 3 m3)",
+   "power_for_mdr": 0.8,
+   "stratum": "(ET quota day, cell): a whole ET day before the one `now` and `data_through` fall in, and cell = <region>/d<delay> (D28)",
+   "test": "exact conditional test stratified by (day, cell): given each stratum's K = k_a + k_b, k_b ~ Binomial(K, n_b / (n_a + n_b)) under H0; T = sum of k_b over the strata both arms scored in, its null law the exact convolution of those binomials; two-sided p = min(1, 2 x the smaller tail) (stratified_rate_test_p). Conditioning on each day's total is what makes between-day variation cancel"
+  },
+  "ARMS_MDR_DRAWS": 400,
+  "ARMS_MDR_SEED": 20260923,
   "BINDING": [
    "LOW_SHARPE",
    "LOW_FITNESS",
@@ -69,31 +2223,187 @@
    "HIGH_TURNOVER",
    "LOW_TURNOVER"
   ],
+  "COMPARE_IS_NOT_GATE3": "NOT RULE 2 gate-3 evidence (round 3 F1; D47 superseded D33). Two versions run one after the other, so every ET day belongs to one arm and the between-day variation of the estimand lands in the comparison: within USA/d1 the dispersion across days was 11.34 on both the Mac and the host journal copies (95 % interval [5.4, 37.8]), and under NO version effect this read-out said better or worse in 0.49-0.56 of placebo draws (day-block bootstrap of the 9 real days: 0.488 at 7 days per arm, 0.501 at 14, 0.486 at 28), more days not reducing it. MECHANISM of the day-level variation: UNKNOWN. A branch is proven by compare_arms() on rounds randomised within each ET day.",
+  "CORR_LINE_DEFAULT": 0.7,
+  "CORR_UNDER_LINE": "lt",
+  "CURVE_POINTS_MIN": 300,
   "DORA_BAND": {
    "change_failure_rate_max": 0.15,
    "deploys_per_week_min": 1.0,
    "time_to_restore_hours_max": 24.0
   },
+  "DSR_MIN": 0.95,
+  "ESTIMAND": {
+   "alpha": 0.05,
+   "binding_checks": [
+    "LOW_SHARPE",
+    "LOW_FITNESS",
+    "LOW_SUB_UNIVERSE_SHARPE",
+    "IS_LADDER_SHARPE",
+    "CONCENTRATED_WEIGHT",
+    "HIGH_TURNOVER",
+    "LOW_TURNOVER"
+   ],
+   "decides": "better / worse only when the stratified test is significant at `alpha` AND every cell with at least one event was scored by both arms and points strictly the same way; otherwise indistinguishable. The pooled test is printed and never decides (D28)",
+   "denominator": "distinct alpha ids scored (status COMPLETE or WARNING, with a check set), created on a whole ET quota day before the day `now` falls in and before the day `data_through` falls in",
+   "interval": "exact Poisson (Garwood) 95 % on the count, exposure = scored alphas / 1,000",
+   "name": "alphas clearing EVERY binding check per 1,000 scored alphas",
+   "not_the_submission_count": "this is NOT the submission count: a submission also needs the correlation lines, the submitter and the 4-per-day cap, none of which this estimand sees",
+   "numerator": "distinct alpha ids whose check set reads PASS for every name in binding_checks",
+   "per": 1000,
+   "power_for_mdr": 0.8,
+   "stratum": "cell = <region>/d<delay> of the alpha's settings (D28)",
+   "test": "exact conditional test of two Poisson rates STRATIFIED BY CELL (D28): given each cell's K_c = k_ac + k_bc, k_bc ~ Binomial(K_c, n_bc / (n_ac + n_bc)) under H0; the statistic is the sum of k_bc over the cells both arms scored in, its null distribution the exact convolution of those binomials; two-sided p = min(1, 2 x the smaller tail)"
+  },
   "FLOOR": {
    "axis1_product": 1.0,
    "axis2_throughput": 4.0,
-   "axis3_gearing": 0.8
+   "axis3_gearing": 1.0
   },
-  "UNPROVEN_CREDIT": 0.5,
-  "WEIGHT": {
-   "axis1_product": 0.4,
-   "axis2_throughput": 0.4,
-   "axis3_gearing": 0.2
-  }
+  "GENERATED_PREFIX": "gen:",
+  "JOURNAL_KEEP": [
+   "alpha",
+   "status",
+   "dateCreated",
+   "formula",
+   "sharpe"
+  ],
+  "JOURNAL_KEEP_CHECK": [
+   "name",
+   "result",
+   "limit"
+  ],
+  "JOURNAL_KEEP_META": [
+   "pipeline_version",
+   "run_config",
+   "hypothesis",
+   "mechanism_key",
+   "arm",
+   "seed"
+  ],
+  "JOURNAL_KEEP_SETTINGS": [
+   "region",
+   "delay",
+   "universe",
+   "decay",
+   "neutralization",
+   "truncation"
+  ],
+  "MDR_MAX_EVENTS": 1000,
+  "MDR_MAX_RATIO": 10000.0,
+  "MEANING_DECIDABLE": [
+   "G4",
+   "G5",
+   "G6",
+   "G7",
+   "G8"
+  ],
+  "MEANING_NOT_APPLICABLE": [
+   "G1",
+   "G2",
+   "G3"
+  ],
+  "MIN_SHARED_DAYS": 5,
+  "MODULE_TEST_COVERAGE_MIN": 1.0,
+  "NEIGHBOURS_MIN": 2,
+  "NEIGHBOUR_RETENTION_MIN": 0.5,
+  "POST_HORIZON_DAYS": 14,
+  "RANK_ORDER": [
+   "refuted_or_unproven_submitted",
+   "proven_clean_per_quota_day",
+   "axis3_held_fraction"
+  ],
+  "REGIME_PASS": [
+   "consistent",
+   "mixed"
+  ],
+  "REGIME_SE_MULTIPLE": 2.0,
+  "SCORED_STATUS": [
+   "COMPLETE",
+   "WARNING"
+  ],
+  "STAMP_MARKERS": [
+   "unknown",
+   "ambiguous"
+  ],
+  "VERDICT_ORDER": {
+   "FAIL": 1,
+   "PASS": 0
+  },
+  "WATCH_KEEPS_RUNNING": [
+   "watch_ok",
+   "watch_timeout",
+   "watch_not_rolled_back"
+  ],
+  "WATCH_ROUND_FAILED": [
+   "watch_rolled_back",
+   "watch_rollback_failed",
+   "watch_units_down",
+   "watch_not_rolled_back"
+  ]
  },
- "floors_unmet": [
-  "axis1_product",
-  "axis2_throughput"
+ "fixture": "tools/ci_fixture.py",
+ "fixture_sha256": "e2feced075a64cf49252adc73d07df4b2923f0b2593e2de8fa7c8a1cb387eed0",
+ "scorer": "forge/offline/benchmark.py",
+ "scorer_closure": {
+  "fingerprint.py": "ab07fdfadbc9dc8de2773de4ee6c43eeb0aaaed9dd5a810580fc246e66420199",
+  "forge/__init__.py": "8412c976732674772090ad75c1a35ab046e182a3da79894be75a433df4d4208c",
+  "forge/allocate.py": "f93a62c300ba7abb356d76910cfb62e80408fd09856142d0fe5e5aa4cbc1f3ea",
+  "forge/cells.py": "416ab4f28ab12a00d9b1fd6a47459ef98f014c1c08971d3cfb2a541b66563598",
+  "forge/compose.py": "d8ebcde50b45bdcaf965cdb65ba8759c0534b9bbc40c990d89fbe8dffda7c40f",
+  "forge/dsr.py": "d7b3233a00ce991b80b2922779434b888b275bb0606a09ca2dc6af9ef455ccb9",
+  "forge/ensemble.py": "ea51af9f978f027fe42fcbeeccf6739f57e9a45a006196dc8a6ed3fcfca03c80",
+  "forge/factory.py": "ffffcb5bfaa360e5b842f67b6618384dff26f687c8f9ff0f158c197a4226e6a4",
+  "forge/gates.py": "1a40f7e2edd0bf82acef02e9959a9eda22e377a8e506753330ddc919de07523a",
+  "forge/grammar.py": "de28581dd58fe0c8d91860a99c7bef6f17d273039aeb8bec7e2b1f665d944485",
+  "forge/harvest.py": "95f2233dc8d4579d7e9a389d17df815cc18477914a4aff5df8e34bcbadd1baad",
+  "forge/hypotheses.py": "d62a0c784183129e7e9866e672783b7eb3d3e84ea5b0d82a20a31c9a3aa4a0c1",
+  "forge/labels.py": "075c2308aa17888f0e720d4c2efc57b67950990a182139ad8a00bed550e0a8a8",
+  "forge/novelty.py": "bf5f67b5bda72e0f3bd3071570d491fa437edbbf6c7700405ff36c10ffe2318e",
+  "forge/offline/benchmark.py": "b30d255cdc58eefffc8b4f62a42514cda5c9fee9800b8f307fcc3ae471fd880d",
+  "forge/offline/branch_drill.py": "433a936a91fb6dcdd5278bf8db531f948e107c798b6ac47d5feb2c05775ce419",
+  "forge/pbo.py": "f5220ad34e7db4d7733e56487743d7a4d89084d85868e0820963497fef34ec3c",
+  "forge/probe.py": "8f17af13a77196d91ae7d62a0d4b63e2789a062a55b29b8b904e39299cfa18ac",
+  "forge/runner.py": "d2e84b7032a0c423de4f4c3bf64b99d4f0b08387f872c8d9c3ddcefd5ddf0d0f",
+  "forge/score.py": "6538097fb6d172af2f44089b4d06e6dd425a5f845d2af0b8a7195a743f13af8c",
+  "forge/signature.py": "1ebc1c318a8f38b5dfe165e5862bb956780f0264352120627b5e3ae18e36ec8e",
+  "forge/standard.py": "2b17045feb4d92298a078ea3b006a745f7688521581e287eaa354ab579c65c79",
+  "forge/submit.py": "07df3bdfdd03cdf9c04cd32f9393dc01c1c088825101293132060093158eb692",
+  "forge/typed.py": "30d76259d569555c851ffd58b96c5e4c9150d0bc22b11e270f9ba77956fddb30",
+  "harness/guards.py": "7854574879a3e1f866c8a9d23c4d6d69be9dc260fae0de5342c4e819c47c3322",
+  "harness13/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harness13/crawl_fields.py": "86fb0e382fd0ae49ed5fd2fcf624cb654d0ae4094a0298d84adbe17c072f8b05",
+  "harness13/massgen/mg/simulate.py": "eeb765f4bb58b4f697c29a5aa5be15d5c5563a61c9c1ae568ab87b0c53c28730",
+  "operators.py": "cebe8cae32f9da2035fd4b75a24e772e250fad9e7e0101ba5ac98c14d8fe9583",
+  "tools/autoloop/driver.py": "bc4babd7830ea13389b22a388e25791002107a6473ca700b7d62ffee0d382302",
+  "tools/climb.py": "4727a524a79cd6d8682f44db8f83c43c61481e777d8edab1021896793946b827",
+  "tools/climb_submit.py": "25bee75a69e7055cc3117f12c37344872bdfe8f066ad4e8dfceac8804e0edf00",
+  "tools/crawl_fields.py": "019a600944dd9fe9987ad23c523c6a0ee1ba23a5f51b6f5a5f6faf334d706feb",
+  "tools/daily_budget.py": "9b766db1bcefff28a339b3c961cda64bc0fd514ad0626c0a56bea4d0c5daf306",
+  "tools/deploy.py": "7ff14dbc722ab6bfd4ed9e9c00b24c4e741f98fcde48146951c4335560926eb3",
+  "tools/fetch_prod_corr.py": "fbd154c0b5f0479f429df9f105d139762f85d98b0db76a4a954a570881f86948",
+  "tools/frameworks.py": "ce4aaac85dff79cae861a0aca32eefbdd049b983ba69feae8f6d7ad3fb9352b1",
+  "tools/funnel/gate_lib.py": "7e06a47119dfdf4c8444c2391c2768430f7cb062c71bedae3eb99143ec80cbee",
+  "tools/funnel/gates.py": "a0fab1de0205ee9041add2ec7167ebf0b006bd3f847e35811bef6a9cf3f67c13",
+  "tools/funnel/precheck_lib.py": "ebf999ed1f8a73a30d3207a86e12ca64aa9be7f7dbafc3c4447a89a69cf82445",
+  "tools/gap_2x2.py": "5b7f7d9e978703cab1d932f751cf26817b6ac8b0e21c2d770a1feb9e09020f1c",
+  "tools/layer_c.py": "b30425500d86244546a6812e71283ae4158a692db0cbba8510449b67b83ffa90",
+  "tools/layered_alpha.py": "d8b888d2ab04aecb9766c8ce99747aff896d889ba18ba24e224fb503942d4d6c",
+  "tools/layered_sim.py": "73b1205161039279640545cda3f9061774574ee7a2772ad34d11a2aa1a80fddb",
+  "tools/msgcat.py": "ae45dcd6639a7df41badb79863f43a93af80863fbb21553e821e1406545984fd",
+  "tools/notify_lint.py": "36f2d30a9dbb49d63dff7487af08c5987c08843681941fc90d11969c2a5794dc",
+  "tools/outbox.py": "0006b0fef7e0208464e2d569e2d9c40b351b2bc38d81af23bc26797b07093d52",
+  "tools/pool_gate.py": "7580ebccd0a2b5f9dac03d91a639b9255734a824ef8361d5f86ae71253060409",
+  "tools/self_corr_predict.py": "9778bdb02a62381a904df466a05e12856a66a0c90156bef2670e60668483fa00",
+  "tools/submit_alphas.py": "e4335403e42618a8f5da46331aa7814fc73a4ff42ffd10fdc23160ae5f0fbfa0",
+  "tools/submit_budget.py": "0507b2b8ff78bb2edb91e6fb35b11d655ee64247246fd308086516590f1c09cc"
+ },
+ "scorer_closure_import_roots": [
+  ".",
+  "tools",
+  "tools/autoloop",
+  "tools/funnel"
  ],
- "verdict": "FAIL",
- "window": {
-  "quota_days": 3,
-  "since": "2026-09-17",
-  "until_exclusive": "2026-09-20"
- }
+ "scorer_closure_unread": [],
+ "scorer_sha256": "b30d255cdc58eefffc8b4f62a42514cda5c9fee9800b8f307fcc3ae471fd880d"
 }

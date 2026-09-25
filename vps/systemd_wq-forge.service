@@ -1,3 +1,59 @@
+# D50 (Khoa, 2026-09-23): N and FORGE_ARGS live in /opt/wq/forge.env, which tools/deploy.py ships with the code
+# (PLAN: vps/forge.env), smokes and rolls back. EnvironmentFile= below makes systemd read that file too.
+# systemd.exec(5) on the host (systemd 259, read 2026-09-23): "Settings from these files override settings made with
+# Environment=", and the "-" prefix means a missing file is ignored. So:
+#   * with /opt/wq/forge.env present, its N and FORGE_ARGS win over the two Environment= lines below;
+#   * with it absent (a rollback to a tree from before D50), the Environment= lines are the fallback, and
+#     forge_loop.sh prints "=== D50: /opt/wq/forge.env is ABSENT ...". Keep them equal to vps/forge.env's FIRST
+#     shipped values -- the values the unit ran on 2026-09-23 (`systemctl show wq-forge -p Environment`) -- and never
+#     to its current ones: a fallback that follows forge.env would bring a flipped branch back after a rollback
+#     (round 3 S5). tools/tests/test_deploy.py pins them as literals.
+# forge_loop.sh sources /opt/wq/forge.env itself as well, so the file decides the standing loop's arguments even
+# before this edit is installed (a one-round caller, ROUNDS=1, keeps its own; see forge_loop.sh load_forge_env).
+#
+# D58 (Khoa, 2026-09-24): MemoryMax=3G, installed in the same attended edit as D50's EnvironmentFile=.
+#   WHY A LIMIT (round 4 S4): the planner reads the whole journal, about 17 KB per distinct alpha (measured two ways
+#   there), and wq-forge had MemoryMax=infinity. Read-only on the host 2026-09-24: MemoryPeak 1,521,418,240 bytes
+#   (1,451 MiB) since the unit started on 2026-09-23 13:30:04 +07 (NRestarts=0); 7,376 MiB of RAM, 1,135 MiB used
+#   with the loop asleep (MemoryCurrent 35 MB), 2,047 MiB of swap; OOMPolicy=stop, the host's DefaultOOMPolicy.
+#   WHY 3G (3,221,225,472 bytes = 3,072 MiB): the largest whole-GiB value at which this cap, wq-judge's MemoryMax=3G
+#   and the base use still fit in RAM without swap: 3,072 + 3,072 + 1,135 = 7,279 MiB of 7,376, 97 MiB to spare
+#   (wq-judge runs at 00:30 ET, when the loop has just woken from its quota sleep, so the two can run together).
+#   The exact ceiling was 7,376 - 3,072 - 1,135 = 3,169 MiB, and the base use moves: a second read-only `free -m` the
+#   same morning read 1,140 MiB used, 92 MiB to spare. It is 2.1x today's peak. On
+#   round 4's straight line (+85 MB of planner peak per full-quota day; a projection, not an observation) the peak
+#   reaches it in about (3,221 - 1,521) / 85 = 20 full-quota days; the code half of D58 (a journal read with bounded
+#   memory) is what removes the growth, not this line.
+#   WHAT HAPPENS AT THE CAP (EX-ANTE, systemd.resource-control(5) and systemd.service(5); not observed on the host):
+#   when the unit's memory cannot be reclaimed below it, the kernel OOM-kills a process inside wq-forge; with
+#   OOMPolicy=stop systemd then stops the whole unit, forge_loop.sh included, and Restart=always starts it again after
+#   RestartSec=60. The loop fails inside its own unit and stays visible (`systemctl show wq-forge -p Result` reads
+#   oom-kill), instead of taking memory from wq-harvest, the judge and sshd. forge_loop.sh's own D58 back-off runs
+#   only when the loop outlives a kill. OOMPolicy is NOT set here: round 4 S4 names the policy as changing the loop's
+#   failure mode and D58 ticked MemoryMax alone, so the host's default (stop) stays until Khoa ticks otherwise.
+#
+# ONE-TIME ATTENDED INSTALL -- by hand, by the release owner, never by tools/deploy.py (D30: deploy does not touch
+# /etc/systemd). Order matters: the file must be on the host before the unit reads it, and the unit must be
+# restarted at a round boundary, as a push does it.
+#   1. ship the code:             tools/deploy.py push   (puts /opt/wq/forge.env there; check with
+#                                 ssh root@160.25.88.163 'cat /opt/wq/forge.env')
+#   2. read what runs now:        ssh root@160.25.88.163 'systemctl cat wq-forge; systemctl show wq-forge -p Environment
+#                                   -p MemoryMax -p MemoryPeak -p OOMPolicy'   (keep the output: it is the UNDO)
+#   3. copy this file:            scp vps/systemd_wq-forge.service root@160.25.88.163:/etc/systemd/system/wq-forge.service
+#   4. check it, reload:          ssh root@160.25.88.163 'systemd-analyze verify /etc/systemd/system/wq-forge.service &&
+#                                   systemctl daemon-reload && systemctl show wq-forge -p EnvironmentFiles -p MemoryMax'
+#                                 (EnvironmentFiles must name /opt/wq/forge.env with "(ignore_errors=yes)", and
+#                                 MemoryMax must read 3221225472)
+#   5. restart at a round boundary, as tools/deploy.py quiesce does (vps/c11_run.sh's sequence): stop, THEN remove
+#      STOP_FORGE, then start (draw5_build release MINOR 7: this step restarted the unit before removing STOP_FORGE,
+#      so the new loop could read it and end at once):
+#                                 ssh root@160.25.88.163 'cd /opt/wq && touch state/STOP_FORGE &&
+#                                   while pgrep -f "forge/[a-z0-9_/]+\.py" >/dev/null; do sleep 2; done;
+#                                   systemctl stop wq-forge; rm -f state/STOP_FORGE; systemctl start wq-forge'
+#   6. confirm:                   ssh root@160.25.88.163 'grep "=== D50:" /opt/wq/state/forge/loop.log | tail -n 1;
+#                                   systemctl show wq-forge -p ActiveState -p MemoryMax -p MemoryCurrent'
+# UNDO: copy back the unit read in step 2, `systemctl daemon-reload`, restart as in step 5. forge_loop.sh still
+# sources /opt/wq/forge.env without the EnvironmentFile= line; that is intended.
 [Unit]
 Description=wq forge loop — the redesigned miner (composites, USA/d1 first). Singleton by flock; never beside wq-climb.
 After=network-online.target
@@ -8,6 +64,8 @@ WorkingDirectory=/opt/wq
 Environment=N=300
 Environment=ROUNDS=100000
 Environment="FORGE_ARGS=--mode composites --order USA/d1,d1 --no-split --delays 1 --ab new"
+EnvironmentFile=-/opt/wq/forge.env
+MemoryMax=3G
 ExecStart=/bin/bash /opt/wq/forge_loop.sh
 Restart=always
 RestartSec=60

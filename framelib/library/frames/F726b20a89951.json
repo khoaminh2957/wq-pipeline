@@ -1,0 +1,209 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(subtract(ts_corr(ts_delay(ts_backfill($1,20),1),returns,250),group_neutralize(ts_corr(ts_delay(ts_backfill($1,20),1),returns,250),industry)),0),rank(ts_backfill($1,20)),subtract(1,rank(ts_backfill($1,20))))",
+ "characteristics": {
+  "combiner": "SWITCH",
+  "condition_input": "MIXED",
+  "conditioning": "IF_ELSE",
+  "depth": 7,
+  "economic_function": "LEVEL",
+  "family": "SWITCH.IF_ELSE.LEVEL",
+  "grouping": "TOKEN",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL",
+   "LEVEL"
+  ],
+  "max_window": 250,
+  "n_legs": 2,
+  "n_slots": 1,
+  "operators": [
+   "greater",
+   "group_neutralize",
+   "if_else",
+   "rank",
+   "subtract",
+   "ts_backfill",
+   "ts_corr",
+   "ts_delay"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [
+  "returns"
+ ],
+ "evidence": null,
+ "groups": [
+  "industry"
+ ],
+ "id": "F726b20a89951",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (c - group_neutralize(c, industry) = industry mean of c)"
+    },
+    "family": "self-calibrating",
+    "field": "template",
+    "function": "industry-pooled self-calibrating sign: the sign comes from the industry-mean trailing correlation",
+    "id": "NF17",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "a whole industry flips at once: industry-sized turnover spikes"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "pooling the correlation over an industry should flip less often than NF16"
+    },
+    "ref": "line 17",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 65838,
+      "role": "field of unknown direction",
+      "sign": [
+       "unstated"
+      ],
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 6,
+  "neutralization": "SUBINDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(subtract(ts_corr(ts_delay(ts_backfill($1,#),#),returns,#),group_neutralize(ts_corr(ts_delay(ts_backfill($1,#),#),returns,#),industry)),#),rank(ts_backfill($1,#)),subtract(#,rank(ts_backfill($1,#))))",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sign": [
+     "unstated"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "field of unknown direction",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(subtract(ts_corr(ts_delay(ts_backfill($1,20),1),returns,250),group_neutralize(ts_corr(ts_delay(ts_backfill($1,20),1),returns,250),industry)),0),rank(ts_backfill($1,20)),subtract(1,rank(ts_backfill($1,20))))",
+ "version": 1,
+ "windows": [
+  [
+   "ts_corr",
+   250
+  ],
+  [
+   "ts_delay",
+   1
+  ],
+  [
+   "ts_backfill",
+   20
+  ],
+  [
+   "ts_corr",
+   250
+  ],
+  [
+   "ts_delay",
+   1
+  ],
+  [
+   "ts_backfill",
+   20
+  ],
+  [
+   "ts_backfill",
+   20
+  ],
+  [
+   "ts_backfill",
+   20
+  ]
+ ]
+}

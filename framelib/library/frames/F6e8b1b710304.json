@@ -1,0 +1,183 @@
+{
+ "approval": null,
+ "canonical_key": "if_else(greater(rank(ts_regression(ts_backfill($1,60),ts_step(1),120,rettype=6)),0.5),rank(ts_regression(ts_zscore(ts_backfill($1,60),250),ts_step(1),120,rettype=2)),0.5)",
+ "characteristics": {
+  "combiner": "SINGLE",
+  "condition_input": "SLOT",
+  "conditioning": "IF_ELSE",
+  "depth": 5,
+  "economic_function": "CO_MOVEMENT",
+  "family": "SINGLE.IF_ELSE.CO_MOVEMENT",
+  "grouping": "NONE",
+  "horizon": "YEAR",
+  "leg_functions": [
+   "LEVEL"
+  ],
+  "max_window": 250,
+  "n_legs": 1,
+  "n_slots": 1,
+  "operators": [
+   "greater",
+   "if_else",
+   "rank",
+   "ts_backfill",
+   "ts_regression",
+   "ts_step",
+   "ts_zscore"
+  ],
+  "slot_kinds": "MATRIX*1",
+  "taxonomy_version": 1,
+  "turnover_class": "UNKNOWN"
+ },
+ "cond_fields": [],
+ "evidence": null,
+ "groups": [],
+ "id": "F6e8b1b710304",
+ "notes": "first-100 curator 2026-09-24: novel: every designer frame is kept (no performance evidence; a step-1 input, not a step-1 result). See docs/frames/11_first_100_frames.md. Status stays candidate: nothing here is measured live (RULE 2).",
+ "pinned": {},
+ "provenance": {
+  "built_at": "2026-09-24T08:00:00+00:00",
+  "built_by": "framelib.build v1",
+  "origin": "novel",
+  "sources": [
+   {
+    "computes": {
+     "label": "EX-ANTE",
+     "text": "EX-ANTE (ts_regression rettype 6 = R-squared)"
+    },
+    "family": "trend-estimation",
+    "field": "template",
+    "function": "trend-quality gate: trade the slope only where the fit R-squared is in the top half",
+    "id": "NF15",
+    "kind": "novel",
+    "path": "/private/tmp/claude-501/-Users-kanenguyen-Projects--worldquant-wq-pipeline/822757b8-b9d3-46ed-9802-93fbfbd128e6/scratchpad/frames/designer/novel_frames.jsonl",
+    "platform_risk": {
+     "label": "SPECULATION",
+     "text": "half the book sits at the neutral 0.5 constant, so the effective breadth halves"
+    },
+    "rationale": {
+     "label": "SPECULATION",
+     "text": "a steady trend is more likely to continue than a noisy one"
+    },
+    "ref": "line 15",
+    "sha256": "e8cdb27cfc103db762d515cc1bb1bf0ef7b70b3c9c688bf932791bb333d69efa",
+    "slots": [
+     {
+      "exclude_datasets": [
+       "pv1"
+      ],
+      "kind": [
+       "level",
+       "score",
+       "ratio",
+       "return",
+       "count",
+       "dispersion",
+       "days",
+       "coefficient"
+      ],
+      "pool_size_in_cell": 65838,
+      "role": "slow field",
+      "sign": [
+       "+"
+      ],
+      "slot": "$1",
+      "sparsity": [
+       "dense",
+       "medium",
+       "sparse"
+      ],
+      "structure": "MATRIX"
+     }
+    ]
+   }
+  ]
+ },
+ "schema_version": 1,
+ "settings": {
+  "decay": 4,
+  "neutralization": "INDUSTRY",
+  "source": "designer",
+  "truncation": 0.08,
+  "universe": {
+   "USA": "TOP3000"
+  }
+ },
+ "shape": "if_else(greater(rank(ts_regression(ts_backfill($1,#),ts_step(#),#,rettype=#)),#),rank(ts_regression(ts_zscore(ts_backfill($1,#),#),ts_step(#),#,rettype=#)),#)",
+ "slots": [
+  {
+   "constraints": {
+    "exclude_datasets": [
+     "pv1"
+    ],
+    "kind": [
+     "level",
+     "score",
+     "ratio",
+     "return",
+     "count",
+     "dispersion",
+     "days",
+     "coefficient"
+    ],
+    "sign": [
+     "+"
+    ],
+    "sparsity": [
+     "dense",
+     "medium",
+     "sparse"
+    ],
+    "structure": [
+     "MATRIX"
+    ]
+   },
+   "context": "MATRIX",
+   "positions": [
+    [
+     "ts_backfill",
+     0
+    ],
+    [
+     "ts_backfill",
+     0
+    ]
+   ],
+   "role": "slow field",
+   "slot": "$1"
+  }
+ ],
+ "status": "candidate",
+ "status_history": [
+  {
+   "at": "2026-09-24T08:00:00+00:00",
+   "by": "framelib.build v1",
+   "reason": "built",
+   "status": "candidate"
+  }
+ ],
+ "text": "if_else(greater(rank(ts_regression(ts_backfill($1,60),ts_step(1),120,rettype=6)),0.5),rank(ts_regression(ts_zscore(ts_backfill($1,60),250),ts_step(1),120,rettype=2)),0.5)",
+ "version": 1,
+ "windows": [
+  [
+   "ts_regression",
+   120
+  ],
+  [
+   "ts_backfill",
+   60
+  ],
+  [
+   "ts_regression",
+   120
+  ],
+  [
+   "ts_zscore",
+   250
+  ],
+  [
+   "ts_backfill",
+   60
+  ]
+ ]
+}
